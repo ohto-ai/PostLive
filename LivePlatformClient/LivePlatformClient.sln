@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30503.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LiveLoginUnit", "LiveLoginUnit\LiveLoginUnit.vcxproj", "{CDBDF49B-308F-4E71-A553-0C93684C2425}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CDBDF49B-308F-4E71-A553-0C93684C2425}.Debug|x64.ActiveCfg = Debug|x64
+		{CDBDF49B-308F-4E71-A553-0C93684C2425}.Debug|x64.Build.0 = Debug|x64
+		{CDBDF49B-308F-4E71-A553-0C93684C2425}.Release|x64.ActiveCfg = Release|x64
+		{CDBDF49B-308F-4E71-A553-0C93684C2425}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DD7B09D5-9174-4A5C-AEBD-94FCF03155DA}
+	EndGlobalSection
+EndGlobal
