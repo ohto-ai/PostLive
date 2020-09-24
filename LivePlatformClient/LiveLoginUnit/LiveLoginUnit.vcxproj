@@ -86,6 +86,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="TouchedLabel.cpp" />
     <ClCompile Include="utils.cpp">
       <SubType>
       </SubType>
@@ -97,6 +98,8 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="TimeStampToken.h" />
+    <QtMoc Include="TouchedLabel.h" />
     <ClInclude Include="utils.h">
       <SubType>
       </SubType>

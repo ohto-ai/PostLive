@@ -8,6 +8,10 @@
     <file>res/live.ico</file>
     <file>res/LIVE.png</file>
     <file>res/avatar-female.png</file>
+    <file>res/checkbox_checked.png</file>
+    <file>res/checkbox_unchecked.png</file>
+    <file>res/radiobutton-checked.png</file>
+    <file>res/radiobutton-unchecked.png</file>
     <file>res/pilipili-title-210x50.png</file>
     <file>res/pilipili-title.png</file>
     <file>res/avatar.png</file>
