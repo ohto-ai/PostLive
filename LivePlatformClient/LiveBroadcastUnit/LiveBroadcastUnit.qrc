@@ -1,8 +1,6 @@
 <RCC>
-  <qresource prefix="LiveLoginUnit">
-    <file>../res/password.png</file>
-    <file>../res/account.png</file>
-    <file>LiveLoginUnit.qrc</file>
+  <qresource prefix="LiveBroadcastUnit">
+    <file>LiveBroadcastUnit.qrc</file>
     <file>../res/avatar-mask.png</file>
     <file>../res/login-background.png</file>
     <file>../res/live.ico</file>
@@ -17,5 +15,8 @@
     <file>../res/avatar.png</file>
     <file>../res/pilipili-title-border.png</file>
     <file>../res/avatar-male.png</file>
+  </qresource>
+</RCC>
+
   </qresource>
 </RCC>

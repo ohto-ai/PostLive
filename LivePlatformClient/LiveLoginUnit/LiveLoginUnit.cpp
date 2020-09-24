@@ -178,9 +178,9 @@ void LiveLoginUnit::setAccountPasswordAcceptableInputCheck()
     connect(ui.passwordLineEdit, &QLineEdit::textChanged
         , this, &LiveLoginUnit::checkAccountPasswordAcceptableInput);
     ui.accountLineEdit->setValidator(new QRegExpValidator(
-        QRegExp{ R"(^[A-Za-z][A-Za-z0-9_-]{3,15}$)" }, this));
+        QRegExp{ thatboy::storage::RegexAccount }, this));
     ui.passwordLineEdit->setValidator(new QRegExpValidator(
-        QRegExp{ R"([A-Za-z0-9`~!@#$%^&*()=+?.:|/<>_-]{6,24}$)" }, this));
+        QRegExp{ thatboy::storage::RegexPassword }, this));
     checkAccountPasswordAcceptableInput();
 }
 

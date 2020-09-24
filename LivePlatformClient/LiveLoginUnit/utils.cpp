@@ -101,5 +101,6 @@ void thatboy::utils::saveConfig()
 
 nlohmann::json thatboy::storage::users;
 nlohmann::json thatboy::storage::config;
+nlohmann::json thatboy::storage::currentUser;
 bool thatboy::storage::pswdFromConfig{ false };
 httplib::Client thatboy::storage::accountVerifyClient{ "localhost",8080 };

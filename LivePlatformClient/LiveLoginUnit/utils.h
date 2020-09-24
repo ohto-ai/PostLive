@@ -46,7 +46,8 @@ namespace thatboy
 		};
 
 		extern httplib::Client accountVerifyClient;
-
+		constexpr auto RegexAccount{ R"(^[A-Za-z][A-Za-z0-9_-]{3,15}$)" };
+		constexpr auto RegexPassword{ R"(^[A-Za-z0-9._~!@#$^&*]{6,24}$)" };
 		constexpr auto ConfigFilePath{ "application.config" };
 		constexpr int LoginErrorLabelTime{ 8000 };
 
@@ -57,6 +58,8 @@ namespace thatboy
 		extern nlohmann::json users;
 
 		extern bool pswdFromConfig;
+
+		extern nlohmann::json currentUser;
 	}
 }
 using thatboy::TimeStampToken;
