@@ -90,6 +90,8 @@ Server
 }
 ```
 
+![](http://thatboy.info:5120/uploads/medium/6ace02fe577e2ddf8c8736cdf6965374.jpg)
+
 ### Query
 
 >   查询他人信息
@@ -150,6 +152,10 @@ Server
     ]
 }
 ```
+
+![](https://cdn.jsdelivr.net/gh/zhouhuan666/BlogAssets@0.11/SettingPic/avatar.JPG)
+
+![](http://thatboy.info:5120/uploads/big/41587179aa6f591b5abc2dbda3dd5a2d.png)
 
 ### Heartbeat
 
