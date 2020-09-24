@@ -71,8 +71,8 @@ Server
 
 ```json
 {
-	"account":"user",
-	"token":"4314C0A84B7E97588E7C35E055AC5070",
+    "account":"user",
+    "token":"4314C0A84B7E97588E7C35E055AC5070",
     "success":true,
     "type":"profile",
     "info":"",
