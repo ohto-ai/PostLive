@@ -68,17 +68,46 @@ void thatboy::to_json(nlohmann::json& j, const TimeStampToken& token)
     j["stamp"] = token.timeStamp;
 }
 
-void thatboy::utils::loadUsers()
+void thatboy::utils::loadUserData()
 {
     std::ifstream ifs(storage::config["user_list"].get<std::string>());
-    storage::users = nlohmann::json::parse(std::string{ (std::istreambuf_iterator<char>(ifs)),
+    storage::usersStorage = nlohmann::json::parse(std::string{ (std::istreambuf_iterator<char>(ifs)),
         (std::istreambuf_iterator<char>()) });    
+
+    // load avatars
+    QObject::connect(&storage::avatarDownloader, &AsyncDownloader::finished, [&](QString url, QString file, bool success)
+        {
+            if (success)
+                storage::userAvatarCache[QFileInfo(file).completeBaseName().toStdString()] = QPixmap{ file };            
+            emit storage::generalSignal.avatarDownloaded(QFileInfo(file).completeBaseName(), success);
+        });
+
+    for (std::string userName : storage::usersStorage["user_names"])
+    {
+        auto& avatar = storage::userAvatarCache[userName];
+        auto& user = storage::usersStorage["users"][userName];
+
+        if (!user.contains("avatar_file"))
+            user["avatar_file"] = "";
+        avatar = QPixmap{ user["avatar_file"] };
+        if (avatar.isNull())
+        {
+            user["avatar_file"] = QString::asprintf("user/avatar/%s.avatar", userName.c_str());
+            storage::avatarDownloader.download(user["avatar"] , user["avatar_file"]);
+        }
+    }
 }
 
-void thatboy::utils::saveUsers()
+void thatboy::utils::saveUserData()
 {
     std::ofstream ofs(storage::config["user_list"].get<std::string>());
-    ofs << storage::users.dump(4);
+    ofs << storage::usersStorage.dump(4);
+}
+
+QString thatboy::utils::generateMD5(QString str)
+{
+    return QCryptographicHash::hash(str.toUtf8()
+        , QCryptographicHash::Md5).toHex().toUpper();
 }
 
 thatboy::TimeStampToken thatboy::utils::generateTrustedToken(QString password)
@@ -99,9 +128,11 @@ void thatboy::utils::saveConfig()
     ofs << storage::config.dump(4);
 }
 
-nlohmann::json thatboy::storage::users;
+nlohmann::json thatboy::storage::usersStorage;
 nlohmann::json thatboy::storage::config;
 nlohmann::json thatboy::storage::currentUser;
-bool thatboy::storage::pswdFromConfig{ false };
+std::atomic_bool thatboy::storage::usingToken{ false }; 
 httplib::Client thatboy::storage::accountVerifyClient{ "localhost",8080 };
 std::map<std::string, QPixmap> thatboy::storage::userAvatarCache;
+AsyncDownloader thatboy::storage::avatarDownloader;
+GeneralSignal thatboy::storage::generalSignal;

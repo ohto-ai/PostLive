@@ -1,10 +1,30 @@
 {
-    "thatboy": {
-        "avatar":"https://i.loli.net/2020/09/25/YyGpnNmq5fCbEd6.png",
-        "avatar_file": "avatar-thatboy.png"
-    },
     "user_names": [
         "thatboy",
-        "peple"
-    ]
+        "jaychou",
+        "kongjh"
+    ],
+    "users": {
+        "jaychou": {
+            "avatar": "https://cdn.jsdelivr.net/gh/zhouhuan666/BlogAssets@0.11/SettingPic/avatar.JPG",
+            "avatar_file": "user/avatar/jaychou.avatar",
+            "pwmask": 7,
+            "remember_password": true,
+            "token": "B1DA45F6ECBB905F97DF62C7CDDB6128"
+        },
+        "kongjh": {
+            "avatar": "http://thatboy.info:5120/uploads/big/41587179aa6f591b5abc2dbda3dd5a2d.png",
+            "avatar_file": "user/avatar/kongjh.avatar",
+            "pwmask": 10,
+            "remember_password": false,
+            "token": "B1DA45F6ECBB905F97DF62C7CDDB6128"
+        },
+        "thatboy": {
+            "avatar": "https://i.loli.net/2020/09/25/YyGpnNmq5fCbEd6.png",
+            "avatar_file": "user/avatar/thatboy.avatar",
+            "pwmask": 12,
+            "remember_password": true,
+            "token": "B1DA45F6ECBB905F97DF62C7CDDB6128"
+        }
+    }
 }

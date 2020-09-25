@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <QFileInfo>
 #include <QPixmap>
 #include <QImage>
 #include <QBitmap>
@@ -11,6 +12,8 @@
 #include <json.hpp>
 #include <fstream>
 #include <httplib.h>
+#include "GeneralSignal.h"
+#include "AsyncDownloader.h"
 #include "TimeStampToken.h"
 
 namespace thatboy
@@ -28,8 +31,10 @@ namespace thatboy
 		
 		void loadConfig();
 		void saveConfig();
-		void loadUsers();
-		void saveUsers();
+		void loadUserData();
+		void saveUserData();
+
+		QString generateMD5(QString);
 
 		TimeStampToken generateTrustedToken(QString password);
 	}
@@ -56,11 +61,13 @@ namespace thatboy
 		extern httplib::Client accountVerifyClient;
 		extern std::map<std::string, QPixmap> userAvatarCache;
 		extern nlohmann::json config;
-		extern nlohmann::json users;
-
-		extern bool pswdFromConfig;
+		extern nlohmann::json usersStorage;
+		extern AsyncDownloader avatarDownloader;
+		extern std::atomic_bool usingToken;
 
 		extern nlohmann::json currentUser;
+
+		extern GeneralSignal generalSignal;
 	}
 }
 using thatboy::TimeStampToken;

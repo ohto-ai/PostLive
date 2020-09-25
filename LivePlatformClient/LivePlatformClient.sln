@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PilipiliLivePlatform", "Pil
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QtHttpDownloader", "QtHttpDownloader\QtHttpDownloader.vcxproj", "{3064A1C9-A44E-4CE2-92CB-245FBDA2B5FD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Proj4Test", "Proj4Test", "{8BB49D52-C5E4-4F2E-B41F-D5717B50DDCB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -56,6 +58,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CDBDF49B-308F-4E71-A553-0C93684C2425} = {8BB49D52-C5E4-4F2E-B41F-D5717B50DDCB}
+		{98228768-47B0-4212-9768-99D2CD3EE71A} = {8BB49D52-C5E4-4F2E-B41F-D5717B50DDCB}
+		{D1DC0ECD-0566-4C45-B028-AA68F77B828D} = {8BB49D52-C5E4-4F2E-B41F-D5717B50DDCB}
+		{3064A1C9-A44E-4CE2-92CB-245FBDA2B5FD} = {8BB49D52-C5E4-4F2E-B41F-D5717B50DDCB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DD7B09D5-9174-4A5C-AEBD-94FCF03155DA}

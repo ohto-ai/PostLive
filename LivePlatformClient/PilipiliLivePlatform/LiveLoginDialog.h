@@ -32,7 +32,6 @@ protected:
     void login();
     void saveDataBeforeLog();
     void touchCheatPassword();
-    void fillCheatPassword();
     void applyConfig();
     void setAvatar();
     void setAccountCompleter();
