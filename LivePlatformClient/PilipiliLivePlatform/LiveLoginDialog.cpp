@@ -1,16 +1,16 @@
-﻿#pragma execution_character_set("utf-8")
+#pragma execution_character_set("utf-8")
 
-#include "LiveLoginUnit.h"
+#include "LiveLoginDialog.h"
 
 
-LiveLoginUnit::LiveLoginUnit(QWidget* parent)
-    : QMainWindow(parent)
+LiveLoginDialog::LiveLoginDialog(QWidget* parent)
+    : QDialog(parent)
 {
     ui.setupUi(this);
     applyConfig();
 }
 
-void LiveLoginUnit::mousePressEvent(QMouseEvent* event)
+void LiveLoginDialog::mousePressEvent(QMouseEvent* event)
 {
     if (Qt::LeftButton == event->button() && !isMaximized())
     {
@@ -21,7 +21,7 @@ void LiveLoginUnit::mousePressEvent(QMouseEvent* event)
     mouseIsPressed = true;
 }
 
-void LiveLoginUnit::mouseReleaseEvent(QMouseEvent* event)
+void LiveLoginDialog::mouseReleaseEvent(QMouseEvent* event)
 {
     QApplication::restoreOverrideCursor();
     event->ignore();
@@ -30,7 +30,7 @@ void LiveLoginUnit::mouseReleaseEvent(QMouseEvent* event)
 
 }
 
-void LiveLoginUnit::mouseMoveEvent(QMouseEvent* event)
+void LiveLoginDialog::mouseMoveEvent(QMouseEvent* event)
 {
     if (mouseIsPressed && !isMaximized() && (event->buttons() & Qt::LeftButton))
     {
@@ -39,14 +39,14 @@ void LiveLoginUnit::mouseMoveEvent(QMouseEvent* event)
     }
 }
 
-void LiveLoginUnit::closeEvent(QCloseEvent* event)
+void LiveLoginDialog::closeEvent(QCloseEvent* event)
 {
     thatboy::utils::saveUsers();
     thatboy::storage::config["login"]["geometry"] = geometry();
     thatboy::utils::saveConfig();
 }
 
-void LiveLoginUnit::login()
+void LiveLoginDialog::login()
 {
     saveDataBeforeLog();
     auto& loginConfig = thatboy::storage::config["login"];
@@ -68,7 +68,7 @@ void LiveLoginUnit::login()
     }
 }
 
-void LiveLoginUnit::saveDataBeforeLog()
+void LiveLoginDialog::saveDataBeforeLog()
 {
     auto& loginConfig = thatboy::storage::config["login"];
     loginConfig["current_user"]["name"] = ui.accountLineEdit->text();
@@ -76,10 +76,10 @@ void LiveLoginUnit::saveDataBeforeLog()
     loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
 }
 
-void LiveLoginUnit::touchCheatPassword()
+void LiveLoginDialog::touchCheatPassword()
 {
-    disconnect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginUnit::touchCheatPassword);
-    disconnect(ui.passwordLineEdit, &QLineEdit::textChanged, this, &LiveLoginUnit::touchCheatPassword);
+    disconnect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
+    disconnect(ui.passwordLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
     if (thatboy::storage::pswdFromConfig)
     {
         ui.passwordLineEdit->clear();
@@ -87,17 +87,17 @@ void LiveLoginUnit::touchCheatPassword()
     }
 }
 
-void LiveLoginUnit::fillCheatPassword()
+void LiveLoginDialog::fillCheatPassword()
 {
     auto& loginConfig = thatboy::storage::config["login"];
     if (thatboy::storage::pswdFromConfig)
         ui.passwordLineEdit->setText(QString("%1")
             .arg("a", loginConfig["current_user"]["pwmask"].get<int>(), QLatin1Char('a')));
-    connect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginUnit::touchCheatPassword);
-    connect(ui.passwordLineEdit, &QLineEdit::textChanged, this, &LiveLoginUnit::touchCheatPassword);
+    connect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
+    connect(ui.passwordLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
 }
 
-void LiveLoginUnit::applyConfig()
+void LiveLoginDialog::applyConfig()
 {
     auto& loginConfig = thatboy::storage::config["login"];
     setGeometry(loginConfig["geometry"]);
@@ -117,17 +117,17 @@ void LiveLoginUnit::applyConfig()
         , std::bind(&QDesktopServices::openUrl, QUrl(thatboy::storage::ResetPasswordUrl)));
 
 
-    connect(ui.loginPushButton, &QPushButton::clicked, this, &LiveLoginUnit::login);
-    connect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginUnit::setAvatar);
-    connect(ui.minimizeToolButton, &QToolButton::clicked, this, &QMainWindow::showMinimized);
-    connect(ui.closeToolButton, &QToolButton::clicked, this, &QMainWindow::close);
+    connect(ui.loginPushButton, &QPushButton::clicked, this, &LiveLoginDialog::login);
+    connect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::setAvatar);
+    connect(ui.minimizeToolButton, &QToolButton::clicked, this, &QDialog::showMinimized);
+    connect(ui.closeToolButton, &QToolButton::clicked, this, &QDialog::close);
 
     setAvatar();
     setAccountCompleter();
     setAccountPasswordAcceptableInputCheck();
 }
 
-void LiveLoginUnit::setAvatar()
+void LiveLoginDialog::setAvatar()
 {
     static const QPixmap defaultAvatarGroup[3]
     {
@@ -138,27 +138,38 @@ void LiveLoginUnit::setAvatar()
     auto userName = ui.accountLineEdit->text().toStdString();
     QPixmap avatar;
     if (thatboy::storage::users.contains(userName))
+    {
+        if (thatboy::storage::userAvatarCache.find(userName) == thatboy::storage::userAvatarCache.end())
+        {
+
+        }
         avatar = thatboy::utils::roundedPixmap(QPixmap{
-        thatboy::storage::users[userName]["avatar_file"].get<QString>() });
-    else
-        avatar = defaultAvatarGroup[userName.length() / 5 % 3];
+            thatboy::storage::users[userName]["avatar_file"].get<QString>() });
+        if (avatar.isNull())
+        {
+            thatboy::storage::userAvatarCache
+        }
+    }
     if (!avatar.isNull())
         ui.avatarLabel->setPixmap(avatar);
+    else
+        ui.avatarLabel->setPixmap(defaultAvatarGroup[userName.length() / 5 % 3]);
+
 }
 
-void LiveLoginUnit::setAccountCompleter()
+void LiveLoginDialog::setAccountCompleter()
 {
     auto& completer = *new QCompleter(thatboy::storage::users["user_names"], this);
     completer.setFilterMode(Qt::MatchFlag::MatchContains);
     ui.accountLineEdit->setCompleter(&completer);
 }
 
-void LiveLoginUnit::setAccountPasswordAcceptableInputCheck()
+void LiveLoginDialog::setAccountPasswordAcceptableInputCheck()
 {
     connect(ui.accountLineEdit, &QLineEdit::textChanged
-        , this, &LiveLoginUnit::checkAccountPasswordAcceptableInput);
+        , this, &LiveLoginDialog::checkAccountPasswordAcceptableInput);
     connect(ui.passwordLineEdit, &QLineEdit::textChanged
-        , this, &LiveLoginUnit::checkAccountPasswordAcceptableInput);
+        , this, &LiveLoginDialog::checkAccountPasswordAcceptableInput);
     ui.accountLineEdit->setValidator(new QRegExpValidator(
         QRegExp{ thatboy::storage::RegexAccount }, this));
     ui.passwordLineEdit->setValidator(new QRegExpValidator(
@@ -166,7 +177,7 @@ void LiveLoginUnit::setAccountPasswordAcceptableInputCheck()
     checkAccountPasswordAcceptableInput();
 }
 
-bool LiveLoginUnit::checkAccountPasswordAcceptableInput()
+bool LiveLoginDialog::checkAccountPasswordAcceptableInput()
 {
     ui.loginPushButton->setEnabled(ui.accountLineEdit->hasAcceptableInput()
         && ui.passwordLineEdit->hasAcceptableInput());

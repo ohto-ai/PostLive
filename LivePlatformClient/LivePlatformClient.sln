@@ -9,6 +9,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConnectionPoolUnit", "Conne
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LiveBroadcastUnit", "LiveBroadcastUnit\LiveBroadcastUnit.vcxproj", "{D1DC0ECD-0566-4C45-B028-AA68F77B828D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PilipiliLivePlatform", "PilipiliLivePlatform\PilipiliLivePlatform.vcxproj", "{E3D78B07-450D-464F-9692-2D4C6098931F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QtHttpDownloader", "QtHttpDownloader\QtHttpDownloader.vcxproj", "{3064A1C9-A44E-4CE2-92CB-245FBDA2B5FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -37,6 +41,18 @@ Global
 		{D1DC0ECD-0566-4C45-B028-AA68F77B828D}.Release|x64.ActiveCfg = Release|x64
 		{D1DC0ECD-0566-4C45-B028-AA68F77B828D}.Release|x64.Build.0 = Release|x64
 		{D1DC0ECD-0566-4C45-B028-AA68F77B828D}.Release|x86.ActiveCfg = Release|x64
+		{E3D78B07-450D-464F-9692-2D4C6098931F}.Debug|x64.ActiveCfg = Debug|x64
+		{E3D78B07-450D-464F-9692-2D4C6098931F}.Debug|x64.Build.0 = Debug|x64
+		{E3D78B07-450D-464F-9692-2D4C6098931F}.Debug|x86.ActiveCfg = Debug|x64
+		{E3D78B07-450D-464F-9692-2D4C6098931F}.Release|x64.ActiveCfg = Release|x64
+		{E3D78B07-450D-464F-9692-2D4C6098931F}.Release|x64.Build.0 = Release|x64
+		{E3D78B07-450D-464F-9692-2D4C6098931F}.Release|x86.ActiveCfg = Release|x64
+		{3064A1C9-A44E-4CE2-92CB-245FBDA2B5FD}.Debug|x64.ActiveCfg = Debug|x64
+		{3064A1C9-A44E-4CE2-92CB-245FBDA2B5FD}.Debug|x64.Build.0 = Debug|x64
+		{3064A1C9-A44E-4CE2-92CB-245FBDA2B5FD}.Debug|x86.ActiveCfg = Debug|x64
+		{3064A1C9-A44E-4CE2-92CB-245FBDA2B5FD}.Release|x64.ActiveCfg = Release|x64
+		{3064A1C9-A44E-4CE2-92CB-245FBDA2B5FD}.Release|x64.Build.0 = Release|x64
+		{3064A1C9-A44E-4CE2-92CB-245FBDA2B5FD}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

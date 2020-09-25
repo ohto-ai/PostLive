@@ -241,7 +241,7 @@ QToolTip
  <resources>
   <include location="LiveBroadcastUnit.qrc"/>
   <include location="../LiveLoginUnit/LiveLoginUnit.qrc"/>
-  <include location="LiveLoginUnit.qrc"/>
+  <include location="LiveBroadcastUnit.qrc"/>
  </resources>
  <connections/>
 </ui>

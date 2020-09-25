@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QDialog>
 #include <QDesktopServices>
 #include <QToolButton>
 #include <QMessageBox>
@@ -11,14 +11,14 @@
 #include <QMouseEvent>
 #include <QCloseEvent>
 #include "utils.h"
-#include "ui_LiveLoginUnit.h"
+#include "ui_LiveLoginDialog.h"
 
-class LiveLoginUnit : public QMainWindow
+class LiveLoginDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    LiveLoginUnit(QWidget *parent = Q_NULLPTR);
+    LiveLoginDialog(QWidget *parent = Q_NULLPTR);
 
     virtual void mousePressEvent(QMouseEvent* event) override;
     virtual void mouseReleaseEvent(QMouseEvent* event) override;
@@ -39,5 +39,5 @@ protected:
     void setAccountPasswordAcceptableInputCheck();
     bool checkAccountPasswordAcceptableInput();
 private:
-    Ui::LiveLoginUnitClass ui;
+    Ui::LiveLoginDialogClass ui;
 };

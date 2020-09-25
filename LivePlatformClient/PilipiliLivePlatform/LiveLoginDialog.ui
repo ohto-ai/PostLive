@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>LiveLoginUnitClass</class>
- <widget class="QMainWindow" name="LiveLoginUnitClass">
+ <class>LiveLoginDialogClass</class>
+ <widget class="QDialog" name="LiveLoginDialogClass">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -26,27 +26,32 @@
    <enum>Qt::NoContextMenu</enum>
   </property>
   <property name="windowTitle">
-   <string>LiveLoginUnit</string>
+   <string>LiveLoginDialog</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="LiveLoginUnit.qrc">
-    <normaloff>:/LiveLoginUnit/res/live.ico</normaloff>:/LiveLoginUnit/res/live.ico</iconset>
+   <iconset resource="LiveLoginDialog.qrc">
+    <normaloff>:/LiveLoginDialog/res/live.ico</normaloff>:/LiveLoginDialog/res/live.ico</iconset>
   </property>
-  <widget class="QWidget" name="centralWidget">
+  <widget class="QWidget" name="centralWidget" native="true">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>600</width>
+     <height>450</height>
+    </rect>
+   </property>
    <property name="minimumSize">
     <size>
      <width>600</width>
-     <height>0</height>
+     <height>450</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
      <width>600</width>
-     <height>16777215</height>
+     <height>450</height>
     </size>
-   </property>
-   <property name="contextMenuPolicy">
-    <enum>Qt::NoContextMenu</enum>
    </property>
    <property name="styleSheet">
     <string notr="true">/* font */
@@ -62,18 +67,18 @@ QWidget#centralWidget
 {
 	background: rgba(36,41,46,0.9);
 	background-position: top;
-	background-image: url(:/LiveLoginUnit/res/login-background-600x180.png);
+	background-image: url(:/LiveLoginDialog/res/login-background-600x180.png);
 	background-repeat: no-repeat;
 }
 
 QLabel#applicationIconLabel
 {
-	border-image: url(:/LiveLoginUnit/res/pilipili-title-210x50.png);
+	border-image: url(:/LiveLoginDialog/res/pilipili-title-210x50.png);
 }
 /* avatar */
 QLabel#avatarLabel
 {
-	border-image: url(:/LiveLoginUnit/res/avatar-mask.png);
+	border-image: url(:/LiveLoginDialog/res/avatar-mask.png);
 	border-radius:60px;
 	min-width:  120px;
     max-width:  120px;
@@ -90,20 +95,20 @@ QLabel#avatarLabel
 }
 /*RadioButton CheckButton*/
 QRadioButton::indicator::unchecked {
-	image: url(:/LiveLoginUnit/res/radiobutton-unchecked.png);
+	image: url(:/LiveLoginDialog/res/radiobutton-unchecked.png);
 }
 QRadioButton::indicator::checked { 
-	image: url(:/LiveLoginUnit/res/radiobutton-checked.png);
+	image: url(:/LiveLoginDialog/res/radiobutton-checked.png);
 }
 QCheckBox::indicator { 
 	width: 15px;
 	height: 30px;
 }
 QCheckBox::indicator::unchecked {	
-	image: url(:/LiveLoginUnit/res/checkbox_unchecked.png);
+	image: url(:/LiveLoginDialog/res/checkbox_unchecked.png);
 }
 QCheckBox::indicator::checked { 
-	image: url(:/LiveLoginUnit/res/checkbox_checked.png);
+	image: url(:/LiveLoginDialog/res/checkbox_checked.png);
 }
 
 .QCheckBox::indicator { 
@@ -111,10 +116,10 @@ QCheckBox::indicator::checked {
 	height: 15px;
 }
 .QCheckBox::indicator::unchecked {	
-	image: url(:/LiveLoginUnit/res/radiobutton-unchecked.png);
+	image: url(:/LiveLoginDialog/res/radiobutton-unchecked.png);
 }
 .QCheckBox::indicator::checked { 
-	image: url(:/LiveLoginUnit/res/radiobutton-checked.png);
+	image: url(:/LiveLoginDialog/res/radiobutton-checked.png);
 }
 .QPushButton:hover, .QCheckBox:hover
 {
@@ -162,18 +167,18 @@ QToolTip
 	background-color: black;
 }</string>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <layout class="QVBoxLayout" name="centralLayout">
     <property name="spacing">
      <number>0</number>
     </property>
     <property name="leftMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="topMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="rightMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <item>
      <widget class="QWidget" name="titlebarWidget" native="true">
@@ -311,12 +316,9 @@ QToolTip
                  <height>26</height>
                 </size>
                </property>
-               <property name="text">
-                <string/>
-               </property>
                <property name="icon">
-                <iconset resource="LiveLoginUnit.qrc">
-                 <normaloff>:/LiveLoginUnit/res/setting.png</normaloff>:/LiveLoginUnit/res/setting.png</iconset>
+                <iconset resource="LiveLoginDialog.qrc">
+                 <normaloff>:/LiveLoginDialog/res/setting.png</normaloff>:/LiveLoginDialog/res/setting.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -347,8 +349,8 @@ QToolTip
                 <string>最小化</string>
                </property>
                <property name="icon">
-                <iconset resource="LiveLoginUnit.qrc">
-                 <normaloff>:/LiveLoginUnit/res/minus-square.png</normaloff>:/LiveLoginUnit/res/minus-square.png</iconset>
+                <iconset resource="LiveLoginDialog.qrc">
+                 <normaloff>:/LiveLoginDialog/res/minus-square.png</normaloff>:/LiveLoginDialog/res/minus-square.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -379,8 +381,8 @@ QToolTip
                 <string>关闭</string>
                </property>
                <property name="icon">
-                <iconset resource="LiveLoginUnit.qrc">
-                 <normaloff>:/LiveLoginUnit/res/close-square.png</normaloff>:/LiveLoginUnit/res/close-square.png</iconset>
+                <iconset resource="LiveLoginDialog.qrc">
+                 <normaloff>:/LiveLoginDialog/res/close-square.png</normaloff>:/LiveLoginDialog/res/close-square.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -548,7 +550,7 @@ QToolTip
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="LiveLoginUnit.qrc">:/LiveLoginUnit/res/account.png</pixmap>
+              <pixmap resource="LiveLoginDialog.qrc">:/LiveLoginDialog/res/account.png</pixmap>
              </property>
              <property name="scaledContents">
               <bool>true</bool>
@@ -602,7 +604,7 @@ QToolTip
               <string/>
              </property>
              <property name="pixmap">
-              <pixmap resource="LiveLoginUnit.qrc">:/LiveLoginUnit/res/password.png</pixmap>
+              <pixmap resource="LiveLoginDialog.qrc">:/LiveLoginDialog/res/password.png</pixmap>
              </property>
              <property name="scaledContents">
               <bool>true</bool>
@@ -796,7 +798,7 @@ QToolTip
   <tabstop>closeToolButton</tabstop>
  </tabstops>
  <resources>
-  <include location="LiveLoginUnit.qrc"/>
+  <include location="LiveLoginDialog.qrc"/>
  </resources>
  <connections/>
  <designerdata>
