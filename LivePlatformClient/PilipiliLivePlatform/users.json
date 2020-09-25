@@ -22,9 +22,10 @@
         "thatboy": {
             "avatar": "https://i.loli.net/2020/09/25/YyGpnNmq5fCbEd6.png",
             "avatar_file": "user/avatar/thatboy.avatar",
-            "pwmask": 12,
+            "gender": "male",
+            "pwmask": 7,
             "remember_password": true,
-            "token": "B1DA45F6ECBB905F97DF62C7CDDB6128"
+            "token": "385B3D8302A4B0E7570D6158CD2FBCA8"
         }
     }
 }

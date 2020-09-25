@@ -52,15 +52,14 @@ void LiveLoginDialog::login()
     using thatboy::storage::currentUser;
     using thatboy::storage::usersStorage;
 
-    currentUser["account"] = ui.accountLineEdit->text();
-    currentUser["token"] = usersStorage["users"][currentUser["account"].get<std::string>()]["token"].get<QString>();
+    std::string account = ui.accountLineEdit->text().toStdString();
 
     nlohmann::json loginPackage;
-    loginPackage["account"] = currentUser["account"];
+    loginPackage["account"] = account;
     loginPackage["type"] = "login";
     if (thatboy::storage::usingToken)
     {
-        loginPackage["token"] = currentUser["token"];
+        loginPackage["token"] = usersStorage["users"][account]["token"];
         loginPackage["login"] = "token";
     }
     else
@@ -69,24 +68,35 @@ void LiveLoginDialog::login()
         loginPackage["login"] = "password";
     }
     // 发送
-
-
-    auto& loginConfig = thatboy::storage::config["login"];
-    // generate pswd
-    if (!thatboy::storage::usingToken)
-    {
-        loginConfig["current_user"]["trusted_token"] = thatboy::utils::generateTrustedToken(ui.passwordLineEdit->text());
-        loginConfig["current_user"]["pwmask"] = ui.passwordLineEdit->text().length();
-    }
-
-    // try connect to server and verify identity.
-    auto res = thatboy::storage::accountVerifyClient.Post("/verify", loginConfig["current_user"]["trusted_token"].dump(), "application/json");
+    auto res = thatboy::storage::accountVerifyClient.Post("/api", loginPackage.dump(), "application/json");
+    
     if (!res)
-        QMessageBox::information(this, "Error", "Unable to connect to server.");
+        QMessageBox::warning(this, "Warning", "无法连接到服务器.");
     else
     {
-        close();
-        QMessageBox::information(this, "login", "login success.", QMessageBox::Ok);
+        auto body{ nlohmann::json::parse(res->body) };
+        if (!body["success"])
+            QMessageBox::warning(this, "Warning", "登录失败." + body["info"].get<QString>());
+        else
+        {
+            currentUser["account"] = account;
+            currentUser["token"] = body["token"];
+            usersStorage["users"][account]["token"] = body["token"];
+            usersStorage["users"][account]["pwmask"] = ui.passwordLineEdit->text().length();
+            usersStorage["users"][account]["remember_password"] = ui.rememberPasswordCheckBox->isChecked();
+
+            loginPackage["type"] = "profile";
+            loginPackage["profile"].push_back("avatar");
+            loginPackage["profile"].push_back("gender");
+            loginPackage["token"] = currentUser["token"];
+            res = thatboy::storage::accountVerifyClient.Post("/api", loginPackage.dump(), "application/json");
+            body = nlohmann::json::parse(res->body);
+                        
+            usersStorage["users"][account]["avatar"] = body["profile"]["avatar"];
+            usersStorage["users"][account]["gender"] = body["profile"]["gender"];
+
+            accept();
+        }
     }
 }
 
@@ -97,14 +107,22 @@ void LiveLoginDialog::saveDataBeforeLog()
     loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
 }
 
-void LiveLoginDialog::touchCheatPassword()
+void LiveLoginDialog::touchCheatPassword(QString str)
 {
     disconnect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
     disconnect(ui.passwordLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
     if (thatboy::storage::usingToken)
     {
         thatboy::storage::usingToken = false;
-        ui.passwordLineEdit->clear();
+        if (str.length() < thatboy::storage::usersStorage["users"][ui.accountLineEdit->text().toStdString()]["pwmask"].get<int>())// 删除
+            ui.passwordLineEdit->clear();
+        else
+        {
+            str.remove('a');
+            if (str.isEmpty())
+                str = 'a';
+            ui.passwordLineEdit->setText(str);
+        }
     }
 }
 
@@ -149,6 +167,11 @@ void LiveLoginDialog::applyConfig()
                     .arg("a", usersStorage["users"][account]["pwmask"].get<int>(), QLatin1Char('a')));
             connect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
             connect(ui.passwordLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
+            connect(ui.passwordLineEdit, &QLineEdit::selectionChanged, [&] 
+                {
+                    if(thatboy::storage::usingToken)
+                        ui.passwordLineEdit->deselect();
+                });
         }
         });
     ui.accountLineEdit->setText(loginConfig["current_user"]);

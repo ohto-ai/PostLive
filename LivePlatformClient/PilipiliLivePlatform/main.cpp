@@ -10,10 +10,41 @@ int main(int argc, char *argv[])
     thatboy::utils::loadConfig();
     thatboy::utils::loadUserData();
 
-    LiveLoginDialog d;
-    d.exec();
-    QMessageBox::information(nullptr, "Tip","后面还没做");
-    LivePlatform w;
-    w.show();
-    return a.exec();
+#ifndef _DEBUG
+    try
+    {
+#endif
+        LiveLoginDialog d;
+        if (d.exec() == QDialog::Accepted)
+        {
+            LivePlatform w;
+            w.show();
+
+            thatboy::utils::saveUserData();
+            thatboy::utils::saveConfig();
+            return a.exec();
+        }
+        else
+        {
+            thatboy::utils::saveUserData();
+            thatboy::utils::saveConfig();
+            return 0;
+        }
+#ifndef _DEBUG
+    }
+    catch (...)
+    {
+        try {
+            thatboy::utils::saveUserData();
+            thatboy::utils::saveConfig();
+        }
+        catch (...)
+        {
+            QMessageBox::warning(nullptr, "错误", "发生灾难性故障，数据无法保存.");
+            return -2;
+        }
+        QMessageBox::warning(nullptr, "错误", "发生灾难性故障，数据已保存.");
+        return -1;
+    }
+#endif
 }

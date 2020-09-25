@@ -1,0 +1,25 @@
+```json
+{
+    "user_list":[
+        "thatboy","jaychou","kongjh"
+    ],
+    "users":{
+        "thatboy":{
+            "token":"FCD12713057D0B49997EB05F45017C35",
+            "gender":"male",
+            "avatar":"https://i.loli.net/2020/09/25/YyGpnNmq5fCbEd6.png"
+        },
+        "jaychou":{
+            "token":"E10ADC3949BA59ABBE56E057F20F883E",
+            "gender":"female",
+            "avatar":"https://cdn.jsdelivr.net/gh/zhouhuan666/BlogAssets@0.11/SettingPic/avatar.JPG"
+        },
+        "kongjh":{
+            "token":"E80B5017098950FC58AAD83C8C14978E",
+            "gender":"male",
+            "avatar":"http://thatboy.info:5120/uploads/big/c180974952931b1433afc32c6e8522cf.jpg"
+        }
+    }
+}
+```
+
