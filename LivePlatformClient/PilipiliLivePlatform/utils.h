@@ -14,7 +14,6 @@
 #include <httplib.h>
 #include "GeneralSignal.h"
 #include "AsyncDownloader.h"
-#include "TimeStampToken.h"
 
 namespace thatboy
 {
@@ -35,8 +34,6 @@ namespace thatboy
 		void saveUserData();
 
 		QString generateMD5(QString);
-
-		TimeStampToken generateTrustedToken(QString password);
 	}
 	namespace storage
 	{
@@ -70,8 +67,5 @@ namespace thatboy
 		extern GeneralSignal generalSignal;
 	}
 }
-using thatboy::TimeStampToken;
 using thatboy::utils::to_json;
 using thatboy::utils::from_json;
-using thatboy::to_json;
-using thatboy::from_json;

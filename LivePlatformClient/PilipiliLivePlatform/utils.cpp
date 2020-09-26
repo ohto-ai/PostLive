@@ -21,7 +21,7 @@ QPixmap thatboy::utils::roundedPixmap(const QPixmap& src)
 
 void thatboy::utils::from_json(const nlohmann::json& j, QString& string)
 {
-    string = QString::fromStdString(j.get<std::string>());
+    string = QString::fromStdString(j);
 }
 
 void thatboy::utils::from_json(const nlohmann::json& j, QStringList& stringList)
@@ -34,12 +34,6 @@ void thatboy::utils::from_json(const nlohmann::json& j, QStringList& stringList)
 void thatboy::utils::from_json(const nlohmann::json& j, QRect& rect)
 {
     rect.setRect(j["x"], j["y"], j["width"], j["height"]);
-}
-
-void thatboy::from_json(const nlohmann::json& j, TimeStampToken& token)
-{
-    token.token = j["token"].get<QString>();
-    token.timeStamp = j["stamp"];
 }
 
 void thatboy::utils::to_json(nlohmann::json& j, const QString& string)
@@ -60,12 +54,6 @@ void thatboy::utils::to_json(nlohmann::json& j, const QRect& rect)
     j["y"] = rect.y();
     j["width"] = rect.width();
     j["height"] = rect.height();
-}
-
-void thatboy::to_json(nlohmann::json& j, const TimeStampToken& token)
-{
-    j["token"] = token.token;
-    j["stamp"] = token.timeStamp;
 }
 
 void thatboy::utils::loadUserData()
@@ -108,11 +96,6 @@ QString thatboy::utils::generateMD5(QString str)
 {
     return QCryptographicHash::hash(str.toUtf8()
         , QCryptographicHash::Md5).toHex().toUpper();
-}
-
-thatboy::TimeStampToken thatboy::utils::generateTrustedToken(QString password)
-{
-    return TimeStampToken(password);
 }
 
 void thatboy::utils::loadConfig()

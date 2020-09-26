@@ -114,7 +114,6 @@
   <ItemGroup>
     <QtMoc Include="AsyncDownloader.h" />
     <QtMoc Include="GeneralSignal.h" />
-    <ClInclude Include="TimeStampToken.h" />
     <ClInclude Include="utils.h" />
     <QtMoc Include="TouchedLabel.h" />
   </ItemGroup>

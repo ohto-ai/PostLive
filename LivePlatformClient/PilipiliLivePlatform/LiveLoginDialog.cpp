@@ -109,8 +109,7 @@ void LiveLoginDialog::saveDataBeforeLog()
 
 void LiveLoginDialog::touchCheatPassword(QString str)
 {
-    disconnect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
-    disconnect(ui.passwordLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
+    disconnect(ui.passwordLineEdit, &QLineEdit::textEdited, this, &LiveLoginDialog::touchCheatPassword);
     if (thatboy::storage::usingToken)
     {
         thatboy::storage::usingToken = false;
@@ -155,6 +154,7 @@ void LiveLoginDialog::applyConfig()
     ui.autoLoginCheckBox->setChecked(loginConfig["auto_login"]);
 
     connect(ui.accountLineEdit, &QLineEdit::textChanged, [&] {
+        ui.passwordLineEdit->clear();
         using thatboy::storage::usersStorage;
         auto account = ui.accountLineEdit->text().toStdString();
         if (usersStorage["users"].contains(account))
@@ -165,8 +165,7 @@ void LiveLoginDialog::applyConfig()
             if (usersStorage["users"][account]["remember_password"])
                 ui.passwordLineEdit->setText(QString("%1")
                     .arg("a", usersStorage["users"][account]["pwmask"].get<int>(), QLatin1Char('a')));
-            connect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
-            connect(ui.passwordLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::touchCheatPassword);
+            connect(ui.passwordLineEdit, &QLineEdit::textEdited, this, &LiveLoginDialog::touchCheatPassword);
             connect(ui.passwordLineEdit, &QLineEdit::selectionChanged, [&] 
                 {
                     if(thatboy::storage::usingToken)

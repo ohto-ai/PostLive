@@ -89,9 +89,6 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TimeStampToken.h">
-      <Filter>utils</Filter>
-    </ClInclude>
     <ClInclude Include="utils.h">
       <Filter>utils</Filter>
     </ClInclude>
