@@ -6,13 +6,11 @@
 
 ![设计稿](https://i.loli.net/2020/09/24/3PsKl2gHXV8ErAQ.png)  
 
--   施工稿
-
-    ![施工稿](https://i.loli.net/2020/09/24/JEcYmRjrhM2VsvD.png)
+-   施工稿![施工稿](C:/Users/thatboy/AppData/Roaming/Typora/typora-user-images/image-20200927160822954.png)
 
 -   效果
 
-![效果图](https://i.loli.net/2020/09/24/4zn9Qj1RewtUTbf.png)
+![效果图](https://i.loli.net/2020/09/27/DtsjhlAfMHndr2q.png)
 
 ## 用户名和密码正则
 
