@@ -1,17 +1,17 @@
-#include "DragableMainWindow.h"
+#include "DragableWidget.h"
 #include <QMouseEvent>
 #include <QApplication>
 
-DragableMainWindow::DragableMainWindow(QWidget* parent, Qt::WindowFlags f)
-    : BaseMainWindow(parent, f | Qt::FramelessWindowHint)
+DragableWidget::DragableWidget(QWidget* parent, Qt::WindowFlags f)
+    : BaseWidget(parent, f | Qt::FramelessWindowHint)
 {
 }
 
-DragableMainWindow::~DragableMainWindow()
+DragableWidget::~DragableWidget()
 {
 }
 
-void DragableMainWindow::mousePressEvent(QMouseEvent* event)
+void DragableWidget::mousePressEvent(QMouseEvent* event)
 {
     if (Qt::LeftButton == event->button() && !isMaximized())
     {
@@ -22,14 +22,14 @@ void DragableMainWindow::mousePressEvent(QMouseEvent* event)
     mouseDown = true;
 }
 
-void DragableMainWindow::mouseReleaseEvent(QMouseEvent* event)
+void DragableWidget::mouseReleaseEvent(QMouseEvent* event)
 {
     QApplication::restoreOverrideCursor();
     event->ignore();
     mouseDown = false;
 }
 
-void DragableMainWindow::mouseMoveEvent(QMouseEvent* event)
+void DragableWidget::mouseMoveEvent(QMouseEvent* event)
 {
     if (mouseDown && !isMaximized() && (event->buttons() & Qt::LeftButton))
     {

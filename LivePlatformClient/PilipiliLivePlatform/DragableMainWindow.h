@@ -1,11 +1,11 @@
 #pragma once
 
-#include <QMainWindow>
+#include "BaseMainWindow.h"
 
-class DragableMainWindow : public QMainWindow
+class DragableMainWindow : public BaseMainWindow
 {
 protected:
-    DragableMainWindow(QWidget* parent);
+    DragableMainWindow(QWidget* parent, Qt::WindowFlags f = 0);
 public:
     virtual ~DragableMainWindow();
 

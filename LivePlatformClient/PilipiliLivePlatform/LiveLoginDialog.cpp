@@ -9,15 +9,6 @@ LiveLoginDialog::LiveLoginDialog(QWidget* parent)
     applyConfig();
 }
 
-void LiveLoginDialog::closeEvent(QCloseEvent* event)
-{
-    auto& loginConfig = thatboy::storage::config["login"];
-    loginConfig["current_user"] = ui.accountLineEdit->text();
-    loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
-
-    thatboy::storage::config["login"]["geometry"] = geometry();
-}
-
 void LiveLoginDialog::login()
 {
     using thatboy::storage::currentUser;
@@ -87,6 +78,9 @@ void LiveLoginDialog::applyConfig()
     connect(ui.accountLineEdit, &QLineEdit::textChanged, this, &LiveLoginDialog::setAvatar);
     connect(ui.minimizeToolButton, &QToolButton::clicked, this, &QDialog::showMinimized);
     connect(ui.closeToolButton, &QToolButton::clicked, this, &QDialog::close);
+    connect(ui.settingToolButton, &QToolButton::clicked
+        , std::bind(static_cast<void(ShadowWidget::*)(BaseDialog*)>(&ShadowWidget::execute), &shadowWidget, &settingDialog));
+
     connect(&thatboy::storage::generalSignal, &GeneralSignal::avatarDownloaded, [=](QString user, bool succcess)
         {
             if (succcess && user == ui.accountLineEdit->text())
@@ -115,6 +109,15 @@ void LiveLoginDialog::applyConfig()
         }
         });
     ui.accountLineEdit->setText(loginConfig["current_user"]);
+
+    connect(this, &DragableDialog::closed, [&]
+        {
+            auto& loginConfig = thatboy::storage::config["login"];
+            loginConfig["current_user"] = ui.accountLineEdit->text();
+            loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
+
+            thatboy::storage::config["login"]["geometry"] = geometry();
+        });
 }
 
 void LiveLoginDialog::setAvatar()

@@ -7,9 +7,9 @@
 #include <QCompleter>
 #include <QRegExpValidator>
 #include <QStyle>
-#include <QMouseEvent>
-#include <QCloseEvent>
+#include "LiveLoginSettingDialog.h"
 #include "DragableDialog.h"
+#include "ShadowWidget.h"
 #include "utils.h"
 #include "ui_LiveLoginDialog.h"
 
@@ -20,14 +20,17 @@ class LiveLoginDialog : public DragableDialog
 public:
     LiveLoginDialog(QWidget *parent = Q_NULLPTR);
 protected:
-    virtual void closeEvent(QCloseEvent* event) override;
-protected:
     void login();
     void applyConfig();
     void setAvatar();
     void setAccountCompleter();
     void setAccountPasswordAcceptableInputCheck();
     bool checkAccountPasswordAcceptableInput();
+
+protected:
+    LiveLoginSettingDialog settingDialog{ this };
+    ShadowWidget shadowWidget{ this };
+
 private:
     Ui::LiveLoginDialogClass ui;
 };

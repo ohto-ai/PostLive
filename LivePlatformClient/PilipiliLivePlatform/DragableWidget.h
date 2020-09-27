@@ -1,13 +1,13 @@
 #pragma once
 
-#include "BaseDialog.h"
+#include "BaseWidget.h"
 
-class DragableDialog : public BaseDialog
+class DragableWidget : public BaseWidget
 {
 protected:
-	DragableDialog(QWidget* parent, Qt::WindowFlags f = 0);
+	DragableWidget(QWidget* parent, Qt::WindowFlags f = 0);
 public:
-	virtual ~DragableDialog();
+	virtual ~DragableWidget();
 
 protected:
     virtual void mousePressEvent(QMouseEvent* event) override;

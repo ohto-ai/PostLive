@@ -43,11 +43,31 @@
     <Filter Include="assembly\TouchedLineEdit">
       <UniqueIdentifier>{327be1f6-e013-4bcc-8d86-4a1243969196}</UniqueIdentifier>
     </Filter>
-    <Filter Include="assembly\DragableDialog">
+    <Filter Include="assembly\Dragable">
+      <UniqueIdentifier>{04e348ec-4adf-4acb-a892-0ae31baf6f00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assembly\Dragable\DragableWidget">
+      <UniqueIdentifier>{5c586075-f1a3-406d-8647-2fb4c18c3379}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assembly\Dragable\DragableMainWindow">
+      <UniqueIdentifier>{56dcbea9-f8ec-4725-aaba-37f80901bfad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assembly\Dragable\DragableDialog">
       <UniqueIdentifier>{9f7996de-4a7a-4e62-b15d-a86100e0ad0b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="assembly\DragableMainWindow">
-      <UniqueIdentifier>{56dcbea9-f8ec-4725-aaba-37f80901bfad}</UniqueIdentifier>
+    <Filter Include="assembly\Plugin">
+      <UniqueIdentifier>{61825bb0-52d4-4a3f-b136-702edfe31346}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assembly\ShadowWidget">
+      <UniqueIdentifier>{f5f41afe-a2b3-4b57-87ce-979ef6aba006}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>true</ParseFiles>
+    </Filter>
+    <Filter Include="assembly\Login\SettingDialog">
+      <UniqueIdentifier>{03b55f1f-cf87-4366-a0bd-f58061c02b4b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -81,10 +101,28 @@
       <Filter>assembly\TouchedLineEdit</Filter>
     </ClCompile>
     <ClCompile Include="DragableDialog.cpp">
-      <Filter>assembly\DragableDialog</Filter>
+      <Filter>assembly\Dragable\DragableDialog</Filter>
     </ClCompile>
     <ClCompile Include="DragableMainWindow.cpp">
-      <Filter>assembly\DragableMainWindow</Filter>
+      <Filter>assembly\Dragable\DragableMainWindow</Filter>
+    </ClCompile>
+    <ClCompile Include="DragableWidget.cpp">
+      <Filter>assembly\Dragable\DragableWidget</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseWidget.cpp">
+      <Filter>assembly\Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseDialog.cpp">
+      <Filter>assembly\Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseMainWindow.cpp">
+      <Filter>assembly\Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="ShadowWidget.cpp">
+      <Filter>assembly\ShadowWidget</Filter>
+    </ClCompile>
+    <ClCompile Include="LiveLoginSettingDialog.cpp">
+      <Filter>assembly\Login\SettingDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +131,9 @@
     </QtUic>
     <QtUic Include="LivePlatform.ui">
       <Filter>main</Filter>
+    </QtUic>
+    <QtUic Include="LiveLoginSettingDialog.ui">
+      <Filter>assembly\Login\SettingDialog</Filter>
     </QtUic>
   </ItemGroup>
   <ItemGroup>
@@ -117,16 +158,37 @@
     <QtMoc Include="TouchedLineEdit.h">
       <Filter>assembly\TouchedLineEdit</Filter>
     </QtMoc>
+    <QtMoc Include="BaseWidget.h">
+      <Filter>assembly\Plugin</Filter>
+    </QtMoc>
+    <QtMoc Include="BaseDialog.h">
+      <Filter>assembly\Plugin</Filter>
+    </QtMoc>
+    <QtMoc Include="BaseMainWindow.h">
+      <Filter>assembly\Plugin</Filter>
+    </QtMoc>
+    <QtMoc Include="ShadowWidget.h">
+      <Filter>assembly\ShadowWidget</Filter>
+    </QtMoc>
+    <QtMoc Include="LiveLoginSettingDialog.h">
+      <Filter>assembly\Login\SettingDialog</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
       <Filter>utils</Filter>
     </ClInclude>
     <ClInclude Include="DragableDialog.h">
-      <Filter>assembly\DragableDialog</Filter>
+      <Filter>assembly\Dragable\DragableDialog</Filter>
     </ClInclude>
     <ClInclude Include="DragableMainWindow.h">
-      <Filter>assembly\DragableMainWindow</Filter>
+      <Filter>assembly\Dragable\DragableMainWindow</Filter>
+    </ClInclude>
+    <ClInclude Include="DragableWidget.h">
+      <Filter>assembly\Dragable\DragableWidget</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseWidgetInterface.h">
+      <Filter>assembly\Plugin</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
