@@ -4,8 +4,9 @@ LiveLoginSettingDialog::LiveLoginSettingDialog(QWidget *parent)
 	: DragableDialog(parent)
 {
 	ui.setupUi(this);
-	connect(ui.closeToolButton, &QToolButton::clicked, this, &QDialog::close);
-	connect(ui.minimizeToolButton, &QToolButton::clicked, this, &QDialog::showMinimized);
+	setAttribute(Qt::WA_TranslucentBackground);
+	connect(ui.closeToolButton, &QToolButton::clicked, this, &LiveLoginSettingDialog::close);
+	connect(ui.minimizeToolButton, &QToolButton::clicked, this, &LiveLoginSettingDialog::showMinimized);
 }
 
 LiveLoginSettingDialog::~LiveLoginSettingDialog()
