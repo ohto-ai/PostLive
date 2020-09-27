@@ -2,8 +2,8 @@
 #include <QMouseEvent>
 #include <QApplication>
 
-DragableDialog::DragableDialog(QWidget *parent)
-	: QDialog(parent)
+DragableDialog::DragableDialog(QWidget* parent)
+    : QDialog(parent, Qt::FramelessWindowHint)
 {
 }
 

@@ -76,9 +76,8 @@ void LiveLoginDialog::applyConfig()
 {
     auto& loginConfig = thatboy::storage::config["login"];
     setGeometry(loginConfig["geometry"]);
-
-    setWindowFlags(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
+    setWindowOpacity(0.9);
 
     connect(ui.registerPushButton, &QPushButton::clicked
         , std::bind(&QDesktopServices::openUrl, QUrl(thatboy::storage::RegisterUrl)));

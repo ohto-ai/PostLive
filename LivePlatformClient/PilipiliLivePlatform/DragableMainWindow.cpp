@@ -3,7 +3,7 @@
 #include <QApplication>
 
 DragableMainWindow::DragableMainWindow(QWidget *parent)
-	: QMainWindow(parent)
+	: QMainWindow(parent, Qt::FramelessWindowHint)
 {
 }
 
