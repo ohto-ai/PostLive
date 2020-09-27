@@ -2,53 +2,24 @@
 
 #include "LiveLoginDialog.h"
 
-
 LiveLoginDialog::LiveLoginDialog(QWidget* parent)
-    : QDialog(parent)
+    : DragableDialog(parent)
 {
     ui.setupUi(this);
     applyConfig();
 }
 
-void LiveLoginDialog::mousePressEvent(QMouseEvent* event)
-{
-    if (Qt::LeftButton == event->button() && !isMaximized())
-    {
-        ui.loginPushButton->setFocus();
-        pLast = event->globalPos();
-        event->ignore();
-    }
-    mouseIsPressed = true;
-}
-
-void LiveLoginDialog::mouseReleaseEvent(QMouseEvent* event)
-{
-    QApplication::restoreOverrideCursor();
-    event->ignore();
-
-    mouseIsPressed = false;
-
-}
-
-void LiveLoginDialog::mouseMoveEvent(QMouseEvent* event)
-{
-    if (mouseIsPressed && !isMaximized() && (event->buttons() & Qt::LeftButton))
-    {
-        move(event->globalPos() + pos() - pLast);
-        pLast = event->globalPos();
-    }
-}
-
 void LiveLoginDialog::closeEvent(QCloseEvent* event)
 {
-    thatboy::utils::saveUserData();
+    auto& loginConfig = thatboy::storage::config["login"];
+    loginConfig["current_user"] = ui.accountLineEdit->text();
+    loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
+
     thatboy::storage::config["login"]["geometry"] = geometry();
-    thatboy::utils::saveConfig();
 }
 
 void LiveLoginDialog::login()
 {
-    saveDataBeforeLog();
     using thatboy::storage::currentUser;
     using thatboy::storage::usersStorage;
 
@@ -99,13 +70,6 @@ void LiveLoginDialog::login()
             accept();
         }
     }
-}
-
-void LiveLoginDialog::saveDataBeforeLog()
-{
-    auto& loginConfig = thatboy::storage::config["login"];
-    loginConfig["current_user"] = ui.accountLineEdit->text();
-    loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
 }
 
 void LiveLoginDialog::applyConfig()

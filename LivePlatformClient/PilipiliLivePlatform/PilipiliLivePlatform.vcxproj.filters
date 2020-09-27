@@ -43,6 +43,9 @@
     <Filter Include="assembly\TouchedLineEdit">
       <UniqueIdentifier>{327be1f6-e013-4bcc-8d86-4a1243969196}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assembly\DragableDialog">
+      <UniqueIdentifier>{9f7996de-4a7a-4e62-b15d-a86100e0ad0b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="LiveLoginDialog.qrc">
@@ -73,6 +76,9 @@
     </ClCompile>
     <ClCompile Include="TouchedLineEdit.cpp">
       <Filter>assembly\TouchedLineEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="DragableDialog.cpp">
+      <Filter>assembly\DragableDialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -109,6 +115,9 @@
   <ItemGroup>
     <ClInclude Include="utils.h">
       <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="DragableDialog.h">
+      <Filter>assembly\DragableDialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

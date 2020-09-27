@@ -97,6 +97,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AsyncDownloader.cpp" />
+    <ClCompile Include="DragableDialog.cpp" />
     <ClCompile Include="PasswordEdit.cpp" />
     <ClCompile Include="TouchedLabel.cpp" />
     <ClCompile Include="TouchedLineEdit.cpp" />
@@ -118,6 +119,7 @@
     <QtMoc Include="GeneralSignal.h" />
     <QtMoc Include="PasswordEdit.h" />
     <QtMoc Include="TouchedLineEdit.h" />
+    <ClInclude Include="DragableDialog.h" />
     <ClInclude Include="utils.h" />
     <QtMoc Include="TouchedLabel.h" />
   </ItemGroup>
