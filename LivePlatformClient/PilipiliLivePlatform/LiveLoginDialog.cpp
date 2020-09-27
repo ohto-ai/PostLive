@@ -57,14 +57,15 @@ void LiveLoginDialog::login()
     nlohmann::json loginPackage;
     loginPackage["account"] = account;
     loginPackage["type"] = "login";
-    if (thatboy::storage::usingToken)
+
+    if (ui.passwordLineEdit->passwordType() == PasswordEdit::CheatPasswordFilled)
     {
-        loginPackage["token"] = usersStorage["users"][account]["token"];
+        loginPackage["token"] = ui.passwordLineEdit->md5();
         loginPackage["login"] = "token";
     }
     else
     {
-        loginPackage["password"] = thatboy::utils::generateMD5(ui.passwordLineEdit->text());
+        loginPackage["password"] = ui.passwordLineEdit->md5();
         loginPackage["login"] = "password";
     }
     // ·¢ËÍ
@@ -82,7 +83,7 @@ void LiveLoginDialog::login()
             currentUser["account"] = account;
             currentUser["token"] = body["token"];
             usersStorage["users"][account]["token"] = body["token"];
-            usersStorage["users"][account]["pwmask"] = ui.passwordLineEdit->text().length();
+            usersStorage["users"][account]["pwmask"] = ui.passwordLineEdit->password().length();
             usersStorage["users"][account]["remember_password"] = ui.rememberPasswordCheckBox->isChecked();
 
             loginPackage["type"] = "profile";
@@ -105,24 +106,6 @@ void LiveLoginDialog::saveDataBeforeLog()
     auto& loginConfig = thatboy::storage::config["login"];
     loginConfig["current_user"] = ui.accountLineEdit->text();
     loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
-}
-
-void LiveLoginDialog::touchCheatPassword(QString str)
-{
-    disconnect(ui.passwordLineEdit, &QLineEdit::textEdited, this, &LiveLoginDialog::touchCheatPassword);
-    if (thatboy::storage::usingToken)
-    {
-        thatboy::storage::usingToken = false;
-        if (str.length() < thatboy::storage::usersStorage["users"][ui.accountLineEdit->text().toStdString()]["pwmask"].get<int>())// É¾³ý
-            ui.passwordLineEdit->clear();
-        else
-        {
-            str.remove('a');
-            if (str.isEmpty())
-                str = 'a';
-            ui.passwordLineEdit->setText(str);
-        }
-    }
 }
 
 void LiveLoginDialog::applyConfig()
@@ -160,17 +143,12 @@ void LiveLoginDialog::applyConfig()
         if (usersStorage["users"].contains(account))
         {
             ui.rememberPasswordCheckBox->setChecked(usersStorage["users"][account]["remember_password"]);
-            thatboy::storage::usingToken = usersStorage["users"][account]["remember_password"];
 
             if (usersStorage["users"][account]["remember_password"])
-                ui.passwordLineEdit->setText(QString("%1")
-                    .arg("a", usersStorage["users"][account]["pwmask"].get<int>(), QLatin1Char('a')));
-            connect(ui.passwordLineEdit, &QLineEdit::textEdited, this, &LiveLoginDialog::touchCheatPassword);
-            connect(ui.passwordLineEdit, &QLineEdit::selectionChanged, [&] 
-                {
-                    if(thatboy::storage::usingToken)
-                        ui.passwordLineEdit->deselect();
-                });
+                ui.passwordLineEdit->fillCheatPassword(QString("%1").arg("a"
+                    , usersStorage["users"][account]["pwmask"].get<int>(), QLatin1Char('a'))
+                    , usersStorage["users"][account]["token"]
+                );
         }
         });
     ui.accountLineEdit->setText(loginConfig["current_user"]);
@@ -210,8 +188,7 @@ void LiveLoginDialog::setAccountPasswordAcceptableInputCheck()
         , this, &LiveLoginDialog::checkAccountPasswordAcceptableInput);
     ui.accountLineEdit->setValidator(new QRegExpValidator(
         QRegExp{ thatboy::storage::RegexAccount }, this));
-    ui.passwordLineEdit->setValidator(new QRegExpValidator(
-        QRegExp{ thatboy::storage::RegexPassword }, this));
+    ui.passwordLineEdit->setRegExpValidator(QRegExp{ thatboy::storage::RegexPassword });
     checkAccountPasswordAcceptableInput();
 }
 

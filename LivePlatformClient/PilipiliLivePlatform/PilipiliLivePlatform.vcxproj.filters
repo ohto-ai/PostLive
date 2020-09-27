@@ -37,6 +37,12 @@
     <Filter Include="utils\GeneralSignal">
       <UniqueIdentifier>{0c9f37de-a34c-4693-bc6a-c7a945a7b470}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assembly\PasswordEdit">
+      <UniqueIdentifier>{4a13498e-f27c-4be0-a1a1-3e8610f8425a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assembly\TouchedLineEdit">
+      <UniqueIdentifier>{327be1f6-e013-4bcc-8d86-4a1243969196}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="LiveLoginDialog.qrc">
@@ -62,6 +68,12 @@
     <ClCompile Include="main.cpp">
       <Filter>main</Filter>
     </ClCompile>
+    <ClCompile Include="PasswordEdit.cpp">
+      <Filter>assembly\PasswordEdit</Filter>
+    </ClCompile>
+    <ClCompile Include="TouchedLineEdit.cpp">
+      <Filter>assembly\TouchedLineEdit</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="LiveLoginDialog.ui">
@@ -86,6 +98,12 @@
     </QtMoc>
     <QtMoc Include="GeneralSignal.h">
       <Filter>utils\GeneralSignal</Filter>
+    </QtMoc>
+    <QtMoc Include="PasswordEdit.h">
+      <Filter>assembly\PasswordEdit</Filter>
+    </QtMoc>
+    <QtMoc Include="TouchedLineEdit.h">
+      <Filter>assembly\TouchedLineEdit</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

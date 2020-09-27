@@ -53,6 +53,9 @@
      <height>450</height>
     </size>
    </property>
+   <property name="focusPolicy">
+    <enum>Qt::StrongFocus</enum>
+   </property>
    <property name="styleSheet">
     <string notr="true">/* font */
 *
@@ -612,7 +615,7 @@ QToolTip
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="passwordLineEdit">
+            <widget class="PasswordEdit" name="passwordLineEdit">
              <property name="minimumSize">
               <size>
                <width>280</width>
@@ -786,6 +789,13 @@ QToolTip
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>PasswordEdit</class>
+   <extends>QLineEdit</extends>
+   <header>PasswordEdit.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>loginPushButton</tabstop>
   <tabstop>accountLineEdit</tabstop>

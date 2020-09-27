@@ -60,7 +60,6 @@ namespace thatboy
 		extern nlohmann::json config;
 		extern nlohmann::json usersStorage;
 		extern AsyncDownloader avatarDownloader;
-		extern std::atomic_bool usingToken;
 
 		extern nlohmann::json currentUser;
 

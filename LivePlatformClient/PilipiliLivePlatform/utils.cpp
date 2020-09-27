@@ -114,7 +114,6 @@ void thatboy::utils::saveConfig()
 nlohmann::json thatboy::storage::usersStorage;
 nlohmann::json thatboy::storage::config;
 nlohmann::json thatboy::storage::currentUser;
-std::atomic_bool thatboy::storage::usingToken{ false }; 
 httplib::Client thatboy::storage::accountVerifyClient{ "localhost",8080 };
 std::map<std::string, QPixmap> thatboy::storage::userAvatarCache;
 AsyncDownloader thatboy::storage::avatarDownloader;
