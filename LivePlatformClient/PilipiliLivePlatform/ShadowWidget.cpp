@@ -14,10 +14,12 @@ ShadowWidget::~ShadowWidget()
 
 void ShadowWidget::show()
 {
-	auto par = parent();
-	if (par != nullptr)
-		setGeometry(dynamic_cast<QWidget*>(par)->frameGeometry());
-	QWidget::show();
+	auto parentWidget = dynamic_cast<QWidget*>(parent());
+	if (parentWidget != nullptr)
+	{
+		setGeometry(parentWidget->frameGeometry());
+		QWidget::show();
+	}
 }
 
 void ShadowWidget::execute(BaseWidget* widget)

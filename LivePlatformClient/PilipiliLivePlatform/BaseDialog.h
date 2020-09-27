@@ -20,14 +20,18 @@ protected:
 	virtual void moveEvent(QMoveEvent*) override;
 	virtual void resizeEvent(QResizeEvent*) override;
 	virtual void mousePressEvent(QMouseEvent*) override;
+	virtual void focusInEvent(QFocusEvent*) override;
+	virtual void focusOutEvent(QFocusEvent*) override;
 signals:
 	void showed();
 	void hided();
 	void closed();
-	void moved();
-	void resized();
+	void moved(const QPoint&, const QPoint&);
+	void resized(const QSize&, const QSize&);
 	void clicked();
 	void leftClicked();
 	void rightClicked();
 	void middleClicked();
+	void focusIn();
+	void focusOut();
 };

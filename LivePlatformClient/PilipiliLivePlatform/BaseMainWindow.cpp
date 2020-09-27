@@ -10,46 +10,61 @@ BaseMainWindow::~BaseMainWindow()
 {
 }
 
-void BaseMainWindow::showEvent(QShowEvent*)
+void BaseMainWindow::showEvent(QShowEvent* e)
 {
     emit showed();
+    QMainWindow::showEvent(e);
 }
 
-void BaseMainWindow::hideEvent(QHideEvent*)
+void BaseMainWindow::hideEvent(QHideEvent* e)
 {
     emit hided();
+    QMainWindow::hideEvent(e);
 }
 
-void BaseMainWindow::closeEvent(QCloseEvent*)
+void BaseMainWindow::closeEvent(QCloseEvent* e)
 {
     emit closed();
+    QMainWindow::closeEvent(e);
 }
 
-void BaseMainWindow::moveEvent(QMoveEvent*)
+void BaseMainWindow::moveEvent(QMoveEvent* e)
 {
-    emit moved();
+    emit moved(e->oldPos(), e->pos());
+    QMainWindow::moveEvent(e);
 }
 
-void BaseMainWindow::resizeEvent(QResizeEvent*)
+void BaseMainWindow::resizeEvent(QResizeEvent* e)
 {
-    emit resized();
+    emit resized(e->oldSize(), e->size());
+    QMainWindow::resizeEvent(e);
 }
 
-void BaseMainWindow::mousePressEvent(QMouseEvent*e)
+void BaseMainWindow::mousePressEvent(QMouseEvent* e)
 {
     if (e->button() & Qt::LeftButton) {
         emit leftClicked();
-        emit clicked();
     }
-    else if (e->button() & Qt::RightButton)
+    if (e->button() & Qt::RightButton)
     {
         emit rightClicked();
-        emit clicked();
     }
-    else if (e->button() & Qt::MiddleButton)
+    if (e->button() & Qt::MiddleButton)
     {
         emit middleClicked();
-        emit clicked();
     }
-    QWidget::mousePressEvent(e);
+    emit clicked();
+    QMainWindow::mousePressEvent(e);
+}
+
+void BaseMainWindow::focusInEvent(QFocusEvent* e)
+{
+    emit focusIn();
+    QMainWindow::focusInEvent(e);
+}
+
+void BaseMainWindow::focusOutEvent(QFocusEvent* e)
+{
+    emit focusOut();
+    QMainWindow::focusOutEvent(e);
 }
