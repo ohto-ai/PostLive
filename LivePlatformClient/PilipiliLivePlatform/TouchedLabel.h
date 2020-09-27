@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QLabel>
-#include <QMouseEvent>
 
 class TouchedLabel : public QLabel
 {

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <QtWidgets/QMainWindow>
+#include "DragableMainWindow.h"
 #include "ui_LivePlatform.h"
 
-class LivePlatform : public QMainWindow
+class LivePlatform : public DragableMainWindow
 {
     Q_OBJECT
 

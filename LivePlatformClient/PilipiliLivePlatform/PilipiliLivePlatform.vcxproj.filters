@@ -46,6 +46,9 @@
     <Filter Include="assembly\DragableDialog">
       <UniqueIdentifier>{9f7996de-4a7a-4e62-b15d-a86100e0ad0b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assembly\DragableMainWindow">
+      <UniqueIdentifier>{56dcbea9-f8ec-4725-aaba-37f80901bfad}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="LiveLoginDialog.qrc">
@@ -79,6 +82,9 @@
     </ClCompile>
     <ClCompile Include="DragableDialog.cpp">
       <Filter>assembly\DragableDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="DragableMainWindow.cpp">
+      <Filter>assembly\DragableMainWindow</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +124,9 @@
     </ClInclude>
     <ClInclude Include="DragableDialog.h">
       <Filter>assembly\DragableDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="DragableMainWindow.h">
+      <Filter>assembly\DragableMainWindow</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

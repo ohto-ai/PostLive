@@ -1,4 +1,5 @@
 #include "TouchedLabel.h"
+#include <QMouseEvent>
 
 TouchedLabel::TouchedLabel(QWidget *parent)
 	: QLabel(parent)
