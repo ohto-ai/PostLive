@@ -12,7 +12,7 @@
 
 ![效果图](https://i.loli.net/2020/09/27/DtsjhlAfMHndr2q.png)
 
-![遮罩图](C:/Users/thatboy/AppData/Roaming/Typora/typora-user-images/image-20200927222312977.png)
+![遮罩图](https://i.loli.net/2020/09/27/nAdxPvT23F5bY64.png)
 
 ## 用户名和密码正则
 
