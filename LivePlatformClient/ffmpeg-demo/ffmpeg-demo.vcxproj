@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E3D78B07-450D-464F-9692-2D4C6098931F}</ProjectGuid>
+    <ProjectGuid>{8F86BC2F-CCF4-47E3-84E3-8F0F24C621A4}</ProjectGuid>
     <Keyword>QtVS_v303</Keyword>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0.18362.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0.18362.0</WindowsTargetPlatformVersion>
@@ -21,10 +21,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
@@ -49,21 +51,29 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>E:\Library\ffmpeg\ffmpeg-4.2.2-win64-dev\include;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>E:\Library\ffmpeg\ffmpeg-4.2.2-win64-dev\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>E:\Library\ffmpeg\ffmpeg-4.2.2-win64-dev\include;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>E:\Library\ffmpeg\ffmpeg-4.2.2-win64-dev\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>msvc2017_64</QtInstall>
-    <QtModules>core;gui;multimedia;network;widgets</QtModules>
+    <QtModules>core;gui;widgets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
     <QtInstall>msvc2017_64</QtInstall>
-    <QtModules>core;gui;multimedia;network;widgets</QtModules>
+    <QtModules>core;gui;widgets</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.props')">
@@ -78,7 +88,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -91,56 +101,19 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AsyncDownloader.cpp" />
-    <ClCompile Include="BaseDialog.cpp" />
-    <ClCompile Include="BaseMainWindow.cpp" />
-    <ClCompile Include="BaseWidget.cpp" />
-    <ClCompile Include="DragableDialog.cpp" />
-    <ClCompile Include="DragableMainWindow.cpp" />
-    <ClCompile Include="DragableWidget.cpp" />
-    <ClCompile Include="LiveLoginSettingDialog.cpp" />
-    <ClCompile Include="PasswordEdit.cpp" />
-    <ClCompile Include="ShadowWidget.cpp" />
-    <ClCompile Include="TouchedLabel.cpp" />
-    <ClCompile Include="TouchedLineEdit.cpp" />
-    <ClCompile Include="utils.cpp" />
-    <QtRcc Include="LiveLoginDialog.qrc" />
-    <QtRcc Include="LivePlatform.qrc" />
-    <QtUic Include="LiveLoginDialog.ui" />
-    <QtUic Include="LiveLoginSettingDialog.ui" />
-    <QtUic Include="LivePlatform.ui" />
-    <QtMoc Include="LivePlatform.h" />
-    <ClCompile Include="LiveLoginDialog.cpp" />
-    <ClCompile Include="LivePlatform.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MainWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="LiveLoginDialog.h" />
+    <QtMoc Include="MainWindow.h" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="AsyncDownloader.h" />
-    <QtMoc Include="GeneralSignal.h" />
-    <QtMoc Include="PasswordEdit.h" />
-    <QtMoc Include="TouchedLineEdit.h" />
-    <QtMoc Include="BaseWidget.h" />
-    <QtMoc Include="BaseDialog.h" />
-    <QtMoc Include="BaseMainWindow.h" />
-    <ClInclude Include="BaseWidgetInterface.h">
-      <SubType>
-      </SubType>
-    </ClInclude>
-    <ClInclude Include="DragableDialog.h" />
-    <ClInclude Include="DragableMainWindow.h" />
-    <ClInclude Include="DragableWidget.h" />
-    <QtMoc Include="ShadowWidget.h" />
-    <QtMoc Include="LiveLoginSettingDialog.h" />
-    <ClInclude Include="utils.h" />
-    <QtMoc Include="TouchedLabel.h" />
+    <QtUic Include="MainWindow.ui" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

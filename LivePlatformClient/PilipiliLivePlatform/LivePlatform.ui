@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>523</width>
-    <height>402</height>
+    <width>600</width>
+    <height>516</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -100,18 +100,31 @@ QCheckBox::indicator::checked {
 {
 	outline: none
 }
-/* login button */
-QPushButton#loginPushButton {
+/* start stop button */
+QPushButton#startPushButton {
   background: #0078d7;
   border: 2px solid rgba(0,0,0,0.4)
 }
-QPushButton#loginPushButton:hover {
+QPushButton#startPushButton:hover {
   background: #1CA8FA;
 }
-QPushButton#loginPushButton:pressed {
+QPushButton#startPushButton:pressed {
   background: #2A67FF;
 }
-QPushButton#loginPushButton:disabled {
+QPushButton#startPushButton:disabled {
+  background: #666;
+}
+QPushButton#stopPushButton {
+  background: #d77800;
+  border: 2px solid rgba(0,0,0,0.4)
+}
+QPushButton#stopPushButton:hover {
+  background: #FAA81C;
+}
+QPushButton#stopPushButton:pressed {
+  background: #FF672A;
+}
+QPushButton#stopPushButton:disabled {
   background: #666;
 }
 /* account password */
@@ -359,17 +372,47 @@ QToolTip
      </widget>
     </item>
     <item>
-     <spacer name="verticalSpacer_3">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>349</height>
-       </size>
-      </property>
-     </spacer>
+     <widget class="QWidget" name="customWidget" native="true">
+      <widget class="QComboBox" name="cameraComboBox">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>20</y>
+         <width>191</width>
+         <height>31</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="startPushButton">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>70</y>
+         <width>93</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>开播</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="stopPushButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>70</y>
+         <width>93</width>
+         <height>28</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>停播</string>
+       </property>
+      </widget>
+     </widget>
     </item>
    </layout>
   </widget>
