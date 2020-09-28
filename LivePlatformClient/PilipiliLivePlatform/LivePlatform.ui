@@ -412,6 +412,23 @@ QToolTip
         <string>停播</string>
        </property>
       </widget>
+      <widget class="QWidget" name="cameraViewWidget" native="true">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>130</y>
+         <width>541</width>
+         <height>311</height>
+        </rect>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>500</width>
+         <height>300</height>
+        </size>
+       </property>
+       <layout class="QGridLayout" name="cameraViewLayout"/>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -423,4 +440,21 @@ QToolTip
   <include location="LiveLoginDialog.qrc"/>
  </resources>
  <connections/>
+ <designerdata>
+  <property name="gridDeltaX">
+   <number>10</number>
+  </property>
+  <property name="gridDeltaY">
+   <number>10</number>
+  </property>
+  <property name="gridSnapX">
+   <bool>true</bool>
+  </property>
+  <property name="gridSnapY">
+   <bool>true</bool>
+  </property>
+  <property name="gridVisible">
+   <bool>false</bool>
+  </property>
+ </designerdata>
 </ui>

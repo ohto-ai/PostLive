@@ -38,6 +38,8 @@ int main()
 			const auto cont = nlohmann::json::parse(req.body);
 			nlohmann::json body;
 
+			std::cout << "=====================================================\n" << std::endl;
+
 			std::cout << "Request:\n" << cont.dump(4) << "\n" << std::endl;
 
 			body["account"] = cont["account"];
@@ -100,7 +102,7 @@ int main()
 		});
 
 
-
+	std::cout << "Verify server started." << std::endl;
 	server.listen_after_bind();
 	return 0;
 }

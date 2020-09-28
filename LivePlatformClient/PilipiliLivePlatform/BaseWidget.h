@@ -3,7 +3,7 @@
 #include "BaseWidgetInterface.h"
 #include <QWidget>
 
-class BaseWidget 
+class BaseWidget
 	: public QWidget
 	, public BaseWidgetInterface
 {

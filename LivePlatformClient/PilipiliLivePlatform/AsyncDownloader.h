@@ -22,4 +22,3 @@ signals:
 	void finished(QString url, QString file, bool success);
 	void error(QString url, QString file, QNetworkReply::NetworkError);
 };
-

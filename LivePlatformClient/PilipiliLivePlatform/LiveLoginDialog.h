@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <QDesktopServices>
 #include <QToolButton>
@@ -15,22 +15,22 @@
 
 class LiveLoginDialog : public DragableDialog
 {
-    Q_OBJECT
+	Q_OBJECT
 
 public:
-    LiveLoginDialog(QWidget *parent = Q_NULLPTR);
+	LiveLoginDialog(QWidget* parent = Q_NULLPTR);
 protected:
-    void login();
-    void applyConfig();
-    void setAvatar();
-    void setAccountCompleter();
-    void setAccountPasswordAcceptableInputCheck();
-    bool checkAccountPasswordAcceptableInput();
+	void login();
+	void applyConfig();
+	void setAvatar();
+	void setAccountCompleter();
+	void setAccountPasswordAcceptableInputCheck();
+	bool checkAccountPasswordAcceptableInput();
 
 protected:
-    LiveLoginSettingDialog settingDialog{ this };
-    ShadowWidget shadowWidget{ this };
+	LiveLoginSettingDialog settingDialog{ this };
+	ShadowWidget shadowWidget{ this };
 
 private:
-    Ui::LiveLoginDialogClass ui;
+	Ui::LiveLoginDialogClass ui;
 };

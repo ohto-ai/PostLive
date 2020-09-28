@@ -27,7 +27,7 @@ namespace thatboy
 		void to_json(nlohmann::json& j, const QString& string);
 		void to_json(nlohmann::json& j, const QStringList& stringList);
 		void to_json(nlohmann::json& j, const QRect& rect);
-		
+
 		void loadConfig();
 		void saveConfig();
 		void loadUserData();
@@ -52,8 +52,8 @@ namespace thatboy
 		constexpr auto ConfigFilePath{ "application.config" };
 		constexpr int LoginErrorLabelTime{ 8000 };
 
-		constexpr auto RegisterUrl{"http://jaychou.thatboy.icu"};
-		constexpr auto ResetPasswordUrl{"https://thatboy.info"};
+		constexpr auto RegisterUrl{ "http://jaychou.thatboy.icu" };
+		constexpr auto ResetPasswordUrl{ "https://thatboy.info" };
 
 		extern httplib::Client accountVerifyClient;
 		extern std::map<std::string, QPixmap> userAvatarCache;

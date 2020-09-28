@@ -7,7 +7,7 @@ class TouchedLineEdit : public QLineEdit
 	Q_OBJECT
 
 public:
-	TouchedLineEdit(QWidget *parent);
+	TouchedLineEdit(QWidget* parent);
 	~TouchedLineEdit();
 protected:
 	virtual void mousePressEvent(QMouseEvent* e) override;

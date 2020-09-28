@@ -1,6 +1,6 @@
 #include "ShadowWidget.h"
 
-ShadowWidget::ShadowWidget(QWidget *parent)
+ShadowWidget::ShadowWidget(QWidget* parent)
 	: BaseWidget(parent, Qt::FramelessWindowHint | Qt::Window)
 {
 	setPalette(QPalette(Qt::black));

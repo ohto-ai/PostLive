@@ -7,7 +7,7 @@ class TouchedLabel : public QLabel
 	Q_OBJECT
 
 public:
-	TouchedLabel(QWidget *parent);
+	TouchedLabel(QWidget* parent);
 	~TouchedLabel();
 
 protected:

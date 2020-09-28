@@ -3,7 +3,7 @@
 #include "BaseWidgetInterface.h"
 #include <QDialog>
 
-class BaseDialog 
+class BaseDialog
 	: public QDialog
 	, public BaseWidgetInterface
 {

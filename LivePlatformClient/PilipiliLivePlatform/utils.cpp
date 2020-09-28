@@ -2,113 +2,113 @@
 
 QPixmap thatboy::utils::roundedPixmap(const QPixmap& src)
 {
-    if (src.isNull()) {
-        return QPixmap();
-    }
-    int radius = std::max(src.width(), src.height());
-    QSize size(2 * radius, 2 * radius);
-    QBitmap mask(size);
-    QPainter painter(&mask);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setRenderHint(QPainter::SmoothPixmapTransform);
-    painter.fillRect(0, 0, size.width(), size.height(), Qt::white);
-    painter.setBrush(QColor(0, 0, 0));
-    painter.drawRoundedRect(0, 0, size.width(), size.height(), radius * 2 - 1, radius * 2 - 1);
-    QPixmap image = src.scaled(size);
-    image.setMask(mask);
-    return image;
+	if (src.isNull()) {
+		return QPixmap();
+	}
+	int radius = std::max(src.width(), src.height());
+	QSize size(2 * radius, 2 * radius);
+	QBitmap mask(size);
+	QPainter painter(&mask);
+	painter.setRenderHint(QPainter::Antialiasing);
+	painter.setRenderHint(QPainter::SmoothPixmapTransform);
+	painter.fillRect(0, 0, size.width(), size.height(), Qt::white);
+	painter.setBrush(QColor(0, 0, 0));
+	painter.drawRoundedRect(0, 0, size.width(), size.height(), radius * 2 - 1, radius * 2 - 1);
+	QPixmap image = src.scaled(size);
+	image.setMask(mask);
+	return image;
 }
 
 void thatboy::utils::from_json(const nlohmann::json& j, QString& string)
 {
-    string = QString::fromStdString(j);
+	string = QString::fromStdString(j);
 }
 
 void thatboy::utils::from_json(const nlohmann::json& j, QStringList& stringList)
 {
-    stringList.clear();
-    for (auto& str : j)
-        stringList.push_back(str);
+	stringList.clear();
+	for (auto& str : j)
+		stringList.push_back(str);
 }
 
 void thatboy::utils::from_json(const nlohmann::json& j, QRect& rect)
 {
-    rect.setRect(j["x"], j["y"], j["width"], j["height"]);
+	rect.setRect(j["x"], j["y"], j["width"], j["height"]);
 }
 
 void thatboy::utils::to_json(nlohmann::json& j, const QString& string)
 {
-    j = string.toStdString();
+	j = string.toStdString();
 }
 
 void thatboy::utils::to_json(nlohmann::json& j, const QStringList& stringList)
 {
-    j.clear();
-    for (auto& str : stringList)
-        j.push_back(str.toStdString());
+	j.clear();
+	for (auto& str : stringList)
+		j.push_back(str.toStdString());
 }
 
 void thatboy::utils::to_json(nlohmann::json& j, const QRect& rect)
 {
-    j["x"] = rect.x();
-    j["y"] = rect.y();
-    j["width"] = rect.width();
-    j["height"] = rect.height();
+	j["x"] = rect.x();
+	j["y"] = rect.y();
+	j["width"] = rect.width();
+	j["height"] = rect.height();
 }
 
 void thatboy::utils::loadUserData()
 {
-    std::ifstream ifs(storage::config["user_list"].get<std::string>());
-    storage::usersStorage = nlohmann::json::parse(std::string{ (std::istreambuf_iterator<char>(ifs)),
-        (std::istreambuf_iterator<char>()) });    
+	std::ifstream ifs(storage::config["user_list"].get<std::string>());
+	storage::usersStorage = nlohmann::json::parse(std::string{ (std::istreambuf_iterator<char>(ifs)),
+		(std::istreambuf_iterator<char>()) });
 
-    // load avatars
-    QObject::connect(&storage::avatarDownloader, &AsyncDownloader::finished, [&](QString url, QString file, bool success)
-        {
-            if (success)
-                storage::userAvatarCache[QFileInfo(file).completeBaseName().toStdString()] = QPixmap{ file };            
-            emit storage::generalSignal.avatarDownloaded(QFileInfo(file).completeBaseName(), success);
-        });
+	// load avatars
+	QObject::connect(&storage::avatarDownloader, &AsyncDownloader::finished, [&](QString url, QString file, bool success)
+		{
+			if (success)
+				storage::userAvatarCache[QFileInfo(file).completeBaseName().toStdString()] = QPixmap{ file };
+			emit storage::generalSignal.avatarDownloaded(QFileInfo(file).completeBaseName(), success);
+		});
 
-    for (std::string userName : storage::usersStorage["user_names"])
-    {
-        auto& avatar = storage::userAvatarCache[userName];
-        auto& user = storage::usersStorage["users"][userName];
+	for (std::string userName : storage::usersStorage["user_names"])
+	{
+		auto& avatar = storage::userAvatarCache[userName];
+		auto& user = storage::usersStorage["users"][userName];
 
-        if (!user.contains("avatar_file"))
-            user["avatar_file"] = "";
-        avatar = QPixmap{ user["avatar_file"] };
-        if (avatar.isNull())
-        {
-            user["avatar_file"] = QString::asprintf("user/avatar/%s.avatar", userName.c_str());
-            storage::avatarDownloader.download(user["avatar"] , user["avatar_file"]);
-        }
-    }
+		if (!user.contains("avatar_file"))
+			user["avatar_file"] = "";
+		avatar = QPixmap{ user["avatar_file"] };
+		if (avatar.isNull())
+		{
+			user["avatar_file"] = QString::asprintf("user/avatar/%s.avatar", userName.c_str());
+			storage::avatarDownloader.download(user["avatar"], user["avatar_file"]);
+		}
+	}
 }
 
 void thatboy::utils::saveUserData()
 {
-    std::ofstream ofs(storage::config["user_list"].get<std::string>());
-    ofs << storage::usersStorage.dump(4);
+	std::ofstream ofs(storage::config["user_list"].get<std::string>());
+	ofs << storage::usersStorage.dump(4);
 }
 
 QString thatboy::utils::generateMD5(QString str)
 {
-    return QCryptographicHash::hash(str.toUtf8()
-        , QCryptographicHash::Md5).toHex().toUpper();
+	return QCryptographicHash::hash(str.toUtf8()
+		, QCryptographicHash::Md5).toHex().toUpper();
 }
 
 void thatboy::utils::loadConfig()
 {
-    std::ifstream ifs(storage::ConfigFilePath);
-    storage::config = nlohmann::json::parse(std::string{ (std::istreambuf_iterator<char>(ifs)),
-        (std::istreambuf_iterator<char>()) });    
+	std::ifstream ifs(storage::ConfigFilePath);
+	storage::config = nlohmann::json::parse(std::string{ (std::istreambuf_iterator<char>(ifs)),
+		(std::istreambuf_iterator<char>()) });
 }
 
 void thatboy::utils::saveConfig()
 {
-    std::ofstream ofs(storage::ConfigFilePath);
-    ofs << storage::config.dump(4);
+	std::ofstream ofs(storage::ConfigFilePath);
+	ofs << storage::config.dump(4);
 }
 
 nlohmann::json thatboy::storage::usersStorage;

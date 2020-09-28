@@ -22,7 +22,7 @@ public:
 	QString password()const;
 	void clear();
 
-	PasswordEdit(QWidget *parent);
+	PasswordEdit(QWidget* parent);
 	~PasswordEdit();
 
 protected:

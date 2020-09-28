@@ -24,7 +24,7 @@ void PasswordEdit::fillCheatPassword(QString pwd, QString md5)
 	pwdMD5 = md5;
 }
 
-void PasswordEdit::setRegExpValidator(const QRegExp&regexp)
+void PasswordEdit::setRegExpValidator(const QRegExp& regexp)
 {
 	setValidator(new QRegExpValidator(regexp, this));
 }
@@ -45,7 +45,7 @@ void PasswordEdit::clear()
 	type = PasswordFilled;
 }
 
-PasswordEdit::PasswordEdit(QWidget *parent)
+PasswordEdit::PasswordEdit(QWidget* parent)
 	: TouchedLineEdit(parent)
 {
 	connect(this, &TouchedLineEdit::clicked, [&]

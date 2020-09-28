@@ -9,7 +9,7 @@ class ShadowWidget : public BaseWidget
 	Q_OBJECT
 
 public:
-	ShadowWidget(QWidget *parent);
+	ShadowWidget(QWidget* parent);
 	~ShadowWidget();
 
 	void show();

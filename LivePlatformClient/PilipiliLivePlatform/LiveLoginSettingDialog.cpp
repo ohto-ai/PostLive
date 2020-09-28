@@ -1,6 +1,6 @@
 #include "LiveLoginSettingDialog.h"
 
-LiveLoginSettingDialog::LiveLoginSettingDialog(QWidget *parent)
+LiveLoginSettingDialog::LiveLoginSettingDialog(QWidget* parent)
 	: DragableDialog(parent)
 {
 	ui.setupUi(this);

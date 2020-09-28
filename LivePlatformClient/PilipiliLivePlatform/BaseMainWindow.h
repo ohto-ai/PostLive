@@ -3,7 +3,7 @@
 #include "BaseWidgetInterface.h"
 #include <QMainWindow>
 
-class BaseMainWindow 
+class BaseMainWindow
 	: public QMainWindow
 	, public BaseWidgetInterface
 {

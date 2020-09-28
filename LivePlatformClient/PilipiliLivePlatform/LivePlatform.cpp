@@ -1,23 +1,24 @@
-#include "LivePlatform.h"
-#include <QCameraInfo>
+﻿#include "LivePlatform.h"
 
-LivePlatform::LivePlatform(QWidget *parent)
-    : DragableMainWindow(parent)
+Q_DECLARE_METATYPE(QCameraInfo)
+LivePlatform::LivePlatform(QWidget* parent)
+	: DragableMainWindow(parent)
 {
-    ui.setupUi(this);
+	ui.setupUi(this);
 	setAttribute(Qt::WA_TranslucentBackground);
 	connect(ui.closeToolButton, &QToolButton::clicked, this, &LivePlatform::close);
 	connect(ui.minimizeToolButton, &QToolButton::clicked, this, &LivePlatform::showMinimized);
 
-
 	connect(&ffmpegProcess, &QProcess::started, [&]
 		{
+			ui.cameraComboBox->setEnabled(false);
 			ui.startPushButton->setEnabled(false);
 			ui.stopPushButton->setEnabled(true);
 		}
 	);
 	connect(&ffmpegProcess, static_cast<void(QProcess::*)(int)>(&QProcess::finished), [&](int code)
 		{
+			ui.cameraComboBox->setEnabled(true);
 			ui.startPushButton->setEnabled(true);
 			ui.stopPushButton->setEnabled(false);
 		}
@@ -43,8 +44,27 @@ LivePlatform::LivePlatform(QWidget *parent)
 			ffmpegProcess.write("q");
 		});
 
-	auto deviceList = QCameraInfo::availableCameras();
+	auto cameraList = QCameraInfo::availableCameras();
 
-	for (auto& device : deviceList)
-		ui.cameraComboBox->addItem(device.description());
+	for (auto& cameraInfo : cameraList)
+		ui.cameraComboBox->addItem(cameraInfo.description(), QVariant::fromValue(cameraInfo));
+	ui.cameraComboBox->setCurrentText(QCameraInfo::defaultCamera().description());
+
+	ui.cameraViewLayout->addWidget(&cameraViewfinder);
+
+	connect(ui.cameraComboBox, static_cast<void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), [&](const QString& text)
+		{
+			setViewCamera(qvariant_cast<QCameraInfo>(ui.cameraComboBox->currentData()));
+			viewCamera->start();
+		});
+
+	setViewCamera(QCameraInfo::defaultCamera());
+	viewCamera->start();
+}
+
+void LivePlatform::setViewCamera(const QCameraInfo& cameraInfo)
+{
+	delete viewCamera;
+	viewCamera = new QCamera(cameraInfo, this);
+	viewCamera->setViewfinder(&cameraViewfinder);
 }

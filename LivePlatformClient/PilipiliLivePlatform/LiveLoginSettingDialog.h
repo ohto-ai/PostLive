@@ -8,7 +8,7 @@ class LiveLoginSettingDialog : public DragableDialog
 	Q_OBJECT
 
 public:
-	LiveLoginSettingDialog(QWidget *parent = Q_NULLPTR);
+	LiveLoginSettingDialog(QWidget* parent = Q_NULLPTR);
 	~LiveLoginSettingDialog();
 
 private:

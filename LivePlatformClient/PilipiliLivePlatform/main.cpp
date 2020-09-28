@@ -1,50 +1,58 @@
-#pragma execution_character_set("utf-8")
+ï»¿#pragma execution_character_set("utf-8")
 #include "LivePlatform.h"
 #include "LiveLoginDialog.h"
 #include <QtWidgets/QApplication>
 
-int main(int argc, char *argv[])
+#define LOCAL_SERVER_TEST
+
+int main(int argc, char* argv[])
 {
-    QApplication a(argc, argv);
-    // ¼ÓÔØÉèÖÃºÍÓÃ»§ÁĞ±í
-    thatboy::utils::loadConfig();
-    thatboy::utils::loadUserData();
+	QApplication a(argc, argv);
 
-#ifndef _DEBUG
-    try
-    {
+#ifdef LOCAL_SERVER_TEST
+	QProcess process;
+	process.start("LiveServerTestDemo.exe");
 #endif
-        LiveLoginDialog d;
-        if (d.exec() == QDialog::Accepted)
-        {
-            LivePlatform w;
-            w.show();
 
-            thatboy::utils::saveUserData();
-            thatboy::utils::saveConfig();
-            return a.exec();
-        }
-        else
-        {
-            thatboy::utils::saveUserData();
-            thatboy::utils::saveConfig();
-            return 0;
-        }
+	// åŠ è½½è®¾ç½®å’Œç”¨æˆ·åˆ—è¡¨
+	thatboy::utils::loadConfig();
+	thatboy::utils::loadUserData();
+
 #ifndef _DEBUG
-    }
-    catch (...)
-    {
-        try {
-            thatboy::utils::saveUserData();
-            thatboy::utils::saveConfig();
-        }
-        catch (...)
-        {
-            QMessageBox::warning(nullptr, "´íÎó", "·¢ÉúÔÖÄÑĞÔ¹ÊÕÏ£¬Êı¾İÎŞ·¨±£´æ.");
-            return -2;
-        }
-        QMessageBox::warning(nullptr, "´íÎó", "·¢ÉúÔÖÄÑĞÔ¹ÊÕÏ£¬Êı¾İÒÑ±£´æ.");
-        return -1;
-    }
+	try
+	{
+#endif
+		LiveLoginDialog d;
+		if (d.exec() == QDialog::Accepted)
+		{
+			LivePlatform w;
+			w.show();
+
+			thatboy::utils::saveUserData();
+			thatboy::utils::saveConfig();
+			return a.exec();
+		}
+		else
+		{
+			thatboy::utils::saveUserData();
+			thatboy::utils::saveConfig();
+			return 0;
+		}
+#ifndef _DEBUG
+	}
+	catch (...)
+	{
+		try {
+			thatboy::utils::saveUserData();
+			thatboy::utils::saveConfig();
+		}
+		catch (...)
+		{
+			QMessageBox::warning(nullptr, "é”™è¯¯", "å‘ç”Ÿç¾éš¾æ€§æ•…éšœï¼Œæ•°æ®æ— æ³•ä¿å­˜.");
+			return -2;
+		}
+		QMessageBox::warning(nullptr, "é”™è¯¯", "å‘ç”Ÿç¾éš¾æ€§æ•…éšœï¼Œæ•°æ®å·²ä¿å­˜.");
+		return -1;
+	}
 #endif
 }
