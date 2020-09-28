@@ -26,13 +26,13 @@ LivePlatform::LivePlatform(QWidget *parent)
 	connect(ui.startPushButton, &QPushButton::clicked, [&]
 		{
 			auto command = QString::asprintf(
-				R"(ffmpeg.exe -f dshow -i video="%s" -i %s -filter_complex "overlay=5:5" -f dshow -i audio="%s" -f %s -s %dx%d rtmp://%s%s/%s)"
+				R"(bin\ffmpeg.exe -f dshow -i video="%s" -i %s -filter_complex "overlay=5:5" -f dshow -i audio="%s" -f %s -s %dx%d rtmp://%s%s/%s)"
 				, ui.cameraComboBox->currentText().toStdString().c_str()
-				, "thatboylogo.png"
+				, "assets\\thatboylogo.png"
 				, "virtual-audio-capturer"
 				, "flv"
 				, 1920, 1080
-				, "localhost:1935"
+				, "192.168.10.109:1935"
 				, "/hls"
 				, thatboy::storage::currentUser["account"].get<std::string>().c_str());
 			ffmpegProcess.start(command);
