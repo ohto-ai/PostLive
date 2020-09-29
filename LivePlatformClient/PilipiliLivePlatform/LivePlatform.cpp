@@ -6,13 +6,12 @@ LivePlatform::LivePlatform(QWidget* parent)
 {
 	ui.setupUi(this);
 
-	/*
+	
 	thatboy::storage::config["widget_info"]["login_setting"].get<thatboy::WidgetConfigInfo>().config(*this); 
-	connect(this, &BaseDialog::closed, [&]
+	connect(this, &BaseMainWindow::closed, [&]
 		{
-			thatboy::storage::config["widget_info"]["login_setting"] = thatboy::WidgetConfigInfo(*this);
-		});                                                                                       
-		*/
+			thatboy::storage::config["widget_info"]["platform"] = thatboy::WidgetConfigInfo(*this);
+		}); 
 	setAttribute(Qt::WA_TranslucentBackground);
 	connect(ui.closeToolButton, &QToolButton::clicked, this, &LivePlatform::close);
 	connect(ui.minimizeToolButton, &QToolButton::clicked, this, &LivePlatform::showMinimized);
@@ -34,6 +33,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 	connect(ui.startPushButton, &QPushButton::clicked, [&]
 		{
+			viewCamera->stop();
 			auto command = QString::asprintf(
 				R"(bin\ffmpeg.exe -f dshow -i video="%s" -i %s -filter_complex "overlay=5:5" -f dshow -i audio="%s" -f %s -s %dx%d rtmp://%s%s/%s)"
 				, ui.cameraComboBox->currentText().toStdString().c_str()
@@ -41,7 +41,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 				, "virtual-audio-capturer"
 				, "flv"
 				, 1920, 1080
-				, "192.168.10.109:1935"
+				, "localhost:1935"
 				, "/hls"
 				, thatboy::storage::currentUser["account"].get<std::string>().c_str());
 			ffmpegProcess.start(command);

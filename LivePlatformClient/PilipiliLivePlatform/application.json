@@ -24,6 +24,16 @@
             },
             "opacity": 1.0,
             "translucent": true
+        },
+        "platform": {
+            "geometry": {
+                "height": 516,
+                "width": 600,
+                "x": 660,
+                "y": 257
+            },
+            "opacity": 1.0,
+            "translucent": true
         }
     }
 }

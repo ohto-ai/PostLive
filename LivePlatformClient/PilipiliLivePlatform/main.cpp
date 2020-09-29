@@ -27,17 +27,11 @@ int main(int argc, char* argv[])
 		{
 			LivePlatform w;
 			w.show();
-
-			thatboy::utils::saveUserData();
-			thatboy::utils::saveConfig();
-			return a.exec();
+			a.exec();
 		}
-		else
-		{
-			thatboy::utils::saveUserData();
-			thatboy::utils::saveConfig();
-			return 0;
-		}
+		thatboy::utils::saveUserData();
+		thatboy::utils::saveConfig();
+		return 0;
 #ifndef _DEBUG
 	}
 	catch (...)
