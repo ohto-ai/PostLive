@@ -111,6 +111,7 @@
     <ClCompile Include="TouchedLabel.cpp" />
     <ClCompile Include="TouchedLineEdit.cpp" />
     <ClCompile Include="utils.cpp" />
+    <ClCompile Include="WidgetConfigInfo.cpp" />
     <QtRcc Include="LiveLoginDialog.qrc" />
     <QtRcc Include="LivePlatform.qrc" />
     <QtUic Include="LiveLoginDialog.ui" />
@@ -125,6 +126,7 @@
     <QtMoc Include="LiveLoginDialog.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="WidgetConfigInfo.h" />
     <QtMoc Include="AsyncDownloader.h" />
     <QtMoc Include="GeneralSignal.h" />
     <QtMoc Include="PasswordEdit.h" />
@@ -143,6 +145,10 @@
     <QtMoc Include="LiveLoginSettingDialog.h" />
     <ClInclude Include="utils.h" />
     <QtMoc Include="TouchedLabel.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="application.json" />
+    <None Include="users.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

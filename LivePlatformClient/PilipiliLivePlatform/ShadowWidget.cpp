@@ -5,6 +5,7 @@ ShadowWidget::ShadowWidget(QWidget* parent)
 {
 	setPalette(QPalette(Qt::black));
 	setWindowOpacity(0.6);
+	setAttribute(Qt::WA_TranslucentBackground, false);
 	connect(this, &BaseWidget::clicked, this, &BaseWidget::close);
 }
 

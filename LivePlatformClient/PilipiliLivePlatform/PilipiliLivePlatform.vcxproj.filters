@@ -69,6 +69,9 @@
     <Filter Include="assembly\Login\SettingDialog">
       <UniqueIdentifier>{03b55f1f-cf87-4366-a0bd-f58061c02b4b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assembly\WidgetConfigInfo">
+      <UniqueIdentifier>{64b22f9c-c7db-454e-8741-5948a04e0e99}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="LiveLoginDialog.qrc">
@@ -123,6 +126,9 @@
     </ClCompile>
     <ClCompile Include="LiveLoginSettingDialog.cpp">
       <Filter>assembly\Login\SettingDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="WidgetConfigInfo.cpp">
+      <Filter>assembly\WidgetConfigInfo</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -190,10 +196,21 @@
     <ClInclude Include="BaseWidgetInterface.h">
       <Filter>assembly\Plugin</Filter>
     </ClInclude>
+    <ClInclude Include="WidgetConfigInfo.h">
+      <Filter>assembly\WidgetConfigInfo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="LivePlatform.qrc">
       <Filter>main</Filter>
     </QtRcc>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="users.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="application.json">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

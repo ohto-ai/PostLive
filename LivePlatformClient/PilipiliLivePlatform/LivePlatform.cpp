@@ -5,6 +5,14 @@ LivePlatform::LivePlatform(QWidget* parent)
 	: DragableMainWindow(parent)
 {
 	ui.setupUi(this);
+
+	/*
+	thatboy::storage::config["widget_info"]["login_setting"].get<thatboy::WidgetConfigInfo>().config(*this); 
+	connect(this, &BaseDialog::closed, [&]
+		{
+			thatboy::storage::config["widget_info"]["login_setting"] = thatboy::WidgetConfigInfo(*this);
+		});                                                                                       
+		*/
 	setAttribute(Qt::WA_TranslucentBackground);
 	connect(ui.closeToolButton, &QToolButton::clicked, this, &LivePlatform::close);
 	connect(ui.minimizeToolButton, &QToolButton::clicked, this, &LivePlatform::showMinimized);

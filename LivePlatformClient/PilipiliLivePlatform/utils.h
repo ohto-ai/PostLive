@@ -14,6 +14,7 @@
 #include <httplib.h>
 #include "GeneralSignal.h"
 #include "AsyncDownloader.h"
+#include "WidgetConfigInfo.h"
 
 namespace thatboy
 {
@@ -23,10 +24,8 @@ namespace thatboy
 
 		void from_json(const nlohmann::json& j, QString& string);
 		void from_json(const nlohmann::json& j, QStringList& stringList);
-		void from_json(const nlohmann::json& j, QRect& rect);
 		void to_json(nlohmann::json& j, const QString& string);
 		void to_json(nlohmann::json& j, const QStringList& stringList);
-		void to_json(nlohmann::json& j, const QRect& rect);
 
 		void loadConfig();
 		void saveConfig();
@@ -49,7 +48,7 @@ namespace thatboy
 
 		constexpr auto RegexAccount{ R"(^[A-Za-z][A-Za-z0-9_-]{3,15}$)" };
 		constexpr auto RegexPassword{ R"(^[A-Za-z0-9._~!@#$^&*]{6,24}$)" };
-		constexpr auto ConfigFilePath{ "application.config" };
+		constexpr auto ConfigFilePath{ "application.json" };
 		constexpr int LoginErrorLabelTime{ 8000 };
 
 		constexpr auto RegisterUrl{ "http://jaychou.thatboy.icu" };

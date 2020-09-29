@@ -66,9 +66,12 @@ void LiveLoginDialog::login()
 void LiveLoginDialog::applyConfig()
 {
 	auto& loginConfig = thatboy::storage::config["login"];
-	setGeometry(loginConfig["geometry"]);
-	setAttribute(Qt::WA_TranslucentBackground);
-	setWindowOpacity(0.9);
+
+	thatboy::storage::config["widget_info"]["login"].get<thatboy::WidgetConfigInfo>().config(*this);
+	connect(this, &BaseDialog::closed, [&]
+		{
+			thatboy::storage::config["widget_info"]["login"] = thatboy::WidgetConfigInfo(*this);
+		});
 
 	connect(ui.registerPushButton, &QPushButton::clicked
 		, std::bind(&QDesktopServices::openUrl, QUrl(thatboy::storage::RegisterUrl)));
@@ -115,8 +118,6 @@ void LiveLoginDialog::applyConfig()
 			auto& loginConfig = thatboy::storage::config["login"];
 			loginConfig["current_user"] = ui.accountLineEdit->text();
 			loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
-
-			thatboy::storage::config["login"]["geometry"] = geometry();
 		});
 }
 

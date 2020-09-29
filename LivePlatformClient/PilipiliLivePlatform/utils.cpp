@@ -31,11 +31,6 @@ void thatboy::utils::from_json(const nlohmann::json& j, QStringList& stringList)
 		stringList.push_back(str);
 }
 
-void thatboy::utils::from_json(const nlohmann::json& j, QRect& rect)
-{
-	rect.setRect(j["x"], j["y"], j["width"], j["height"]);
-}
-
 void thatboy::utils::to_json(nlohmann::json& j, const QString& string)
 {
 	j = string.toStdString();
@@ -46,14 +41,6 @@ void thatboy::utils::to_json(nlohmann::json& j, const QStringList& stringList)
 	j.clear();
 	for (auto& str : stringList)
 		j.push_back(str.toStdString());
-}
-
-void thatboy::utils::to_json(nlohmann::json& j, const QRect& rect)
-{
-	j["x"] = rect.x();
-	j["y"] = rect.y();
-	j["width"] = rect.width();
-	j["height"] = rect.height();
 }
 
 void thatboy::utils::loadUserData()
