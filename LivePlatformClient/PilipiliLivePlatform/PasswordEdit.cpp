@@ -48,7 +48,7 @@ void PasswordEdit::clear()
 PasswordEdit::PasswordEdit(QWidget* parent)
 	: TouchedLineEdit(parent)
 {
-	connect(this, &TouchedLineEdit::clicked, [&]
+	connect(this, &TouchedLineEdit::focusIn, [&]
 		{
 			if (type == CheatPasswordFilled)
 				QLineEdit::clear();

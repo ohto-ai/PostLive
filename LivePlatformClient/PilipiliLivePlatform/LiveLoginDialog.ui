@@ -22,6 +22,9 @@
     <height>450</height>
    </size>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::ClickFocus</enum>
+  </property>
   <property name="contextMenuPolicy">
    <enum>Qt::NoContextMenu</enum>
   </property>
@@ -54,7 +57,7 @@
     </size>
    </property>
    <property name="focusPolicy">
-    <enum>Qt::StrongFocus</enum>
+    <enum>Qt::ClickFocus</enum>
    </property>
    <property name="styleSheet">
     <string notr="true">/* font */
@@ -318,6 +321,9 @@ QToolTip
                  <width>26</width>
                  <height>26</height>
                 </size>
+               </property>
+               <property name="focusPolicy">
+                <enum>Qt::NoFocus</enum>
                </property>
                <property name="icon">
                 <iconset resource="LiveLoginDialog.qrc">
@@ -762,10 +768,16 @@ QToolTip
           <height>36</height>
          </size>
         </property>
+        <property name="focusPolicy">
+         <enum>Qt::ClickFocus</enum>
+        </property>
         <property name="text">
          <string>登录</string>
         </property>
         <property name="autoDefault">
+         <bool>true</bool>
+        </property>
+        <property name="default">
          <bool>true</bool>
         </property>
        </widget>

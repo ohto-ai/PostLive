@@ -7,7 +7,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 	ui.setupUi(this);
 
 	
-	thatboy::storage::config["widget_info"]["login_setting"].get<thatboy::WidgetConfigInfo>().config(*this); 
+	thatboy::storage::config["widget_info"]["platform"].get<thatboy::WidgetConfigInfo>().config(*this); 
 	connect(this, &BaseMainWindow::closed, [&]
 		{
 			thatboy::storage::config["widget_info"]["platform"] = thatboy::WidgetConfigInfo(*this);
