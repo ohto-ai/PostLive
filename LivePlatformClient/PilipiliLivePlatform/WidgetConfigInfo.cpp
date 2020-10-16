@@ -42,7 +42,6 @@ void thatboy::from_json(const nlohmann::json& j, QRect& rect)
 	rect.setRect(j["x"], j["y"], j["width"], j["height"]);
 }
 
-
 void thatboy::to_json(nlohmann::json& j, const QRect& rect)
 {
 	j["x"] = rect.x();

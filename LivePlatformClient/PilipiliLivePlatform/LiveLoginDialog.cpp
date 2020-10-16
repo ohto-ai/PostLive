@@ -119,6 +119,13 @@ void LiveLoginDialog::applyConfig()
 			loginConfig["current_user"] = ui.accountLineEdit->text();
 			loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
 		});
+
+	// 自动登录
+	QTimer::singleShot(1000, [&]
+		{
+			if (loginConfig["auto_login"])
+				login();
+		});
 }
 
 void LiveLoginDialog::setAvatar()

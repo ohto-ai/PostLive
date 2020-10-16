@@ -3,6 +3,7 @@
 #include <QProcess>
 #include <QCameraInfo>
 #include <QCameraViewfinder>
+#include <QSystemTrayIcon>
 #include "utils.h"
 #include "DragableMainWindow.h"
 #include "ui_LivePlatform.h"

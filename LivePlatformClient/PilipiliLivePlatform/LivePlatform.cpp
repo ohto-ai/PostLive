@@ -6,14 +6,55 @@ LivePlatform::LivePlatform(QWidget* parent)
 {
 	ui.setupUi(this);
 
-	
-	thatboy::storage::config["widget_info"]["platform"].get<thatboy::WidgetConfigInfo>().config(*this); 
+	thatboy::storage::config["widget_info"]["platform"].get<thatboy::WidgetConfigInfo>().config(*this);
+
+	auto mSysTrayIcon = new QSystemTrayIcon(this);
+	QIcon icon = QIcon(":/LiveLoginDialog/res/live.ico");
+	mSysTrayIcon->setIcon(icon);
+	mSysTrayIcon->setToolTip(QObject::trUtf8("LivePlatform"));
+	connect(mSysTrayIcon, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason)
+		{
+			switch (reason) {
+			case QSystemTrayIcon::Trigger:
+				if (isHidden())
+				{
+					if (ffmpegProcess.state() != QProcess::Running)
+					{
+						viewCamera->start();
+					}
+					show();
+				}
+				else
+				{
+					hide();
+					if (ffmpegProcess.state() != QProcess::Running)
+					{
+						viewCamera->stop();
+					}
+				}
+				break;
+			case QSystemTrayIcon::DoubleClick:
+				this->close();
+				break;
+			default:
+				break;
+			}
+		});
+	mSysTrayIcon->show();
+
 	connect(this, &BaseMainWindow::closed, [&]
 		{
 			thatboy::storage::config["widget_info"]["platform"] = thatboy::WidgetConfigInfo(*this);
-		}); 
+		});
 	setAttribute(Qt::WA_TranslucentBackground);
-	connect(ui.closeToolButton, &QToolButton::clicked, this, &LivePlatform::close);
+	connect(ui.closeToolButton, &QToolButton::clicked, [&]
+		{
+			hide();
+			if (ffmpegProcess.state() != QProcess::Running)
+			{
+				viewCamera->stop();
+			}
+		});
 	connect(ui.minimizeToolButton, &QToolButton::clicked, this, &LivePlatform::showMinimized);
 
 	connect(&ffmpegProcess, &QProcess::started, [&]
@@ -28,6 +69,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 			ui.cameraComboBox->setEnabled(true);
 			ui.startPushButton->setEnabled(true);
 			ui.stopPushButton->setEnabled(false);
+			viewCamera->start();
 		}
 	);
 

@@ -5,7 +5,7 @@ LiveLoginSettingDialog::LiveLoginSettingDialog(QWidget* parent)
 {
 	ui.setupUi(this);
 
-	thatboy::storage::config["widget_info"]["login_setting"].get<thatboy::WidgetConfigInfo>().config(*this); 
+	thatboy::storage::config["widget_info"]["login_setting"].get<thatboy::WidgetConfigInfo>().config(*this);
 	connect(this, &BaseDialog::closed, [&]
 		{
 			thatboy::storage::config["widget_info"]["login_setting"] = thatboy::WidgetConfigInfo(*this);

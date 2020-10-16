@@ -42,10 +42,10 @@ int main(int argc, char* argv[])
 		}
 		catch (...)
 		{
-			QMessageBox::warning(nullptr, "错误", "发生灾难性故障，数据无法保存.");
+			QMessageBox::warning(nullptr, "错误", "未预料的错误，数据保存失败.");
 			return -2;
 		}
-		QMessageBox::warning(nullptr, "错误", "发生灾难性故障，数据已保存.");
+		QMessageBox::warning(nullptr, "错误", "未预料的错误，数据已保存.");
 		return -1;
 	}
 #endif
