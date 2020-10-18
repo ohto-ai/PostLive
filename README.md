@@ -1,6 +1,10 @@
-# LivePlatform
+<p align="center">
+ <img width="100%" src="https://camo.githubusercontent.com/15d6e5fefc9de9b33d8776b8a9a6a15a8e823cea/68747470733a2f2f692e6c6f6c692e6e65742f323032302f31302f31382f39485054534b7a5152794e663741772e706e67" align="center" alt="GitHub Readme Stats" />
+ <h2 align="center">Live Platform</h2>
+ <p align="center">学习直播平台-客户端</p>
 
-## 界面设计
+
+# 界面设计
 
 -   登录  
 -   ![效果图](https://i.loli.net/2020/09/27/DtsjhlAfMHndr2q.png)
@@ -9,7 +13,7 @@
 -   主窗口  
 -   ![主窗口](https://i.loli.net/2020/09/29/UbYiFs1nlQPeEXc.png)
 
-## 功能计划
+# 功能计划
 
 -   [ ] 登录界面
     -   [x] UI设计
@@ -43,7 +47,7 @@
 -   [ ] 其他
     -   [ ] 最小化到托盘
 
-## 用户名和密码正则
+# 用户名和密码正则
 
 -   用户名
 
@@ -53,6 +57,6 @@
 
 `^[A-Za-z0-9._~!@#$^&*]{6,24}$`
 
-## API说明
+# API说明
 
 [内容在此文档](API.md)
