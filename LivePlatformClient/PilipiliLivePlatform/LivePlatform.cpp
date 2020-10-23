@@ -9,8 +9,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 	thatboy::storage::config["widget_info"]["platform"].get<thatboy::WidgetConfigInfo>().config(*this);
 
 	auto mSysTrayIcon = new QSystemTrayIcon(this);
-	QIcon icon = QIcon(":/LiveLoginDialog/res/live.ico");
-	mSysTrayIcon->setIcon(icon);
+	mSysTrayIcon->setIcon(QIcon(":/LiveLoginDialog/res/live.ico"));
 	mSysTrayIcon->setToolTip(QObject::trUtf8("LivePlatform"));
 	connect(mSysTrayIcon, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason)
 		{
