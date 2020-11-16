@@ -121,11 +121,8 @@ void LiveLoginDialog::applyConfig()
 		});
 
 	// 自动登录
-	QTimer::singleShot(1000, [&]
-		{
-			if (loginConfig["auto_login"])
-				login();
-		});
+	if (loginConfig["auto_login"])
+		QTimer::singleShot(100, std::bind(&LiveLoginDialog::login, this));
 }
 
 void LiveLoginDialog::setAvatar()
@@ -165,7 +162,7 @@ void LiveLoginDialog::setAccountPasswordAcceptableInputCheck()
 	checkAccountPasswordAcceptableInput();
 }
 
-bool LiveLoginDialog::checkAccountPasswordAcceptableInput()
+bool LiveLoginDialog::checkAccountPasswordAcceptableInput() const
 {
 	ui.loginPushButton->setEnabled(ui.accountLineEdit->hasAcceptableInput()
 		&& ui.passwordLineEdit->hasAcceptableInput());

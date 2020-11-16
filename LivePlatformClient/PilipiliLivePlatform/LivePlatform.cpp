@@ -76,18 +76,21 @@ LivePlatform::LivePlatform(QWidget* parent)
 		}
 	);
 
+	
 	connect(ui.startPushButton, &QPushButton::clicked, [&]
 		{
 			viewCamera->stop();
 			auto command = QString::asprintf(
-				R"(bin\ffmpeg.exe -f dshow -i video="%s" -i %s -filter_complex "overlay=5:5" -f dshow -i audio="%s" -f %s -s %dx%d rtmp://%s%s/%s)"
+				commandFormt.toStdString().c_str()
+				, ffmpegPath
+				, inputCamera
 				, ui.cameraComboBox->currentText().toStdString().c_str()
-				, "assets\\thatboylogo.png"
-				, "virtual-audio-capturer"
-				, "flv"
-				, 1920, 1080
-				, "localhost:1935"
-				, "/hls"
+				, logoImage
+				, inputAudio
+				, videoFormt
+				, videoSize.width()
+				, videoSize.height()
+				, streamPath
 				, thatboy::storage::currentUser["account"].get<std::string>().c_str());
 			ffmpegProcess.start(command);
 		});
@@ -105,7 +108,8 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 	ui.cameraViewLayout->addWidget(&cameraViewfinder);
 
-	connect(ui.cameraComboBox, static_cast<void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), [&](const QString& text)
+	connect(ui.cameraComboBox, static_cast<void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged)
+		, [&](const QString& text)
 		{
 			setViewCamera(qvariant_cast<QCameraInfo>(ui.cameraComboBox->currentData()));
 			viewCamera->start();

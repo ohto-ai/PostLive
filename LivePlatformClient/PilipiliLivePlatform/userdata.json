@@ -1,0 +1,22 @@
+{
+    "user_list":[
+        "thatboy","jaychou","kongjh"
+    ],
+    "users":{
+        "thatboy":{
+            "token":"385B3D8302A4B0E7570D6158CD2FBCA8",
+            "gender":"male",
+            "avatar":"http://thatboy.info:5120/uploads/big/1e06fb66cb315a7dab464c9286d64386.png"
+        },
+        "jaychou":{
+            "token":"E10ADC3949BA59ABBE56E057F20F883E",
+            "gender":"female",
+            "avatar":"https://cdn.jsdelivr.net/gh/zhouhuan666/BlogAssets@0.11/SettingPic/avatar.JPG"
+        },
+        "kongjh":{
+            "token":"E80B5017098950FC58AAD83C8C14978E",
+            "gender":"male",
+            "avatar":"http://thatboy.info:5120/uploads/big/c180974952931b1433afc32c6e8522cf.jpg"
+        }
+    }
+}

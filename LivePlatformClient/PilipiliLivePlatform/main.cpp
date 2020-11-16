@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 
 #ifdef LOCAL_SERVER_TEST
 	QProcess process;
-	process.start("LiveServerTestDemo.exe");
+	process.start("InnerServer.exe");
 #endif
 
 	// 加载设置和用户列表

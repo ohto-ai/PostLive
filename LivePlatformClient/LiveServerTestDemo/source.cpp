@@ -5,33 +5,10 @@
 int main()
 {
 	httplib::Server server;
-	server.bind_to_port("localhost", 8080);
+	server.bind_to_port("localhost", 8877);
 
-	nlohmann::json mysqlDB = nlohmann::json::parse(R"(
-{
-    "user_list":[
-        "thatboy","jaychou","kongjh"
-    ],
-    "users":{
-        "thatboy":{
-            "token":"385B3D8302A4B0E7570D6158CD2FBCA8",
-            "gender":"male",
-            "avatar":"https://i.loli.net/2020/09/25/YyGpnNmq5fCbEd6.png"
-        },
-        "jaychou":{
-            "token":"E10ADC3949BA59ABBE56E057F20F883E",
-            "gender":"female",
-            "avatar":"https://cdn.jsdelivr.net/gh/zhouhuan666/BlogAssets@0.11/SettingPic/avatar.JPG"
-        },
-        "kongjh":{
-            "token":"E80B5017098950FC58AAD83C8C14978E",
-            "gender":"male",
-            "avatar":"http://thatboy.info:5120/uploads/big/c180974952931b1433afc32c6e8522cf.jpg"
-        }
-    }
-}
-)");
-
+	std::ifstream ifs("userdata.json");	
+	nlohmann::json mysqlDB = nlohmann::json::parse(std::string{ (std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>() });
 
 	server.Post("/api", [&](const httplib::Request& req, httplib::Response& res)
 		{
@@ -45,7 +22,6 @@ int main()
 			body["account"] = cont["account"];
 			body["type"] = cont["type"];
 
-			// 身份校验
 			std::string dbToken = mysqlDB["users"][cont["account"].get<std::string>()]["token"];
 			if (cont["type"] != "login")
 			{
@@ -69,7 +45,7 @@ int main()
 					return;
 				}
 			}
-			else if (md5(cont["password"]) != dbToken)// 生成一个token比对
+			else if (md5(cont["password"]) != dbToken)
 			{
 				body["success"] = false;
 				body["info"] = "token verify failed.";
@@ -78,14 +54,13 @@ int main()
 				return;
 			}
 
-			// 身份验证通过
 			body["token"] = dbToken;
-			// 登录
+
 			if (cont["type"] == "login")
 			{
 				body["success"] = true;
 				body["info"] = "login success.";
-				// 标记用户在线
+
 			}
 			else if (cont["type"] == "profile")
 			{

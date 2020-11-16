@@ -11,11 +11,11 @@ void AsyncDownloader::download(QString url, QString file)
 {
 	++downloadCount;
 	emit downloadCountChanged(downloadCount);
-	QNetworkRequest request{ url };
-	auto reply = (new QNetworkAccessManager(this))->get(request);
-	QObject::connect(reply, &QNetworkReply::finished
+	const QNetworkRequest request{ url };
+	const auto reply = (new QNetworkAccessManager(this))->get(request);
+	connect(reply, &QNetworkReply::finished
 		, std::bind(&AsyncDownloader::saveResource, this, url, std::ref(*reply), file));
-	QObject::connect(reply, QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error)
+	connect(reply, QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::error)
 		, [=](QNetworkReply::NetworkError e)
 		{
 			emit error(url, file, e);

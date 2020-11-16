@@ -25,7 +25,7 @@ protected:
 	void setAvatar();
 	void setAccountCompleter();
 	void setAccountPasswordAcceptableInputCheck();
-	bool checkAccountPasswordAcceptableInput();
+	bool checkAccountPasswordAcceptableInput() const;
 
 protected:
 	LiveLoginSettingDialog settingDialog{ this };

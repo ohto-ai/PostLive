@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>400</height>
+    <height>402</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -54,21 +54,13 @@ QWidget#centralWidget
 	background-image: url(:/LiveLoginDialog/res/login-background-600x180.png);
 	background-repeat: no-repeat;
 }
-
+QLabel
+{
+	color:white;
+}
 QLabel#applicationIconLabel
 {
 	border-image: url(:/LiveLoginDialog/res/pilipili-title-210x50.png);
-}
-/* avatar */
-QLabel#avatarLabel
-{
-	border-image: url(:/LiveLoginDialog/res/avatar-mask.png);
-	border-radius:60px;
-	min-width:  120px;
-    max-width:  120px;
-    min-height: 120px;
-    max-height: 120px;
-    border-width: 0 0 0 0;
 }
 
 /* button */
@@ -117,29 +109,15 @@ QCheckBox::indicator::checked {
 {
 	outline: none
 }
-/* login button */
-QPushButton#loginPushButton {
-  background: #0078d7;
-  border: 2px solid rgba(0,0,0,0.4)
-}
-QPushButton#loginPushButton:hover {
-  background: #1CA8FA;
-}
-QPushButton#loginPushButton:pressed {
-  background: #2A67FF;
-}
-QPushButton#loginPushButton:disabled {
-  background: #666;
-}
 /* account password */
-QLineEdit#passwordLineEdit, QLineEdit#accountLineEdit
+QLineEdit
 {
 	border: 2px solid rgba(27,128,255,0.5);
 	background: rgba(45,64,72,0.8);
 	color: white;
     selection-background-color:green;
 }
-QLineEdit#passwordLineEdit:focus, QLineEdit#accountLineEdit:focus
+QLineEdit
 {
 	background: rgba(80,100,110,0.8);
 }
@@ -373,21 +351,144 @@ QToolTip
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="loginHorizontalLayout">
-      <item>
-       <spacer name="verticalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
+     <widget class="QWidget" name="contentWidget" native="true">
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="1">
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="0">
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>56</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="2">
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>56</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="1">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="1">
+        <widget class="QWidget" name="InnerContent" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>350</width>
+           <height>100</height>
+          </size>
+         </property>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>账户服务器</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEdit_2">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>端口 </string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lineEdit">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>32</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </item>
    </layout>
   </widget>

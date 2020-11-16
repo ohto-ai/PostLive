@@ -1,0 +1,4 @@
+rtmp://localhost:1935/hls/thatboy
+rtmp://cn-zj-dx.sakurafrp.com:11988/hls/thatboy
+
+bin\ffmpeg.exe -f dshow -i video="USB2.0 HD UVC WebCam" -i assets\thatboylogo.png -filter_complex "overlay=5:5" -f dshow -i audio="virtual-audio-capturer" -f flv -s 1920x1080 rtmp://localhost:1935/hls/thatboy
