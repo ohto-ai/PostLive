@@ -452,32 +452,12 @@ QToolTip
         </size>
        </property>
       </widget>
-      <widget class="QPasswordEdit" name="QPasswordEdit">
-       <property name="geometry">
-        <rect>
-         <x>260</x>
-         <y>10</y>
-         <width>261</width>
-         <height>32</height>
-        </rect>
-       </property>
-       <property name="password" stdset="0">
-        <string/>
-       </property>
-      </widget>
      </widget>
     </item>
    </layout>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>QPasswordEdit</class>
-   <extends>QLineEdit</extends>
-   <header>QPasswordEdit.h</header>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="LivePlatform.qrc"/>
   <include location="LiveLoginDialog.qrc"/>

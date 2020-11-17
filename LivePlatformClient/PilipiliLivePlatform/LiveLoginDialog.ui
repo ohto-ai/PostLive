@@ -637,9 +637,6 @@ QToolTip
              <property name="toolTip">
               <string>密码</string>
              </property>
-             <property name="text">
-              <string/>
-             </property>
              <property name="echoMode">
               <enum>QLineEdit::Password</enum>
              </property>
