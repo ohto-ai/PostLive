@@ -25,6 +25,10 @@
   <property name="windowTitle">
    <string>LivePlatform</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="LiveLoginDialog.qrc">
+    <normaloff>:/LiveLoginDialog/res/live.ico</normaloff>:/LiveLoginDialog/res/live.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <property name="styleSheet">
     <string notr="true">/* font */

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="windows-1252"?>
 <>
-  <InputFile>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\LiveLoginUnit.exe</InputFile>
-  <OutputFile>E:\WorkSpace\LivePlatform\LivePlatformClient\PortablePacckage\PortableLiveLoginUnit.exe</OutputFile>
+  <InputFile>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\PilipiliLivePlatform.exe</InputFile>
+  <OutputFile>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\PilipiliLivePlatform_x64.exe</OutputFile>
   <Files>
     <Enabled>True</Enabled>
     <DeleteExtractedOnExit>True</DeleteExtractedOnExit>
@@ -16,40 +16,246 @@
         <HideFromDialogs>0</HideFromDialogs>
         <Files>
           <File>
-            <Type>2</Type>
-            <Name>Qt5Gui.dll</Name>
-            <File>E:\Visual Studio Application\SimpleHttpServer\x64\Release\Qt5Gui.dll</File>
-            <ActiveX>False</ActiveX>
-            <ActiveXInstall>False</ActiveXInstall>
+            <Type>3</Type>
+            <Name>assets</Name>
             <Action>0</Action>
             <OverwriteDateTime>False</OverwriteDateTime>
             <OverwriteAttributes>False</OverwriteAttributes>
-            <PassCommandLine>False</PassCommandLine>
             <HideFromDialogs>0</HideFromDialogs>
+            <Files>
+              <File>
+                <Type>2</Type>
+                <Name>pilipili-logo.png</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\assets\pilipili-logo.png</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>thatboylogo.png</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\assets\thatboylogo.png</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+            </Files>
           </File>
           <File>
-            <Type>2</Type>
-            <Name>Qt5Widgets.dll</Name>
-            <File>E:\Visual Studio Application\SimpleHttpServer\x64\Release\Qt5Widgets.dll</File>
-            <ActiveX>False</ActiveX>
-            <ActiveXInstall>False</ActiveXInstall>
+            <Type>3</Type>
+            <Name>bin</Name>
             <Action>0</Action>
             <OverwriteDateTime>False</OverwriteDateTime>
             <OverwriteAttributes>False</OverwriteAttributes>
-            <PassCommandLine>False</PassCommandLine>
             <HideFromDialogs>0</HideFromDialogs>
+            <Files>
+              <File>
+                <Type>2</Type>
+                <Name>ffmpeg.exe</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\bin\ffmpeg.exe</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>InnerServer.exe</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\bin\InnerServer.exe</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+            </Files>
           </File>
           <File>
-            <Type>2</Type>
-            <Name>Qt5Core.dll</Name>
-            <File>E:\Visual Studio Application\SimpleHttpServer\x64\Release\Qt5Core.dll</File>
-            <ActiveX>False</ActiveX>
-            <ActiveXInstall>False</ActiveXInstall>
+            <Type>3</Type>
+            <Name>audio</Name>
             <Action>0</Action>
             <OverwriteDateTime>False</OverwriteDateTime>
             <OverwriteAttributes>False</OverwriteAttributes>
-            <PassCommandLine>False</PassCommandLine>
             <HideFromDialogs>0</HideFromDialogs>
+            <Files>
+              <File>
+                <Type>2</Type>
+                <Name>qtaudio_wasapi.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\audio\qtaudio_wasapi.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>qtaudio_windows.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\audio\qtaudio_windows.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+            </Files>
+          </File>
+          <File>
+            <Type>3</Type>
+            <Name>imageformats</Name>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <HideFromDialogs>0</HideFromDialogs>
+            <Files>
+              <File>
+                <Type>2</Type>
+                <Name>qgif.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\imageformats\qgif.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>qicns.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\imageformats\qicns.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>qico.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\imageformats\qico.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>qjpeg.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\imageformats\qjpeg.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>qsvg.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\imageformats\qsvg.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>qtga.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\imageformats\qtga.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>qtiff.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\imageformats\qtiff.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>qwbmp.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\imageformats\qwbmp.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+              <File>
+                <Type>2</Type>
+                <Name>qwebp.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\imageformats\qwebp.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+            </Files>
+          </File>
+          <File>
+            <Type>3</Type>
+            <Name>mediaservice</Name>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <HideFromDialogs>0</HideFromDialogs>
+            <Files>
+              <File>
+                <Type>2</Type>
+                <Name>dsengine.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\mediaservice\dsengine.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+            </Files>
           </File>
           <File>
             <Type>3</Type>
@@ -62,7 +268,29 @@
               <File>
                 <Type>2</Type>
                 <Name>qwindows.dll</Name>
-                <File>E:\Visual Studio Application\SimpleHttpServer\x64\Release\platforms\qwindows.dll</File>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\platforms\qwindows.dll</File>
+                <ActiveX>False</ActiveX>
+                <ActiveXInstall>False</ActiveXInstall>
+                <Action>0</Action>
+                <OverwriteDateTime>False</OverwriteDateTime>
+                <OverwriteAttributes>False</OverwriteAttributes>
+                <PassCommandLine>False</PassCommandLine>
+                <HideFromDialogs>0</HideFromDialogs>
+              </File>
+            </Files>
+          </File>
+          <File>
+            <Type>3</Type>
+            <Name>playlistformats</Name>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <HideFromDialogs>0</HideFromDialogs>
+            <Files>
+              <File>
+                <Type>2</Type>
+                <Name>qtmultimedia_m3u.dll</Name>
+                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\playlistformats\qtmultimedia_m3u.dll</File>
                 <ActiveX>False</ActiveX>
                 <ActiveXInstall>False</ActiveXInstall>
                 <Action>0</Action>
@@ -97,8 +325,80 @@
           </File>
           <File>
             <Type>2</Type>
-            <Name>avatar-test.png</Name>
-            <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\avatar-test.png</File>
+            <Name>Qt5Multimedia.dll</Name>
+            <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Qt5Multimedia.dll</File>
+            <ActiveX>False</ActiveX>
+            <ActiveXInstall>False</ActiveXInstall>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <PassCommandLine>False</PassCommandLine>
+            <HideFromDialogs>0</HideFromDialogs>
+          </File>
+          <File>
+            <Type>2</Type>
+            <Name>Qt5MultimediaWidgets.dll</Name>
+            <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Qt5MultimediaWidgets.dll</File>
+            <ActiveX>False</ActiveX>
+            <ActiveXInstall>False</ActiveXInstall>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <PassCommandLine>False</PassCommandLine>
+            <HideFromDialogs>0</HideFromDialogs>
+          </File>
+          <File>
+            <Type>2</Type>
+            <Name>Qt5Network.dll</Name>
+            <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Qt5Network.dll</File>
+            <ActiveX>False</ActiveX>
+            <ActiveXInstall>False</ActiveXInstall>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <PassCommandLine>False</PassCommandLine>
+            <HideFromDialogs>0</HideFromDialogs>
+          </File>
+          <File>
+            <Type>2</Type>
+            <Name>Qt5OpenGL.dll</Name>
+            <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Qt5OpenGL.dll</File>
+            <ActiveX>False</ActiveX>
+            <ActiveXInstall>False</ActiveXInstall>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <PassCommandLine>False</PassCommandLine>
+            <HideFromDialogs>0</HideFromDialogs>
+          </File>
+          <File>
+            <Type>2</Type>
+            <Name>Qt5Svg.dll</Name>
+            <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Qt5Svg.dll</File>
+            <ActiveX>False</ActiveX>
+            <ActiveXInstall>False</ActiveXInstall>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <PassCommandLine>False</PassCommandLine>
+            <HideFromDialogs>0</HideFromDialogs>
+          </File>
+          <File>
+            <Type>2</Type>
+            <Name>Qt5Widgets.dll</Name>
+            <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Qt5Widgets.dll</File>
+            <ActiveX>False</ActiveX>
+            <ActiveXInstall>False</ActiveXInstall>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <PassCommandLine>False</PassCommandLine>
+            <HideFromDialogs>0</HideFromDialogs>
+          </File>
+          <File>
+            <Type>2</Type>
+            <Name>Qt5Gui.dll</Name>
+            <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Qt5Gui.dll</File>
             <ActiveX>False</ActiveX>
             <ActiveXInstall>False</ActiveXInstall>
             <Action>0</Action>

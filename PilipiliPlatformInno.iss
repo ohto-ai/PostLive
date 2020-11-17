@@ -1,10 +1,10 @@
 ; 脚本由 Inno Setup 脚本向导 生成！
 ; 有关创建 Inno Setup 脚本文件的详细资料请查阅帮助文档！
 
-#define MyAppName "PilipiliPlatform"
+#define MyAppName "PilipiliLivePlatform"
 #define MyAppVersion "1.0"
 #define MyAppPublisher "thatboy"
-#define MyAppURL "live.thatboy.info"
+#define MyAppURL "thatboy.info"
 #define MyAppExeName "PilipiliLivePlatform.exe"
 
 [Setup]
@@ -19,15 +19,16 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName={autopf}\{#MyAppName}
+DefaultDirName={autopf64}\{#MyAppName}
 DisableProgramGroupPage=yes
 ; 移除以下行，以在管理安装模式下运行（为所有用户安装）。
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=commandline
-OutputBaseFilename=PilipiliPlatformSetup
+OutputBaseFilename=PilipiliLivePlatformSetup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+SetupIconFile="E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\res\LIVE-install.ico"
 
 [Languages]
 Name: "chinesesimp"; MessagesFile: "compiler:Default.isl"
@@ -36,8 +37,8 @@ Name: "chinesesimp"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Package\PilipiliLivePlatform.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Package\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Install\PilipiliLivePlatform.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Install\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; 注意: 不要在任何共享系统文件上使用“Flags: ignoreversion”
 
 [Icons]
