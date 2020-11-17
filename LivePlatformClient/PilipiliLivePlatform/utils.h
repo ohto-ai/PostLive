@@ -54,6 +54,7 @@ namespace thatboy
 		constexpr auto RegisterUrl{ "http://live.thatboy.info/live/login.html" };
 		constexpr auto ResetPasswordUrl{ "http://live.thatboy.info/live" };
 		constexpr auto WebsiteUrl{ "http://thatboy.info" };
+		constexpr auto GithubUrl{ "https://github.com/NOPornLivePlatform/LivePlatform" };
 
 		extern httplib::Client accountVerifyClient;
 		extern std::map<std::string, QPixmap> userAvatarCache;

@@ -26,10 +26,12 @@ LivePlatform::LivePlatform(QWidget* parent)
 	auto m_menu = new QMenu(this);
 	auto actionShowMainWindow = new QAction(QIcon(":/LiveLoginDialog/res/live.ico"), "显示主窗口", m_menu);
 	auto actionViewWebsite = new QAction(QIcon(":/LiveLoginDialog/res/boy.ico"), "浏览官网", m_menu);
+	auto actionViewGithub = new QAction(QIcon(":/LiveLoginDialog/res/github.png"), "项目地址", m_menu);
 	auto actionExit = new QAction("退出客户端", m_menu);
 
 	m_menu->addAction(actionShowMainWindow);
 	m_menu->addAction(actionViewWebsite);
+	m_menu->addAction(actionViewGithub);
 	m_menu->addAction(actionExit);
 
 	connect(actionShowMainWindow, &QAction::triggered, [=]
@@ -42,20 +44,13 @@ LivePlatform::LivePlatform(QWidget* parent)
 				}
 				show();
 			}
-			else
-			{
-				hide();
-				if (ffmpegProcess.state() != QProcess::Running)
-				{
-					viewCamera->stop();
-				}
-			}
 	});
 	connect(actionViewWebsite, &QAction::triggered, std::bind(&QDesktopServices::openUrl, QUrl(thatboy::storage::WebsiteUrl)));
+	connect(actionViewGithub, &QAction::triggered, std::bind(&QDesktopServices::openUrl, QUrl(thatboy::storage::GithubUrl)));
 	connect(actionExit, &QAction::triggered, [=] {close(); });
 
 	mSysTrayIcon->setContextMenu(m_menu);
-	connect(mSysTrayIcon, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason)
+	connect(mSysTrayIcon, &QSystemTrayIcon::activated, [&, actionShowMainWindow](QSystemTrayIcon::ActivationReason reason)
 		{
 			switch (reason) {
 			case QSystemTrayIcon::DoubleClick:
