@@ -21,8 +21,6 @@ protected:
 	const QString videoFormt{ "flv" };
 	
 	QString logoImage{ "assets\\pilipili-logo.png" };
-	QSize videoSize{ 640,480 };
-	QString streamPath{ "localhost:1935/hls" };
 	QCamera* viewCamera{ nullptr };
 	QCameraViewfinder cameraViewfinder{ this };
 protected:

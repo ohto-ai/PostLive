@@ -4,8 +4,11 @@
 
 #include "LivePlatform.h"
 
+#include <future>
 #include <QMessageBox>
+#include <QMenu>
 #include <QAudioDeviceInfo>
+#include <QDesktopServices>
 
 Q_DECLARE_METATYPE(QCameraInfo)
 
@@ -19,10 +22,43 @@ LivePlatform::LivePlatform(QWidget* parent)
 	auto mSysTrayIcon = new QSystemTrayIcon(this);
 	mSysTrayIcon->setIcon(QIcon(":/LiveLoginDialog/res/live.ico"));
 	mSysTrayIcon->setToolTip(QObject::trUtf8("LivePlatform"));
+
+	auto m_menu = new QMenu(this);
+	auto actionShowMainWindow = new QAction(QIcon(":/LiveLoginDialog/res/live.ico"), "显示主窗口", m_menu);
+	auto actionViewWebsite = new QAction(QIcon(":/LiveLoginDialog/res/boy.ico"), "浏览官网", m_menu);
+	auto actionExit = new QAction("退出客户端", m_menu);
+
+	m_menu->addAction(actionShowMainWindow);
+	m_menu->addAction(actionViewWebsite);
+	m_menu->addAction(actionExit);
+
+	connect(actionShowMainWindow, &QAction::triggered, [=]
+	{
+			if (isHidden())
+			{
+				if (ffmpegProcess.state() != QProcess::Running)
+				{
+					viewCamera->start();
+				}
+				show();
+			}
+			else
+			{
+				hide();
+				if (ffmpegProcess.state() != QProcess::Running)
+				{
+					viewCamera->stop();
+				}
+			}
+	});
+	connect(actionViewWebsite, &QAction::triggered, std::bind(&QDesktopServices::openUrl, QUrl(thatboy::storage::WebsiteUrl)));
+	connect(actionExit, &QAction::triggered, [=] {close(); });
+
+	mSysTrayIcon->setContextMenu(m_menu);
 	connect(mSysTrayIcon, &QSystemTrayIcon::activated, [&](QSystemTrayIcon::ActivationReason reason)
 		{
 			switch (reason) {
-			case QSystemTrayIcon::Trigger:
+			case QSystemTrayIcon::DoubleClick:
 				if (isHidden())
 				{
 					if (ffmpegProcess.state() != QProcess::Running)
@@ -39,9 +75,6 @@ LivePlatform::LivePlatform(QWidget* parent)
 						viewCamera->stop();
 					}
 				}
-				break;
-			case QSystemTrayIcon::DoubleClick:
-				this->close();
 				break;
 			default:
 				break;
@@ -84,9 +117,6 @@ LivePlatform::LivePlatform(QWidget* parent)
 		}
 	);
 
-	
-	
-	
 	connect(ui.startPushButton, &QPushButton::clicked, [&]
 		{
 			if (!ui.streamServerLineEdit->hasAcceptableInput())
@@ -96,14 +126,13 @@ LivePlatform::LivePlatform(QWidget* parent)
 			}
 			viewCamera->stop();
 			auto command = QString::asprintf(
-				R"(%s -f dhsow -i video="%s" -i %s -filter_complex "overlay=5:5" -f dhsow -i audio="%s" -f %s -s %dx%d rtmp://%s/live/%s)"
+				R"(%s -f dshow -i video="%s" -i %s -filter_complex "overlay=5:5" -f dshow -i audio="%s" -f %s -s %s rtmp://%s/live/%s)"
 				, ffmpegPath.toStdString().c_str()
 				, ui.cameraComboBox->currentText().toStdString().c_str()
 				, logoImage.toStdString().c_str()
 				, ui.microphoneComboBox->currentText().toStdString().c_str()
 				, videoFormt.toStdString().c_str()
-				, videoSize.width()
-				, videoSize.height()
+				, ui.sizeComboBox->currentText().toStdString().c_str()
 				, ui.streamServerLineEdit->text().toStdString().c_str()
 				, thatboy::storage::currentUser["account"].get<std::string>().c_str());
 			ffmpegProcess.start(command);
@@ -111,7 +140,8 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 	connect(ui.stopPushButton, &QPushButton::clicked, [&]
 		{
-			ffmpegProcess.write("q");
+			QTimer::singleShot(1000, std::bind(&QProcess::close, &ffmpegProcess));
+			ffmpegProcess.write("q");	
 		});
 
 	auto cameraList = QCameraInfo::availableCameras();
@@ -121,10 +151,22 @@ LivePlatform::LivePlatform(QWidget* parent)
 	ui.cameraComboBox->setCurrentText(QCameraInfo::defaultCamera().description());
 
 	auto microphoneList = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
+	QSet<QString> microphoneNameList;
 	for (auto& microphoneInfo : microphoneList)
-		ui.microphoneComboBox->addItem(microphoneInfo.deviceName(), QVariant::fromValue(microphoneInfo));
+		microphoneNameList.insert(microphoneInfo.deviceName());
+
+	microphoneNameList.insert("virtual-audio-capturer");
+	
+	for (auto& microphoneName : microphoneNameList)
+		ui.microphoneComboBox->addItem(microphoneName);
 	ui.microphoneComboBox->setCurrentText(QAudioDeviceInfo::defaultInputDevice().deviceName());
 
+	ui.sizeComboBox->addItems({
+		"640×480", "800×600", "1024×768", "1280x720", "1280×800", "1400×1050", "1440×900", "1600×1200", "1920x1080", "1920×1200"
+		});
+	ui.sizeComboBox->setCurrentText("1280x720");
+
+	
 	ui.cameraViewLayout->addWidget(&cameraViewfinder);
 
 	connect(ui.cameraComboBox, static_cast<void(QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged)

@@ -434,7 +434,7 @@ QToolTip
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QLineEdit" name="lineEdit_2">
+           <widget class="QLineEdit" name="accountServerLineEdit">
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -446,6 +446,12 @@ QToolTip
               <width>16777215</width>
               <height>32</height>
              </size>
+            </property>
+            <property name="text">
+             <string>live.thatboy.info</string>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -469,7 +475,7 @@ QToolTip
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLineEdit" name="lineEdit">
+           <widget class="QLineEdit" name="accountPortLineEdit">
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -481,6 +487,12 @@ QToolTip
               <width>16777215</width>
               <height>32</height>
              </size>
+            </property>
+            <property name="inputMask">
+             <string>8876</string>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
             </property>
            </widget>
           </item>

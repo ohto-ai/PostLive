@@ -51,8 +51,9 @@ namespace thatboy
 		constexpr auto ConfigFilePath{ "application.json" };
 		constexpr int LoginErrorLabelTime{ 8000 };
 
-		constexpr auto RegisterUrl{ "http://jaychou.thatboy.icu" };
-		constexpr auto ResetPasswordUrl{ "https://thatboy.info" };
+		constexpr auto RegisterUrl{ "http://live.thatboy.info/live/login.html" };
+		constexpr auto ResetPasswordUrl{ "http://live.thatboy.info/live" };
+		constexpr auto WebsiteUrl{ "http://thatboy.info" };
 
 		extern httplib::Client accountVerifyClient;
 		extern std::map<std::string, QPixmap> userAvatarCache;
