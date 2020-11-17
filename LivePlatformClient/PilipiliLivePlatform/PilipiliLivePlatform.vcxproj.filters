@@ -194,6 +194,9 @@
     <ClInclude Include="WidgetConfigInfo.h">
       <Filter>assembly\WidgetConfigInfo</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="LivePlatform.qrc">
@@ -207,5 +210,11 @@
     <None Include="application.json">
       <Filter>Resource Files</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="PilipiliLivePlatform.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\live.ico" />
   </ItemGroup>
 </Project>

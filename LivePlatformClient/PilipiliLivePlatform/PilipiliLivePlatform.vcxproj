@@ -126,6 +126,7 @@
     <QtMoc Include="LiveLoginDialog.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="WidgetConfigInfo.h" />
     <QtMoc Include="AsyncDownloader.h" />
     <QtMoc Include="GeneralSignal.h" />
@@ -149,6 +150,12 @@
   <ItemGroup>
     <None Include="application.json" />
     <None Include="users.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="PilipiliLivePlatform.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\live.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

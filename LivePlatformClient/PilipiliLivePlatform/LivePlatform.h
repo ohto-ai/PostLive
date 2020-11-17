@@ -23,7 +23,6 @@ protected:
 	QString logoImage{ "assets\\pilipili-logo.png" };
 	QCamera* viewCamera{ nullptr };
 	QCameraViewfinder cameraViewfinder{ this };
-protected:
 	QProcess ffmpegProcess{ this };
 private:
 	Ui::LivePlatformClass ui;

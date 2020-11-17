@@ -79,7 +79,6 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 	ui.streamServerLineEdit->setValidator(new QRegExpValidator(
 		QRegExp{ R"(^((?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+(:\d+)?)|(((25[0-5])|(2[0-4]d)|(1dd)|([1-9]d)|d)(.((25[0-5])|(2[0-4]d)|(1dd)|([1-9]d)|d)){3})|(localhost(:\d+)?)$)" }, this));
-
 	
 	connect(this, &BaseMainWindow::closed, [&]
 		{
@@ -99,6 +98,9 @@ LivePlatform::LivePlatform(QWidget* parent)
 	connect(&ffmpegProcess, &QProcess::started, [&]
 		{
 			ui.cameraComboBox->setEnabled(false);
+			ui.microphoneComboBox->setEnabled(false);
+			ui.streamServerLineEdit->setEnabled(false);
+			ui.sizeComboBox->setEnabled(false);
 			ui.startPushButton->setEnabled(false);
 			ui.stopPushButton->setEnabled(true);
 		}
@@ -106,6 +108,9 @@ LivePlatform::LivePlatform(QWidget* parent)
 	connect(&ffmpegProcess, static_cast<void(QProcess::*)(int)>(&QProcess::finished), [&](int code)
 		{
 			ui.cameraComboBox->setEnabled(true);
+			ui.microphoneComboBox->setEnabled(true);
+			ui.streamServerLineEdit->setEnabled(true);
+			ui.sizeComboBox->setEnabled(true);
 			ui.startPushButton->setEnabled(true);
 			ui.stopPushButton->setEnabled(false);
 			viewCamera->start();
