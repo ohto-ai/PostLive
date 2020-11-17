@@ -1,6 +1,6 @@
 {
     "login": {
-        "auto_login": true,
+        "auto_login": false,
         "current_user": "thatboy"
     },
     "user_list": "users.json",
@@ -19,8 +19,8 @@
             "geometry": {
                 "height": 400,
                 "width": 500,
-                "x": 743,
-                "y": 365
+                "x": 618,
+                "y": 202
             },
             "opacity": 1.0,
             "translucent": true
@@ -28,9 +28,9 @@
         "platform": {
             "geometry": {
                 "height": 516,
-                "width": 600,
-                "x": 660,
-                "y": 257
+                "width": 800,
+                "x": 710,
+                "y": 297
             },
             "opacity": 1.0,
             "translucent": true

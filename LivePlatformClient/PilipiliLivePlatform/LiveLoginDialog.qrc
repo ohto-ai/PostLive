@@ -20,6 +20,7 @@
     <file>res/pilipili-title.png</file>
     <file>res/avatar.png</file>
     <file>res/pilipili-title-border.png</file>
+    <file>res/login-background-800x240.png</file>
     <file>res/avatar-male.png</file>
   </qresource>
 </RCC>

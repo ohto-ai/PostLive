@@ -4,7 +4,11 @@
 
 #include "LivePlatform.h"
 
+#include <QMessageBox>
+#include <QAudioDeviceInfo>
+
 Q_DECLARE_METATYPE(QCameraInfo)
+
 LivePlatform::LivePlatform(QWidget* parent)
 	: DragableMainWindow(parent)
 {
@@ -45,6 +49,10 @@ LivePlatform::LivePlatform(QWidget* parent)
 		});
 	mSysTrayIcon->show();
 
+	ui.streamServerLineEdit->setValidator(new QRegExpValidator(
+		QRegExp{ R"(^((?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+(:\d+)?)|(((25[0-5])|(2[0-4]d)|(1dd)|([1-9]d)|d)(.((25[0-5])|(2[0-4]d)|(1dd)|([1-9]d)|d)){3})|(localhost(:\d+)?)$)" }, this));
+
+	
 	connect(this, &BaseMainWindow::closed, [&]
 		{
 			thatboy::storage::config["widget_info"]["platform"] = thatboy::WidgetConfigInfo(*this);
@@ -77,20 +85,26 @@ LivePlatform::LivePlatform(QWidget* parent)
 	);
 
 	
+	
+	
 	connect(ui.startPushButton, &QPushButton::clicked, [&]
 		{
+			if (!ui.streamServerLineEdit->hasAcceptableInput())
+			{
+				QMessageBox::warning(this, "错误", "无效的服务器地址！");
+				return;
+			}
 			viewCamera->stop();
 			auto command = QString::asprintf(
-				commandFormt.toStdString().c_str()
-				, ffmpegPath
-				, inputCamera
+				R"(%s -f dhsow -i video="%s" -i %s -filter_complex "overlay=5:5" -f dhsow -i audio="%s" -f %s -s %dx%d rtmp://%s/live/%s)"
+				, ffmpegPath.toStdString().c_str()
 				, ui.cameraComboBox->currentText().toStdString().c_str()
-				, logoImage
-				, inputAudio
-				, videoFormt
+				, logoImage.toStdString().c_str()
+				, ui.microphoneComboBox->currentText().toStdString().c_str()
+				, videoFormt.toStdString().c_str()
 				, videoSize.width()
 				, videoSize.height()
-				, streamPath
+				, ui.streamServerLineEdit->text().toStdString().c_str()
 				, thatboy::storage::currentUser["account"].get<std::string>().c_str());
 			ffmpegProcess.start(command);
 		});
@@ -105,6 +119,11 @@ LivePlatform::LivePlatform(QWidget* parent)
 	for (auto& cameraInfo : cameraList)
 		ui.cameraComboBox->addItem(cameraInfo.description(), QVariant::fromValue(cameraInfo));
 	ui.cameraComboBox->setCurrentText(QCameraInfo::defaultCamera().description());
+
+	auto microphoneList = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
+	for (auto& microphoneInfo : microphoneList)
+		ui.microphoneComboBox->addItem(microphoneInfo.deviceName(), QVariant::fromValue(microphoneInfo));
+	ui.microphoneComboBox->setCurrentText(QAudioDeviceInfo::defaultInputDevice().deviceName());
 
 	ui.cameraViewLayout->addWidget(&cameraViewfinder);
 
