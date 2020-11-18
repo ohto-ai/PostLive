@@ -17,74 +17,6 @@
         <Files>
           <File>
             <Type>3</Type>
-            <Name>assets</Name>
-            <Action>0</Action>
-            <OverwriteDateTime>False</OverwriteDateTime>
-            <OverwriteAttributes>False</OverwriteAttributes>
-            <HideFromDialogs>0</HideFromDialogs>
-            <Files>
-              <File>
-                <Type>2</Type>
-                <Name>pilipili-logo.png</Name>
-                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\assets\pilipili-logo.png</File>
-                <ActiveX>False</ActiveX>
-                <ActiveXInstall>False</ActiveXInstall>
-                <Action>0</Action>
-                <OverwriteDateTime>False</OverwriteDateTime>
-                <OverwriteAttributes>False</OverwriteAttributes>
-                <PassCommandLine>False</PassCommandLine>
-                <HideFromDialogs>0</HideFromDialogs>
-              </File>
-              <File>
-                <Type>2</Type>
-                <Name>thatboylogo.png</Name>
-                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\assets\thatboylogo.png</File>
-                <ActiveX>False</ActiveX>
-                <ActiveXInstall>False</ActiveXInstall>
-                <Action>0</Action>
-                <OverwriteDateTime>False</OverwriteDateTime>
-                <OverwriteAttributes>False</OverwriteAttributes>
-                <PassCommandLine>False</PassCommandLine>
-                <HideFromDialogs>0</HideFromDialogs>
-              </File>
-            </Files>
-          </File>
-          <File>
-            <Type>3</Type>
-            <Name>bin</Name>
-            <Action>0</Action>
-            <OverwriteDateTime>False</OverwriteDateTime>
-            <OverwriteAttributes>False</OverwriteAttributes>
-            <HideFromDialogs>0</HideFromDialogs>
-            <Files>
-              <File>
-                <Type>2</Type>
-                <Name>ffmpeg.exe</Name>
-                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\bin\ffmpeg.exe</File>
-                <ActiveX>False</ActiveX>
-                <ActiveXInstall>False</ActiveXInstall>
-                <Action>0</Action>
-                <OverwriteDateTime>False</OverwriteDateTime>
-                <OverwriteAttributes>False</OverwriteAttributes>
-                <PassCommandLine>False</PassCommandLine>
-                <HideFromDialogs>0</HideFromDialogs>
-              </File>
-              <File>
-                <Type>2</Type>
-                <Name>InnerServer.exe</Name>
-                <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\bin\InnerServer.exe</File>
-                <ActiveX>False</ActiveX>
-                <ActiveXInstall>False</ActiveXInstall>
-                <Action>0</Action>
-                <OverwriteDateTime>False</OverwriteDateTime>
-                <OverwriteAttributes>False</OverwriteAttributes>
-                <PassCommandLine>False</PassCommandLine>
-                <HideFromDialogs>0</HideFromDialogs>
-              </File>
-            </Files>
-          </File>
-          <File>
-            <Type>3</Type>
             <Name>audio</Name>
             <Action>0</Action>
             <OverwriteDateTime>False</OverwriteDateTime>
@@ -399,6 +331,30 @@
             <Type>2</Type>
             <Name>Qt5Gui.dll</Name>
             <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\Qt5Gui.dll</File>
+            <ActiveX>False</ActiveX>
+            <ActiveXInstall>False</ActiveXInstall>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <PassCommandLine>False</PassCommandLine>
+            <HideFromDialogs>0</HideFromDialogs>
+          </File>
+          <File>
+            <Type>2</Type>
+            <Name>vcruntime140_1.dll</Name>
+            <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\vcruntime140_1.dll</File>
+            <ActiveX>False</ActiveX>
+            <ActiveXInstall>False</ActiveXInstall>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <PassCommandLine>False</PassCommandLine>
+            <HideFromDialogs>0</HideFromDialogs>
+          </File>
+          <File>
+            <Type>2</Type>
+            <Name>InnerServer.exe</Name>
+            <File>E:\WorkSpace\LivePlatform\LivePlatformClient\x64\Release\InnerServer.exe</File>
             <ActiveX>False</ActiveX>
             <ActiveXInstall>False</ActiveXInstall>
             <Action>0</Action>
