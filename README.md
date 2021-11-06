@@ -1,8 +1,12 @@
+<a href="https://github.com/Ohto-Ai/PostLive/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/Ohto-Ai/PostLive"></a>
+<a href="https://github.com/Ohto-Ai/PostLive/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/Ohto-Ai/PostLive"></a>
+<a href="https://github.com/Ohto-Ai/PostLive/network"><img alt="GitHub forks" src="https://img.shields.io/github/forks/Ohto-Ai/PostLive"></a>
+<a href="https://github.com/Ohto-Ai/PostLive/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Ohto-Ai/PostLive"></a>
+<a href="https://github.com/Ohto-Ai/PostLive/stargazers"><img src="https://img.shields.io/badge/WELCOME-STAR-red"></a>
 <p align="center">
  <img width="100%" src="https://camo.githubusercontent.com/15d6e5fefc9de9b33d8776b8a9a6a15a8e823cea/68747470733a2f2f692e6c6f6c692e6e65742f323032302f31302f31382f39485054534b7a5152794e663741772e706e67" align="center" alt="GitHub Readme Stats" />
  <h2 align="center">Live Platform</h2>
  <p align="center">学习直播平台-客户端</p>
-
 
 # 界面设计
 
