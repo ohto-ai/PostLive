@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30503.244
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LiveLoginUnit", "LiveLoginUnit\LiveLoginUnit.vcxproj", "{CDBDF49B-308F-4E71-A553-0C93684C2425}"
 EndProject
@@ -22,10 +22,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ffmpeg-demo", "ffmpeg-demo\ffmpeg-demo.vcxproj", "{8F86BC2F-CCF4-47E3-84E3-8F0F24C621A4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ffmpeg-process", "ffmpeg-process\ffmpeg-process.vcxproj", "{C9C58FE6-A49A-40D2-84AF-B3560A2A2F9E}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QIPAddress", "QIPAddress\QIPAddress.vcxproj", "{03A58469-6CE7-4DAF-A9A1-1DCBD81C9DEF}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QPasswordEdit", "QPasswordEdit\QPasswordEdit.vcxproj", "{F92A1C1D-94D2-4FC8-946F-F49232A804E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,18 +89,6 @@ Global
 		{C9C58FE6-A49A-40D2-84AF-B3560A2A2F9E}.Release|x64.ActiveCfg = Release|x64
 		{C9C58FE6-A49A-40D2-84AF-B3560A2A2F9E}.Release|x64.Build.0 = Release|x64
 		{C9C58FE6-A49A-40D2-84AF-B3560A2A2F9E}.Release|x86.ActiveCfg = Release|x64
-		{03A58469-6CE7-4DAF-A9A1-1DCBD81C9DEF}.Debug|x64.ActiveCfg = Debug|x64
-		{03A58469-6CE7-4DAF-A9A1-1DCBD81C9DEF}.Debug|x64.Build.0 = Debug|x64
-		{03A58469-6CE7-4DAF-A9A1-1DCBD81C9DEF}.Debug|x86.ActiveCfg = Debug|x64
-		{03A58469-6CE7-4DAF-A9A1-1DCBD81C9DEF}.Release|x64.ActiveCfg = Release|x64
-		{03A58469-6CE7-4DAF-A9A1-1DCBD81C9DEF}.Release|x64.Build.0 = Release|x64
-		{03A58469-6CE7-4DAF-A9A1-1DCBD81C9DEF}.Release|x86.ActiveCfg = Release|x64
-		{F92A1C1D-94D2-4FC8-946F-F49232A804E6}.Debug|x64.ActiveCfg = Debug|x64
-		{F92A1C1D-94D2-4FC8-946F-F49232A804E6}.Debug|x64.Build.0 = Debug|x64
-		{F92A1C1D-94D2-4FC8-946F-F49232A804E6}.Debug|x86.ActiveCfg = Debug|x64
-		{F92A1C1D-94D2-4FC8-946F-F49232A804E6}.Release|x64.ActiveCfg = Release|x64
-		{F92A1C1D-94D2-4FC8-946F-F49232A804E6}.Release|x64.Build.0 = Release|x64
-		{F92A1C1D-94D2-4FC8-946F-F49232A804E6}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

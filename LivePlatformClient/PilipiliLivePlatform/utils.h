@@ -9,9 +9,9 @@
 #include <QCryptographicHash>
 #include <QDateTime>
 #include <QTimer>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include <fstream>
-#include <httplib.h>
+#include <cpp-httplib/httplib.h>
 #include "GeneralSignal.h"
 #include "AsyncDownloader.h"
 #include "WidgetConfigInfo.h"

@@ -2,17 +2,45 @@
 #include "LivePlatform.h"
 #include "LiveLoginDialog.h"
 #include <QtWidgets/QApplication>
+#include <DbgHelp.h>
 
-#define LOCAL_SERVER_TEST
+#pragma comment(lib, "Dbghelp.lib")
+
+int GenerateDump(EXCEPTION_POINTERS* pExceptionPointers)
+{
+    // 创建Dump文件
+    HANDLE hDumpFile = CreateFile(L"LivePlatform.dmp", GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hDumpFile != INVALID_HANDLE_VALUE)
+	{
+        // Dump信息
+        MINIDUMP_EXCEPTION_INFORMATION dumpInfo;
+        dumpInfo.ExceptionPointers = pExceptionPointers;
+        dumpInfo.ThreadId = GetCurrentThreadId();
+        dumpInfo.ClientPointers = TRUE;
+
+        // 写入Dump文件
+        MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hDumpFile, MiniDumpNormal, &dumpInfo, NULL, NULL);
+        CloseHandle(hDumpFile);
+    }
+    return EXCEPTION_EXECUTE_HANDLER;
+}
+
+LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS* pExceptionPointers)
+{
+	if (IsDebuggerPresent()) {
+		QMessageBox::critical(nullptr, "错误", "发生了未处理的异常.");
+		return EXCEPTION_CONTINUE_SEARCH;
+	}
+	else {
+		QMessageBox::critical(nullptr, "错误", "发生了未处理的异常，程序即将退出. 将生成转储文件...");
+        return GenerateDump(pExceptionPointers);
+	}
+}
 
 int main(int argc, char* argv[])
 {
 	QApplication a(argc, argv);
-
-#ifdef LOCAL_SERVER_TEST
-	QProcess process;
-	process.start("InnerServer.exe");
-#endif
+	SetUnhandledExceptionFilter(ExceptionFilter);
 
 	// 加载设置和用户列表
 	thatboy::utils::loadConfig();
