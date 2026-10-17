@@ -1,66 +1,85 @@
-<a href="https://github.com/Ohto-Ai/PostLive/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/Ohto-Ai/PostLive"></a>
-<a href="https://github.com/Ohto-Ai/PostLive/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/Ohto-Ai/PostLive"></a>
-<a href="https://github.com/Ohto-Ai/PostLive/network"><img alt="GitHub forks" src="https://img.shields.io/github/forks/Ohto-Ai/PostLive"></a>
-<a href="https://github.com/Ohto-Ai/PostLive/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Ohto-Ai/PostLive"></a>
-<a href="https://github.com/Ohto-Ai/PostLive/stargazers"><img src="https://img.shields.io/badge/WELCOME-STAR-red"></a>
-<p align="center">
- <img width="100%" src="https://camo.githubusercontent.com/15d6e5fefc9de9b33d8776b8a9a6a15a8e823cea/68747470733a2f2f692e6c6f6c692e6e65742f323032302f31302f31382f39485054534b7a5152794e663741772e706e67" align="center" alt="GitHub Readme Stats" />
- <h2 align="center">Live Platform</h2>
- <p align="center">学习直播平台-客户端</p>
+# PostLive — 学习直播平台客户端
 
-# 界面设计
+PostLive 是一个学习性质的直播平台桌面客户端，使用 C++ / Qt 编写，包含登录、用户信息、摄像头采集、视频预览与 FFmpeg 推流，并提供配套的 RTMP 服务端部署文档。
 
--   登录  
--   ![效果图](https://i.loli.net/2020/09/27/DtsjhlAfMHndr2q.png)
--   登录设置  
--   ![遮罩图](https://i.loli.net/2020/09/27/nAdxPvT23F5bY64.png)
--   主窗口  
--   ![主窗口](https://i.loli.net/2020/09/29/UbYiFs1nlQPeEXc.png)
+> 这是一个课程 / 学习项目，代码年代较早，功能与接口可能不完整，请勿直接用于生产环境。
 
-# 功能计划
+## 功能状态
 
--   [ ] 登录界面
-    -   [x] UI设计
-    -   [x] 头像自动获取及显示
-    -   [x] 用户名和密码自动填充(填充假密码)
-    -   [x] 用户信息同步
-    -   [ ] 自动登录
-    -   [ ] 设置界面
-        -   [x] 遮罩窗口
-        -   [ ] 服务器设置
-        -   [ ] 官网
-    -   [x] 登录token
+### 登录界面
 
--   [x] 测试服务器
-    -   [x] 用户登录验证
-    -   [x] 用户信息获取
--   [ ] 主窗口
-    -   [ ] 摄像头
-        -   [x] 获取并选择摄像头
-        -   [ ] 获取并选择分辨率
-    -   [ ] 麦克风
-        -   [ ] 获取并选择麦克风
-    -   [ ] 输出分辨率选择
-    -   [ ] 码率设置等
-    -   [ ] 设置窗口
-    -   [x] 视频预览
-        -   [ ] 预览开关
-    -   [x] ffmpeg推流及停止
--   [ ] Bug修复
-    -   [ ] 遮罩窗口最小化还原后无法显示遮罩层 [commit 96e5347](https://github.com/NOPornLivePlatform/LivePlatform/commit/a1393e960577cd6f3df00ff979d7e90c2ef7f899)
--   [ ] 其他
-    -   [ ] 最小化到托盘
+- [x] UI 设计
+- [x] 头像自动获取及显示
+- [x] 用户名和密码自动填充（填充假密码）
+- [x] 用户信息同步
+- [x] 登录 token
+- [ ] 自动登录
+- [ ] 设置界面（服务器设置、官网、遮罩窗口）
+- [x] 遮罩窗口
 
-# 用户名和密码正则
+### 主窗口
 
--   用户名
+- [x] 摄像头获取与选择
+- [x] 视频预览
+- [x] FFmpeg 推流及停止
+- [ ] 麦克风获取与选择
+- [ ] 输出分辨率选择
+- [ ] 码率设置
+- [ ] 设置窗口
+- [ ] 预览开关
 
-`^[A-Za-z][A-Za-z0-9_-]{3,15}$`
+### 其他
 
--   密码
+- [ ] 最小化到托盘
+- [ ] 遮罩窗口最小化还原后无法显示遮罩层
 
-`^[A-Za-z0-9._~!@#$^&*]{6,24}$`
+## 环境要求
 
-# API说明
+- Windows 10 / 11 x64
+- Visual Studio 2019 / 2022
+- Qt 5.x（MSVC 版本）
+- FFmpeg（仓库 `3rd/` 下提供）
+- MySQL 客户端库（`mysqlpp` / `libmysql`，用于登录单元）
+- 推流服务端：Nginx + `nginx-rtmp-module`（部署步骤见 [`doc/install.md`](doc/install.md)）
 
-[内容在此文档](API.md)
+## 构建
+
+1. 用 Visual Studio 打开 [`LivePlatformClient/LivePlatformClient.sln`](LivePlatformClient/LivePlatformClient.sln)。
+2. 在 Qt VS Tools 中配置本机的 Qt 5 版本。
+3. 选择 `Release | x64`（或 `Debug | x64`）构建。
+4. 各功能单元（登录、直播、连接池、FFmpeg demo、测试服务器等）为解决方案中的独立子项目，可按需编译。
+
+## 运行
+
+- 登录单元依赖测试服务器与 MySQL 数据库，配置说明见 [`Database.md`](Database.md) 和 [`API.md`](API.md)。
+- 直播单元会枚举摄像头并调用 FFmpeg 进行推流；推流命令与参数见 [`doc/ffmpegcmd.md`](doc/ffmpegcmd.md) 和 [`doc/推流相关.md`](doc/推流相关.md)。
+- RTMP 服务端（Nginx + nginx-rtmp-module）的编译与配置见 [`doc/install.md`](doc/install.md)。
+
+## 项目结构
+
+```text
+LivePlatformClient/
+├── ConnectionPoolUnit/       MySQL 连接池示例
+├── LiveBroadcastUnit/        直播 / 推流单元
+├── LiveLoginUnit/            登录单元
+├── LiveServerTestDemo/       测试服务端
+├── PilipiliLivePlatform/     主客户端
+├── ffmpeg-demo/              FFmpeg 解码 / 预览示例
+├── ffmpeg-process/           FFmpeg 进程调用示例
+├── QtHttpDownloader/         HTTP 下载组件
+├── ShadowWindowDemo/         遮罩窗口示例
+└── PortablePacckage/         便携打包相关
+API.md                       后端 API 说明
+Database.md                  数据库说明
+doc/                         安装、推流与 RTMP 文档
+```
+
+## 说明
+
+- 用户名正则：`^[A-Za-z][A-Za-z0-9_-]{3,15}$`
+- 密码正则：`^[A-Za-z0-9._~!@#$^&*]{6,24}$`
+- 客户端重构版本见 [`PostLive.Re`](https://github.com/ohto-ai/PostLive.Re)。
+
+## License
+
+[GPL-3.0](LICENSE)
