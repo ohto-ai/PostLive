@@ -3,6 +3,18 @@
 > 最后更新：2026-10-29
 > 状态来自 2020 年的代码与本次工程化整理。欢迎认领；提交前请先看 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
+## 实施计划与预估（AI 执行）
+
+| 批次 | 内容 | 有效工作时间 | 会话数 |
+| --- | --- | --- | --- |
+| A. 功能补齐 | 设置窗口、码率/帧率、预览开关、遮罩修复、自动登录、推流错误、热插拔、优雅停播、托盘、品牌统一 | 2–4 小时 | 1–2 |
+| B. 认证与安全 | API 地址可配置、mock 服务端、凭证安全、HTTPS、`query` / `heartbeat` | 3–5 小时 | 1–2 |
+| C. 工程质量 | Qt 6 迁移、测试、CI 安装包、格式化/静态分析、配置目录、日志、i18n、依赖管理、CPack、FFmpeg/VC 运行时、配置容错 | 5–8 小时 | 2–3 |
+| **合计** | | **10–15 小时** | **4–6** |
+
+最小可用批次（设置、码率、预览开关、推流错误、停播、热插拔、API 地址、配置容错）约 3–5 小时。
+以上包含编译与冒烟测试，不含真实摄像头 / 麦克风 / RTMP 服务端 / HTTPS 证书 / 代码签名等外部验证。
+
 ## 功能
 
 - [ ] **设置窗口**：实现服务器地址、官网、遮罩开关等选项，并持久化到 `application.json`。
@@ -23,6 +35,9 @@
 - [ ] **凭证安全**：密码只做 MD5、token 明文存 `users.json`；至少改为加盐哈希 + 加密存储，并在文档中说明。
 - [ ] **HTTPS 支持**：服务端部署 TLS 时，客户端需要 OpenSSL 支持的 `cpp-httplib` 构建。
 - [ ] **补齐 API 类型**：客户端目前只实现 `login` 与 `profile`，`query` / `heartbeat` 尚未实现。
+- [ ] **Cloudflare 免费认证评估**：Workers + D1 + KV 实现 `/api`，客户端改用 QtNetwork HTTPS；详见 [`docs/cloudflare.md`](docs/cloudflare.md)。
+- [ ] **Cloudflare 推流方案评估**：R2 + HLS（免费额度）、Stream（付费）、Realtime（WebRTC，1 TB/月免费 egress）、Tunnel + 自建 RTMP（公网视频受 Free 套餐条款限制）之间做取舍。
+- [ ] **Cloudflare 部署**：Wrangler 配置、D1 schema、Worker secrets、Pages 注册/播放页、CI 部署。
 
 ## 工程与质量
 
