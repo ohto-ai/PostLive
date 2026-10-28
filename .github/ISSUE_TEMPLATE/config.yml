@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 构建 / 运行文档
+    url: https://github.com/ohto-ai/PostLive/blob/master/docs/building.md
+    about: 配置 CMake、Qt 与 FFmpeg 的问题请先看这里
+  - name: 推流文档
+    url: https://github.com/ohto-ai/PostLive/blob/master/docs/streaming.md
+    about: 设备名、FFmpeg 参数与 RTMP 排错

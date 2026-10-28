@@ -1,0 +1,63 @@
+name: Bug report
+description: 报告一个可复现的问题
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。请先确认问题不在 [TODO.md](https://github.com/ohto-ai/PostLive/blob/master/TODO.md) 的已知事项中。
+        提交前请脱敏推流地址、账号与 token。
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本 / 提交
+      description: 发布版本号或 commit hash
+      placeholder: v1.0.0.2 / 1369d33
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统
+      options:
+        - Windows 10
+        - Windows 11
+        - 其他（请在描述中说明）
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 启动客户端
+        2. 输入账号 ...
+        3. 点击 ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图 / dump
+      description: FFmpeg 输出、Qt 日志、`PostLive.dmp` 或界面截图。请脱敏敏感信息。
+      render: text

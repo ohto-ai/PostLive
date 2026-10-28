@@ -1,0 +1,44 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{cpp,h,hpp}]
+indent_style = tab
+indent_size = 4
+
+[*.ui]
+indent_style = space
+indent_size = 1
+
+[*.{rc,rc.in}]
+indent_style = space
+indent_size = 4
+
+[CMakeLists.txt]
+end_of_line = lf
+indent_style = space
+indent_size = 4
+
+[*.cmake]
+end_of_line = lf
+indent_style = space
+indent_size = 4
+
+[*.{md,txt,yml,yaml,sh}]
+end_of_line = lf
+indent_style = space
+indent_size = 2
+
+[*.json]
+end_of_line = lf
+indent_style = space
+indent_size = 4
+
+[*.{png,jpg,jpeg,webp,ico,sketch}]
+insert_final_newline = false

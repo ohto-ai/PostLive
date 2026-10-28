@@ -1,0 +1,39 @@
+{
+    "login": {
+        "auto_login": false,
+        "current_user": ""
+    },
+    "user_list": "users.json",
+    "widget_info": {
+        "login": {
+            "geometry": {
+                "height": 450,
+                "width": 600,
+                "x": 755,
+                "y": 346
+            },
+            "opacity": 0.8980392156862745,
+            "translucent": true
+        },
+        "login_setting": {
+            "geometry": {
+                "height": 400,
+                "width": 500,
+                "x": 618,
+                "y": 202
+            },
+            "opacity": 1.0,
+            "translucent": true
+        },
+        "platform": {
+            "geometry": {
+                "height": 516,
+                "width": 800,
+                "x": 617,
+                "y": 296
+            },
+            "opacity": 1.0,
+            "translucent": true
+        }
+    }
+}

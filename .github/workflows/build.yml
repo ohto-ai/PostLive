@@ -1,0 +1,51 @@
+name: Build
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Windows x64 (Qt 5.15.2)
+    runs-on: windows-2022
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Qt 5.15.2
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "5.15.2"
+          arch: win64_msvc2019_64
+          cache: true
+
+      - name: Configure
+        run: |
+          $env:QT_ROOT = $env:QT_ROOT_DIR
+          cmake --preset windows-x64
+
+      - name: Build
+        run: cmake --build --preset release --parallel
+
+      - name: Deploy Qt runtime
+        run: cmake --build build/windows-x64 --config Release --target deploy-qt
+
+      - name: Package
+        run: Compress-Archive -Path build\windows-x64\Release\* -DestinationPath PostLive-win64.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PostLive-win64
+          path: PostLive-win64.zip
+          if-no-files-found: error

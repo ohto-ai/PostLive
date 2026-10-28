@@ -1,2 +1,35 @@
-# Auto detect text files and perform LF normalization
 * text=auto
+
+# Windows sources
+*.cpp   text eol=crlf
+*.h     text eol=crlf
+*.hpp   text eol=crlf
+*.ui    text eol=crlf
+*.rc    text eol=crlf
+*.rc.in text eol=crlf
+*.iss   text eol=crlf
+
+# Build and automation files
+CMakeLists.txt text eol=lf
+*.cmake         text eol=lf
+CMakePresets.json text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.sh            text eol=lf
+
+# Documentation
+*.md  text eol=lf
+*.txt text eol=lf
+
+# Binary assets
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.webp   binary
+*.ico    binary
+*.sketch binary
+*.exe    binary
+*.dll    binary
+*.lib    binary
+*.pdb    binary
+*.dmp    binary
