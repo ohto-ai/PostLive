@@ -7,11 +7,11 @@ PostLive 是一个单进程 Qt Widgets 应用，推流通过子进程调用 FFmp
 ```mermaid
 flowchart LR
     Main[main.cpp] --> Login[LiveLoginDialog]
-    Login -->|Accepted| Platform[LivePlatform]
+    Login -->|Accepted| Splash[QSplashScreen]
     Login --> Setting[LiveLoginSettingDialog]
     Login -->|HTTP POST /api| Auth[认证服务端]
     Login -->|QNetworkAccessManager| Avatar[头像下载]
-    Platform --> Preview[QCamera / QCameraViewfinder]
+    Platform[LivePlatform] --> Preview[FFmpegWidget 进程内解码预览]
     Platform -->|QProcess| FFmpeg[ffmpeg.exe]
     FFmpeg -->|RTMP| Server[RTMP 服务端]
 ```
@@ -23,6 +23,8 @@ flowchart LR
 | `src/main.cpp` | 初始化 `QApplication`、工作目录、日志、配置与用户数据，控制登录 → 主窗口流程 |
 | `src/app/` | 业务窗口：登录、设置、直播 |
 | `src/core/` | 与界面无关的支撑代码：配置读写、HTTP 客户端、头像下载、窗口配置序列化、日志 |
+| `src/media/` | 进程内 FFmpeg：输入设备抽象、解码线程、预览控件、推流参数构建 |
+| `src/platform/` | Win32 平台辅助：可见顶层窗口枚举 |
 | `src/widgets/` | 可复用的无边框窗口基类、拖拽、阴影、点击标签与密码输入框 |
 | `src/resources/` | Qt 资源（`.qrc`）与图片 / 图标 |
 | `src/platform/` | Windows 版本资源模板，由 CMake 注入版本号与图标路径 |
@@ -43,6 +45,12 @@ flowchart LR
 | `DragableWidget` / `DragableDialog` / `DragableMainWindow` | `src/widgets` | 无边框窗口拖动 |
 | `ShadowWidget` | `src/widgets` | 窗口阴影与设置对话框遮罩 |
 | `PasswordEdit` | `src/widgets` | 密码编辑、假密码回填、MD5 |
+| `ImageLabel` | `src/widgets` | object-fit（cover/fit）图片绘制，登录页左图 |
+| `FileDropZone` | `src/widgets` | 文件拖放接收（FFmpegWidget 基类，拖入即切源） |
+| `FFmpegInputDevice` | `src/media` | 采集源统一抽象：dshow 摄像头/麦克风、gdigrab 桌面/窗口、本地文件 |
+| `FFmpegVideo` | `src/media` | 解码线程，`frameReady(QImage)` 供预览 |
+| `FFmpegWidget` | `src/media` | 统一预览控件：绘制、加载动画、错误内嵌、拖放切源 |
+| `buildStreamArgs` | `src/media/StreamArgs` | 纯函数：按采集源构建 ffmpeg.exe 推流参数（有单测） |
 
 ## 启动流程
 
@@ -51,7 +59,7 @@ flowchart LR
 3. `log::initLogging()` 安装消息处理器，日志写入 `log/PostLive.log`（2 MB 轮转，保留 1 份备份）。
 4. `utils::loadConfig()` 读取 `application.json`。
 5. `utils::loadUserData()` 读取 `users.json`，异步下载缺失头像。
-6. 显示 `LiveLoginDialog`；登录成功（`QDialog::Accepted`）后创建 `LivePlatform`。
+6. 显示 `LiveLoginDialog`；登录成功后先显示 splash 动画，再创建 `LivePlatform`。
 7. 关闭主窗口时保存配置与用户数据；未处理异常生成 `PostLive.dmp` 并记录日志。
 
 ## 错误反馈与日志
@@ -81,6 +89,16 @@ sequenceDiagram
 - `application.json` 的 `login.auto_login` 为 `true` 时，登录窗口显示 100 ms 后自动调用登录；取消勾选或编辑账号 / 密码会停止本次自动登录。
 - 认证地址从 `application.json` 的 `auth_server` 读取（默认 `http://localhost:8877`），QtNetwork 异步请求，5 s transfer timeout；HTTPS 需要 OpenSSL 1.1.x DLL。
 - token 登录失败时会清除 `remember_password` 与自动登录，避免下次启动重复失败。
+
+## 采集与预览
+
+预览与推流是两条独立链路，同一时刻只开一条（推流前强制停预览，避免 dshow 设备被双开占用）：
+
+- **预览**：进程内 libav（`FFmpegVideo` 解码线程 → `FFmpegWidget` 绘制），采集源统一抽象为 `{input_format, url, options}`，支持摄像头（dshow）、整个桌面与按标题的单窗口（gdigrab）、本地文件（自动探测，拖入预览区即切换）。
+- **推流**：`ffmpeg.exe` 子进程，参数由纯函数 `buildStreamArgs()` 按源构建（摄像头 dshow、桌面/窗口 gdigrab + 麦克风、文件 `-re` 实时推 + 文件自带音轨）。
+- 窗口选择器枚举可见顶层窗口（`src/platform/WindowList`，过滤最小化 / 工具窗口 / cloaked UWP）；gdigrab 只认窗口标题，同标题窗口无法区分。
+
+UI 使用全局主题 `src/resources/postlive.qss`（源自 PostLive.Re 的设计）：深炭色 + 蓝色 accent，`main.cpp` 启动时整体应用；登录窗口为 760x480 左图右表单布局（`ImageLabel` 做 cover 裁剪）。
 
 ## 推流流程
 

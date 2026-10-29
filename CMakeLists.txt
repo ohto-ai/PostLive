@@ -55,6 +55,7 @@ set(POSTLIVE_SOURCES
     src/widgets/DragableMainWindow.cpp
     src/widgets/DragableWidget.cpp
     src/widgets/FileDropZone.cpp
+    src/widgets/ImageLabel.cpp
     src/widgets/PasswordEdit.cpp
     src/widgets/ShadowWidget.cpp
     src/widgets/TouchedLabel.cpp
@@ -86,6 +87,7 @@ set(POSTLIVE_HEADERS
     src/widgets/DragableMainWindow.h
     src/widgets/DragableWidget.h
     src/widgets/FileDropZone.h
+    src/widgets/ImageLabel.h
     src/widgets/PasswordEdit.h
     src/widgets/ShadowWidget.h
     src/widgets/TouchedLabel.h

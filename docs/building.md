@@ -7,8 +7,8 @@
 | Windows | 10 / 11 x64 | 仅支持 Windows；推流使用 DirectShow |
 | Visual Studio | 2022（或 2019） | 需要 “使用 C++ 的桌面开发” 工作负载 |
 | CMake | ≥ 3.21 | `file(COPY_FILE ... ONLY_IF_DIFFERENT)` 需要 3.21 |
-| Qt | 5.15.2，MSVC 2019 64-bit | 需要 Widgets、Network、Multimedia、MultimediaWidgets |
-| FFmpeg | 任意 7.x 构建 | 仅运行时需要，用于推流 |
+| Qt | 5.15.2，MSVC 2019 64-bit | 需要 Widgets、Network（预览解码用进程内 FFmpeg，不再依赖 Qt Multimedia） |
+| FFmpeg | 7.x shared 构建 | `third_party/ffmpeg/bin/` 提供 `ffmpeg.exe`（推流）与 `av*-61.dll` 等运行时 DLL（推流 + 进程内预览解码共用） |
 
 ## 安装 Qt
 
@@ -16,9 +16,8 @@
 安装后在 Qt Maintenance Tool 中确认至少勾选了：
 
 - Qt 5.15.2 → MSVC 2019 64-bit
-- Qt Multimedia（通常随基础套件安装）
 
-Qt 6 不适用：代码使用 Qt 5 的 `QCameraInfo` / `QCameraViewfinder` / `QAudioDeviceInfo`，迁移计划见 [TODO.md](../TODO.md)。
+FFmpeg SDK（头文件与导入库）已随仓库放在 `third_party/ffmpeg/sdk/`（LGPL-3.0），无需单独安装；运行时 DLL 来自 `third_party/ffmpeg/bin/`，与推流共用，主版本必须保持 7.x（avcodec-61 / avutil-59 / swscale-8）。
 
 ## 配置与构建
 

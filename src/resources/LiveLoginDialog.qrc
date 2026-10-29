@@ -24,7 +24,12 @@
     <file>res/pilipili-title-border.png</file>
     <file>res/login-background-800x240.png</file>
     <file>res/avatar-male.png</file>
+    <file>res/genshin.jpg</file>
+    <file alias="postlive.qss">postlive.qss</file>
     <file alias="config/application.default.json">../../config/application.default.json</file>
     <file alias="config/users.default.json">../../config/users.default.json</file>
+  </qresource>
+  <qresource prefix="main">
+    <file>res/splash.gif</file>
   </qresource>
 </RCC>

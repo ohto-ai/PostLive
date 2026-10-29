@@ -4,8 +4,11 @@
 #include "Logging.h"
 #include <QtWidgets/QApplication>
 #include <QDir>
+#include <QFile>
+#include <QMovie>
 #include <QNetworkProxyFactory>
 #include <QTimer>
+#include <QSplashScreen>
 #include <windows.h>
 #include <DbgHelp.h>
 
@@ -61,6 +64,11 @@ int main(int argc, char* argv[])
 	thatboy::log::initLogging();
 	qCInfo(lcApp) << "PostLive" << POSTLIVE_VERSION << "starting";
 
+	// Global theme extracted from the PostLive.Re UI design.
+	QFile themeFile(QStringLiteral(":/LiveLoginDialog/postlive.qss"));
+	if (themeFile.open(QIODevice::ReadOnly | QIODevice::Text))
+		a.setStyleSheet(QString::fromUtf8(themeFile.readAll()));
+
 	SetUnhandledExceptionFilter(ExceptionFilter);
 
 	// 加载设置和用户列表
@@ -68,14 +76,35 @@ int main(int argc, char* argv[])
 	thatboy::utils::loadUserData();
 
 	// CI / 冒烟测试：POSTLIVE_SMOKE_TEST=1 在登录窗口自动退出；=platform 无头
-	// 构造主窗口（设备枚举、预览控件、窗口列表）后退出，覆盖媒体链路。
-	if (qEnvironmentVariableIsSet("POSTLIVE_SMOKE_TEST"))
+	// 构造主窗口（设备枚举、预览控件、窗口列表）后退出；=login 渲染登录窗口
+	// 并把画面保存到 POSTLIVE_SNAPSHOT 指定的路径（无头视觉检查）。
+	const QByteArray smokeMode = qEnvironmentVariable("POSTLIVE_SMOKE_TEST").toUtf8();
+	if (!smokeMode.isEmpty())
 	{
-		if (qEnvironmentVariable("POSTLIVE_SMOKE_TEST") == QLatin1String("platform"))
+		if (smokeMode == "platform")
 		{
 			LivePlatform w;
 			w.show();
-			QTimer::singleShot(1500, &a, &QCoreApplication::quit);
+			QTimer::singleShot(1500, &a, [&]
+				{
+					const QString snapshot = qEnvironmentVariable("POSTLIVE_SNAPSHOT");
+					if (!snapshot.isEmpty())
+						w.grab().save(snapshot);
+					QCoreApplication::quit();
+				});
+			a.exec();
+		}
+		else if (smokeMode == "login")
+		{
+			LiveLoginDialog d;
+			d.show();
+			QTimer::singleShot(500, &a, [&]
+				{
+					const QString snapshot = qEnvironmentVariable("POSTLIVE_SNAPSHOT");
+					if (!snapshot.isEmpty())
+						d.grab().save(snapshot);
+					QCoreApplication::quit();
+				});
 			a.exec();
 		}
 		else
@@ -86,14 +115,29 @@ int main(int argc, char* argv[])
 	try
 	{
 #endif
-		if (qEnvironmentVariableIsSet("POSTLIVE_SMOKE_TEST")
-			&& qEnvironmentVariable("POSTLIVE_SMOKE_TEST") == QLatin1String("platform"))
+		if (smokeMode == "platform" || smokeMode == "login")
 			return 0;
 
 		LiveLoginDialog d;
 		if (d.exec() == QDialog::Accepted)
 		{
+			// Animated splash covering LivePlatform construction (device
+			// enumeration and SDK init can take a moment).
+			QSplashScreen splash;
+			QMovie splashMovie(QStringLiteral(":/main/res/splash.gif"));
+			if (splashMovie.isValid())
+			{
+				QObject::connect(&splashMovie, &QMovie::frameChanged, &splash, [&]
+					{
+						splash.setPixmap(splashMovie.currentPixmap());
+					});
+				splashMovie.start();
+				splash.show();
+				splash.showMessage(QObject::tr("Loading..."), Qt::AlignCenter, Qt::white);
+			}
+
 			LivePlatform w;
+			splash.finish(&w);
 			w.show();
 			a.exec();
 		}

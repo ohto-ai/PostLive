@@ -1,7 +1,7 @@
 # TODO / 路线图
 
 > 最后更新：2026-10-29
-> 当前分支：`feat/auth-network`（包含 A2 / B1 / B2 / B3 / C1 / C2）；`master` 仍为 `416d3cb`。
+> 当前分支：`feat/auth-network`（包含 A2 / B1 / B2 / B3 / C1 / C2 / D1 合并）；`master` 仍为 `416d3cb`。
 > 下次开始前可先合并：
 >
 > ```bash
@@ -14,7 +14,7 @@
 | 区域 | 状态 |
 | --- | --- |
 | 工程化整理 | ✅ CMake / 目录 / 文档 / CI / GitHub 模板 |
-| A 功能补齐 | ✅ 除品牌统一、遮罩窗口实机复测 |
+| A 功能补齐 | ✅ 除品牌统一、遮罩窗口实机复测；已并入 PostLive.Re 的采集源与 UI 主题 |
 | B 认证客户端侧 | ✅ API 地址、mock server、QtNetwork HTTPS、DPAPI token |
 | B 服务端 / 部署 | 🔄 Worker + D1 + KV 代码就绪（含单元测试），待 Cloudflare 账号部署 |
 | C 工程质量 | 🔄 C1（单元测试 + 日志）、C2（CI 安装包 + OpenSSL）完成；其余见 P2 |
@@ -31,6 +31,7 @@
 - [ ] **Cloudflare 部署**：代码与配置已就绪（[worker/](worker/README.md)），需要 Cloudflare 账号：`wrangler login` → 创建 D1/KV → 填 `wrangler.toml` id → `secret put` → `wrangler deploy`。方案与免费额度见 [docs/cloudflare.md](docs/cloudflare.md)。
 - [ ] **query / heartbeat 客户端**：服务端（Worker + mock）已实现全部端点；客户端目前只发 login / profile。需要决定是否加好友在线状态 UI，或只做后台 heartbeat（注意 KV 写配额）。
 - [ ] **遮罩窗口实机复测**：代码已加父窗口事件过滤；需要在真实桌面验证“打开设置 → 最小化 → 还原”时遮罩层是否恢复。
+- [ ] **query / heartbeat 客户端 UI**（服务端已就绪）与 **品牌统一**（`LivePlatform` 类名、pilipili 标题图等旧命名）仍待定。
 - [ ] **设置窗口实机检查**：新增官网 / 水印 / 保存按钮的布局、DPI、最小尺寸。
 - [ ] **HTTPS 端到端验证**：需要真实 HTTPS 认证服务端 + OpenSSL 1.1.x DLL；当前只验证了 QtNetwork TLS 探针。
 - [ ] **品牌统一**（低优先级）：`LivePlatform` 类名、`:/LiveLoginDialog/...` 资源前缀、部分图片命名。
@@ -42,7 +43,7 @@
 - [ ] **冒烟测试扩展**：已有 `POSTLIVE_SMOKE_TEST=1`（500 ms 自动退出，offscreen 下可验证无弹窗崩溃）；补充无摄像头 / 无麦克风 / 无 FFmpeg / 认证不可达的 UI 行为。
 - [x] **CI 安装包**：CI 用预装 Inno Setup 6 编译 `packaging/PostLive.iss`，与 zip 一起上传为 Actions 产物；本地打包见 [packaging/README.md](packaging/README.md)。
 - [x] **CI OpenSSL**：CI 在打包前自动获取 OpenSSL 1.1.1w 并把 `libssl-1_1-x64.dll` / `libcrypto-1_1-x64.dll` 复制进产物（zip 与安装包均包含）。
-- [ ] **Qt 6 迁移**：`QCameraInfo`、`QCameraViewfinder`、`QAudioDeviceInfo` 需改用 `QMediaDevices` / `QVideoWidget` / `QAudioSource`。
+- [ ] **Qt 6 迁移**：原 blocker（QCameraInfo / QCameraViewfinder / QAudioDeviceInfo）已随进程内 FFmpeg 预览移除，剩余为常规 API 迁移评估。
 - [ ] **代码格式检查**：运行 `.clang-format` 统一格式，并在 CI 中校验。
 - [ ] **静态分析**：clang-tidy / MSVC `/analyze`。
 - [ ] **配置目录**：`application.json` / `users.json` / 头像迁移到 `QStandardPaths::AppDataLocation`。
@@ -56,7 +57,8 @@
 ## 已知限制 / 注意
 
 - `-platform offscreen` 下显示 `QMessageBox` 会段错误；错误路径需要真实 Windows 平台验证，无头测试只适合成功路径。
-- 遮罩窗口修复、设置窗口布局尚未做视觉验证；本次新增的登录框 / 设置框内嵌错误提示（红边框 + 文字）与 `log/PostLive.log` 也需要实机过一眼。
+- 遮罩窗口修复、设置窗口布局尚未做视觉验证；新登录布局（760x480 左图右表单）与新主题只在 offscreen 快照里检查过构图，文字渲染 / DPI / 阴影需要实机过一眼（`POSTLIVE_SMOKE_TEST=login` + `POSTLIVE_SNAPSHOT=路径` 可重新生成快照）。
+- gdigrab 窗口捕获按**标题**匹配（ffmpeg 限制）：同标题窗口无法区分、最小化窗口不可捕获。
 - HTTPS 只用 QtNetwork TLS 探针验证过；还没有用真实 HTTPS 认证服务端跑完整登录。CI / 本地产物已带 OpenSSL 1.1.1 DLL。
 - Qt 5.15 的 HTTPS 需要 OpenSSL 1.1.x DLL；CI 产物已包含，本地开发需自行放置或用 `POSTLIVE_OPENSSL_DIR`。
 - 日志轮转（2 MB，保留 1 份 `.1`）只在启动与写入路径简单验证，未做长跑验证。
@@ -95,6 +97,15 @@
 - [x] CI 用 GitHub 预装的 Inno Setup 6 编译 `packaging/PostLive.iss`（版本号从 CMakeLists 解析传入），安装包与 zip 一起上传为 Actions 产物；升级不覆盖用户 `application.json` / `users.json`。
 - [x] CI 打包前自动获取 OpenSSL 1.1.1w（slproweb Light 安装包静默安装），把两枚 DLL 复制进构建目录；zip 与安装包因此都支持 HTTPS 认证。
 - [x] `packaging/README.md` 更新安装包内容清单与本地 OpenSSL 补齐方式。
+
+### D 合并 PostLive.Re（进程内 FFmpeg 采集 + UI 主题）
+
+- [x] `third_party/ffmpeg/sdk`：FFmpeg 7.x SDK（LGPL-3.0）入库，与自带 av*-61 运行时 DLL 主版本匹配，进程内链接 avcodec / avdevice / avformat / avutil / swscale。
+- [x] `src/media` 三件套（自 PostLive.Re 移植）：`FFmpegInputDevice`（dshow 枚举 + gdigrab 桌面/窗口 + 本地文件）、`FFmpegVideo` 解码线程、`FFmpegWidget` 统一预览（加载动画、错误内嵌、拖文件切源）。
+- [x] 完整窗口选择器：`src/platform/WindowList`（过滤最小化 / 工具窗口 / cloaked UWP / 空标题），主窗口“来源”行新增 摄像头 / 整个屏幕 / 窗口 / 本地文件 四种源。
+- [x] 推流参数抽为纯函数 `buildStreamArgs()`（gdigrab + 麦克风、文件 `-re` 实时推 + 自带音轨），新增 `tests/test_stream_args.cpp` 契约测试；Qt Multimedia 依赖移除（设备枚举改用 avdevice）。
+- [x] UI：全局主题 `src/resources/postlive.qss`（深炭色 + 蓝 accent，468 行，源自 PostLive.Re）；登录窗口重构为 760x480 左图右表单（`ImageLabel` cover 裁剪，保留头像 / 记住密码 / 自动登录 / 设置 / 内嵌错误提示全部功能）；主窗口 / 设置窗口换肤；登录成功后 splash 动画。
+- [x] 冒烟扩展：`POSTLIVE_SMOKE_TEST=platform`（无头构造主窗口）与 `=login`（渲染登录框并存 POSTLIVE_SNAPSHOT 快照），均已在 offscreen 验证通过。
 
 ### B 认证与后端（B3：真实服务端 + 凭证安全）
 

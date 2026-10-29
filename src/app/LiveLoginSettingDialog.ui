@@ -38,88 +38,9 @@
     <enum>Qt::StrongFocus</enum>
    </property>
    <property name="styleSheet">
-    <string notr="true">/* font */
-*
-{
-	font-family: &quot;Arial&quot;, &quot;Segoe UI&quot;, &quot;黑体&quot;, &quot;等线&quot;;
-	font-size: 14px;
-	font-weight: 400;
-	line-height: 20px;
-}
-/* background */
-QWidget#centralWidget
-{
-	background: rgba(36,41,46,0.9);
-	background-position: top;
-	background-image: url(:/LiveLoginDialog/res/login-background-600x180.png);
-	background-repeat: no-repeat;
-}
-QLabel
-{
-	color:white;
-}
-QLabel#applicationIconLabel
+    <string notr="true">QLabel#applicationIconLabel
 {
 	border-image: url(:/LiveLoginDialog/res/pilipili-title-210x50.png);
-}
-
-/* button */
-.QPushButton, .QCheckBox, .QToolButton
-{
-	color: white;
-	background-color: transparent;
-}
-/*RadioButton CheckButton*/
-QRadioButton::indicator::unchecked {
-	image: url(:/LiveLoginDialog/res/radiobutton-unchecked.png);
-}
-QRadioButton::indicator::checked { 
-	image: url(:/LiveLoginDialog/res/radiobutton-checked.png);
-}
-QCheckBox::indicator { 
-	width: 15px;
-	height: 30px;
-}
-QCheckBox::indicator::unchecked {	
-	image: url(:/LiveLoginDialog/res/checkbox_unchecked.png);
-}
-QCheckBox::indicator::checked { 
-	image: url(:/LiveLoginDialog/res/checkbox_checked.png);
-}
-
-.QCheckBox::indicator { 
-	width: 15px;
-	height: 15px;
-}
-.QCheckBox::indicator::unchecked {	
-	image: url(:/LiveLoginDialog/res/radiobutton-unchecked.png);
-}
-.QCheckBox::indicator::checked { 
-	image: url(:/LiveLoginDialog/res/radiobutton-checked.png);
-}
-.QPushButton:hover, .QCheckBox:hover
-{
-	color: yellow;
-}
-.QPushButton:pressed, .QCheckBox:pressed
-{
-	color: #FFCC66;
-}
-.QPushButton:focus, .QCheckBox:focus
-{
-	outline: none
-}
-/* account password */
-QLineEdit
-{
-	border: 2px solid rgba(27,128,255,0.5);
-	background: rgba(45,64,72,0.8);
-	color: white;
-    selection-background-color:green;
-}
-QLineEdit
-{
-	background: rgba(80,100,110,0.8);
 }
 /* tooltip */
 QToolTip

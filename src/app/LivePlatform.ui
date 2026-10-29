@@ -31,132 +31,37 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="styleSheet">
-    <string notr="true">/* font */
-*
-{
-	font-family: &quot;Arial&quot;, &quot;Segoe UI&quot;, &quot;黑体&quot;, &quot;等线&quot;;
-	font-size: 14px;
-	font-weight: 400;
-	line-height: 20px;
-}
-/* background */
-QWidget#centralWidget
-{
-	background: rgba(36,41,46,0.9);
-	background-position: top;
-	background-image: url(:/LiveLoginDialog/res/login-background-800x240.png);
-	background-repeat: no-repeat;
-}
-
-QLabel#streamServerLabel,#cameraLabel,#microphoneLabel, QComboBox
-{
-	color:white;
-	border: 2px solid rgba(27,128,255,0.5);
-	background: rgba(45,64,72,0.8);
-}
-
-QLabel#applicationIconLabel
+    <string notr="true">QLabel#applicationIconLabel
 {
 	border-image: url(:/LiveLoginDialog/res/pilipili-title-210x50.png);
 }
-/* avatar */
-QLabel#avatarLabel
+QPushButton#startPushButton
 {
-	border-image: url(:/LiveLoginDialog/res/avatar-mask.png);
-	border-radius:60px;
-	min-width:  120px;
-    max-width:  120px;
-    min-height: 120px;
-    max-height: 120px;
-    border-width: 0 0 0 0;
+	background: rgb(0,160,230);
+	border: none;
+}
+QPushButton#startPushButton:hover
+{
+	background: rgb(0,180,255);
+}
+QPushButton#startPushButton:pressed
+{
+	background: rgb(0,140,200);
+}
+QPushButton#stopPushButton
+{
+	background: rgb(192,57,43);
+	border: none;
+}
+QPushButton#stopPushButton:hover
+{
+	background: rgb(220,80,60);
+}
+QPushButton#stopPushButton:disabled
+{
+	background: rgb(85,85,85);
 }
 
-/* button */
-.QPushButton, .QCheckBox, .QToolButton
-{
-	color: white;
-	background-color: transparent;
-}
-/*RadioButton CheckButton*/
-QRadioButton::indicator::unchecked {
-	image: url(:/LiveLoginDialog/res/radiobutton-unchecked.png);
-}
-QRadioButton::indicator::checked { 
-	image: url(:/LiveLoginDialog/res/radiobutton-checked.png);
-}
-QCheckBox::indicator { 
-	width: 15px;
-	height: 30px;
-}
-QCheckBox::indicator::unchecked {	
-	image: url(:/LiveLoginDialog/res/checkbox_unchecked.png);
-}
-QCheckBox::indicator::checked { 
-	image: url(:/LiveLoginDialog/res/checkbox_checked.png);
-}
-
-.QCheckBox::indicator { 
-	width: 15px;
-	height: 15px;
-}
-.QCheckBox::indicator::unchecked {	
-	image: url(:/LiveLoginDialog/res/radiobutton-unchecked.png);
-}
-.QCheckBox::indicator::checked { 
-	image: url(:/LiveLoginDialog/res/radiobutton-checked.png);
-}
-.QPushButton:hover, .QCheckBox:hover
-{
-	color: yellow;
-}
-.QPushButton:pressed, .QCheckBox:pressed
-{
-	color: #FFCC66;
-}
-.QPushButton:focus, .QCheckBox:focus
-{
-	outline: none
-}
-/* start stop button */
-QPushButton#startPushButton {
-  background: #0078d7;
-  border: 2px solid rgba(0,0,0,0.4)
-}
-QPushButton#startPushButton:hover {
-  background: #1CA8FA;
-}
-QPushButton#startPushButton:pressed {
-  background: #2A67FF;
-}
-QPushButton#startPushButton:disabled {
-  background: #666;
-}
-QPushButton#stopPushButton {
-  background: #d77800;
-  border: 2px solid rgba(0,0,0,0.4)
-}
-QPushButton#stopPushButton:hover {
-  background: #FAA81C;
-}
-QPushButton#stopPushButton:pressed {
-  background: #FF672A;
-}
-QPushButton#stopPushButton:disabled {
-  background: #666;
-}
-
-/* account password */
-QLineEdit
-{
-	border: 2px solid rgba(27,128,255,0.5);
-	background: rgba(45,64,72,0.8);
-	color: white;
-    selection-background-color:green;
-}
-QLineEdit:focus
-{
-	background: rgba(80,100,110,0.8);
-}
 /* tooltip */
 QToolTip
 {

@@ -307,6 +307,19 @@ void thatboy::utils::loadConfig()
 			};
 		}
 	}
+	// The login dialog was redesigned at a fixed 760x480; stale geometry from
+	// the 600x450 skin (and its translucency) would fight the new layout.
+	auto& loginInfo = storage::config["widget_info"]["login"];
+	if (!loginInfo["geometry"].is_object()
+		|| !loginInfo["geometry"]["width"].is_number()
+		|| loginInfo["geometry"]["width"].get<int>() < 760)
+	{
+		loginInfo = {
+			{ "geometry", { { "x", 100 }, { "y", 100 }, { "width", 760 }, { "height", 480 } } },
+			{ "opacity", 1.0 },
+			{ "translucent", false }
+		};
+	}
 	if (!storage::config.contains("user_list") || !storage::config["user_list"].is_string())
 		storage::config["user_list"] = "users.json";
 }
