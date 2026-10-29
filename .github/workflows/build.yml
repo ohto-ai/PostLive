@@ -43,15 +43,33 @@ jobs:
       - name: Deploy Qt runtime
         run: cmake --build build/windows-x64 --config Release --target deploy-qt
 
+      - name: Fetch OpenSSL 1.1.1 runtime
+        run: |
+          Invoke-WebRequest -Uri "https://slproweb.com/download/Win64OpenSSL_Light-1_1_1w.exe" -OutFile "$env:RUNNER_TEMP\openssl-setup.exe"
+          Start-Process "$env:RUNNER_TEMP\openssl-setup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/DIR=$env:RUNNER_TEMP\openssl" -Wait
+          $dlls = Get-ChildItem "$env:RUNNER_TEMP\openssl" -Recurse -Include "libcrypto-1_1-x64.dll","libssl-1_1-x64.dll"
+          if ($dlls.Count -lt 2) { throw "OpenSSL 1.1 DLLs not found in the installer output" }
+          Copy-Item $dlls.FullName -Destination build\windows-x64\Release\
+
       - name: Package
         run: |
           $files = Get-ChildItem build\windows-x64\Release |
             Where-Object { $_.Name -ne 'PostLiveMockServer.exe' }
           Compress-Archive -Path $files.FullName -DestinationPath PostLive-win64.zip
 
+      - name: Build installer
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { $iscc = (Get-Command iscc.exe -ErrorAction Stop).Source }
+          $match = Select-String -Path CMakeLists.txt -Pattern 'project\(PostLive\s+VERSION\s+(\d+(?:\.\d+)+)'
+          $version = $match.Matches[0].Groups[1].Value
+          & $iscc "/DMyAppVersion=$version" "packaging\PostLive.iss"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: PostLive-win64
-          path: PostLive-win64.zip
+          path: |
+            PostLive-win64.zip
+            dist/PostLive-*-setup.exe
           if-no-files-found: error
