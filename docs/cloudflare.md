@@ -80,16 +80,12 @@ Workers 免费层 100,000 请求/天：
 
 ### 客户端改造
 
-当前 `src/core/utils.cpp` 使用：
-
-```cpp
-httplib::Client accountVerifyClient{ "localhost", 8877 };
-```
+当前 `src/core/utils.cpp` 的 `createAuthClient()` 会读取 `application.json` 的 `auth_server`（默认 `http://localhost:8877`），用 `cpp-httplib` 发起同步请求。
 
 问题是：
 
-- 只支持明文 HTTP，Cloudflare 需要 HTTPS；
-- 同步请求在 UI 线程执行，网络慢时会卡登录窗口。
+- 当前构建只支持明文 HTTP，Cloudflare 需要 HTTPS；
+- 同步请求在 UI 线程执行，已加 3 s / 5 s 超时，但网络慢时仍会短暂卡登录窗口。
 
 两种改法：
 

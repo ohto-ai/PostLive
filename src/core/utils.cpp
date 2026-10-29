@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <QFile>
+#include <QUrl>
 #include <string>
 
 namespace
@@ -139,6 +140,25 @@ QString thatboy::utils::generateMD5(QString str)
 		, QCryptographicHash::Md5).toHex().toUpper();
 }
 
+std::unique_ptr<httplib::Client> thatboy::utils::createAuthClient()
+{
+	const std::string raw = storage::config.value("auth_server", std::string("http://localhost:8877"));
+	const QUrl url(QString::fromStdString(raw));
+	if (!url.isValid() || url.host().isEmpty())
+		return nullptr;
+
+	const QString scheme = url.scheme().toLower();
+	if (scheme != "http")
+		return nullptr;
+
+	const int port = url.port(80);
+	const QString base = scheme + "://" + url.host() + ":" + QString::number(port);
+	auto client = std::make_unique<httplib::Client>(base.toStdString());
+	client->set_connection_timeout(3, 0);
+	client->set_read_timeout(5, 0);
+	return client;
+}
+
 void thatboy::utils::loadConfig()
 {
 	const auto defaults = readJsonFile(QStringLiteral(":/LiveLoginDialog/config/application.default.json"));
@@ -172,6 +192,16 @@ void thatboy::utils::loadConfig()
 			{ "preview", true }
 		};
 	}
+	if (!storage::config["stream"].contains("watermark")
+		|| !storage::config["stream"]["watermark"].is_boolean())
+	{
+		storage::config["stream"]["watermark"] = true;
+	}
+	if (!storage::config.contains("auth_server") || !storage::config["auth_server"].is_string())
+		storage::config["auth_server"] = "http://localhost:8877";
+	if (!storage::config.contains("website") || !storage::config["website"].is_string())
+		storage::config["website"] = "https://ohtoai.top";
+	storage::websiteUrl = QString::fromStdString(storage::config["website"].get<std::string>());
 	if (!storage::config.contains("widget_info") || !storage::config["widget_info"].is_object())
 		storage::config["widget_info"] = nlohmann::json::object();
 	for (const char* name : { "login", "login_setting", "platform" })
@@ -205,7 +235,7 @@ bool thatboy::utils::saveConfig()
 nlohmann::json thatboy::storage::usersStorage;
 nlohmann::json thatboy::storage::config;
 nlohmann::json thatboy::storage::currentUser;
-httplib::Client thatboy::storage::accountVerifyClient{ "localhost",8877 };
+QString thatboy::storage::websiteUrl;
 std::map<std::string, QPixmap> thatboy::storage::userAvatarCache;
 AsyncDownloader thatboy::storage::avatarDownloader;
 GeneralSignal thatboy::storage::generalSignal;

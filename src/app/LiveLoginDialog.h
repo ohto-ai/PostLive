@@ -7,6 +7,7 @@
 #include <QCompleter>
 #include <QRegExpValidator>
 #include <QStyle>
+#include <QTimer>
 #include "LiveLoginSettingDialog.h"
 #include "DragableDialog.h"
 #include "ShadowWidget.h"
@@ -30,6 +31,7 @@ protected:
 protected:
 	LiveLoginSettingDialog settingDialog{ this };
 	ShadowWidget shadowWidget{ this };
+	QTimer autoLoginTimer{ this };
 
 private:
 	Ui::LiveLoginDialogClass ui;

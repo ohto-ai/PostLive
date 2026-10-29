@@ -429,7 +429,7 @@ QToolTip
              </size>
             </property>
             <property name="text">
-             <string>账户服务器</string>
+             <string>认证服务器</string>
             </property>
            </widget>
           </item>
@@ -450,8 +450,8 @@ QToolTip
             <property name="text">
              <string>http://localhost:8877</string>
             </property>
-            <property name="readOnly">
-             <bool>true</bool>
+            <property name="placeholderText">
+             <string>http://localhost:8877</string>
             </property>
            </widget>
           </item>
@@ -470,12 +470,12 @@ QToolTip
              </size>
             </property>
             <property name="text">
-             <string>端口 </string>
+             <string>官网</string>
             </property>
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QLineEdit" name="accountPortLineEdit">
+           <widget class="QLineEdit" name="websiteLineEdit">
             <property name="minimumSize">
              <size>
               <width>0</width>
@@ -488,13 +488,56 @@ QToolTip
               <height>32</height>
              </size>
             </property>
-            <property name="inputMask">
-             <string>8876</string>
+            <property name="placeholderText">
+             <string>https://example.com</string>
             </property>
-            <property name="readOnly">
+           </widget>
+          </item>
+          <item row="2" column="0" colspan="2">
+           <widget class="QCheckBox" name="watermarkCheckBox">
+            <property name="text">
+             <string>推流时叠加水印</string>
+            </property>
+            <property name="checked">
              <bool>true</bool>
             </property>
            </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="savePushButton">
+              <property name="minimumSize">
+               <size>
+                <width>96</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>96</width>
+                <height>32</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>保存</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>

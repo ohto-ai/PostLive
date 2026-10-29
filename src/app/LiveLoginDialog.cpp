@@ -2,6 +2,8 @@
 
 #include "LiveLoginDialog.h"
 
+#include <QCheckBox>
+
 LiveLoginDialog::LiveLoginDialog(QWidget* parent)
 	: DragableDialog(parent)
 {
@@ -14,53 +16,123 @@ void LiveLoginDialog::login()
 	using thatboy::storage::currentUser;
 	using thatboy::storage::usersStorage;
 
-	std::string account = ui.accountLineEdit->text().toStdString();
+	const QString account = ui.accountLineEdit->text();
+	if (account.isEmpty())
+		return;
+	const std::string accountStd = account.toStdString();
 
 	nlohmann::json loginPackage;
-	loginPackage["account"] = account;
+	loginPackage["account"] = accountStd;
 	loginPackage["type"] = "login";
 
-	if (ui.passwordLineEdit->passwordType() == PasswordEdit::CheatPasswordFilled)
+	const bool tokenLogin = ui.passwordLineEdit->passwordType() == PasswordEdit::CheatPasswordFilled;
+	if (tokenLogin)
 	{
-		loginPackage["token"] = ui.passwordLineEdit->md5();
+		loginPackage["token"] = ui.passwordLineEdit->md5().toStdString();
 		loginPackage["login"] = "token";
 	}
 	else
 	{
-		loginPackage["password"] = ui.passwordLineEdit->md5();
+		loginPackage["password"] = ui.passwordLineEdit->md5().toStdString();
 		loginPackage["login"] = "password";
 	}
-	// 发送
-	auto res = thatboy::storage::accountVerifyClient.Post("/api", loginPackage.dump(), "application/json");
 
-	if (!res)
-		QMessageBox::warning(this, "Warning", "无法连接到服务器.");
-	else
+	auto client = thatboy::utils::createAuthClient();
+	if (!client)
 	{
-		auto body{ nlohmann::json::parse(res->body) };
-		if (!body["success"])
-			QMessageBox::warning(this, "Warning", "登录失败." + body["info"].get<QString>());
-		else
-		{
-			currentUser["account"] = account;
-			currentUser["token"] = body["token"];
-			usersStorage["users"][account]["token"] = body["token"];
-			usersStorage["users"][account]["pwmask"] = ui.passwordLineEdit->password().length();
-			usersStorage["users"][account]["remember_password"] = ui.rememberPasswordCheckBox->isChecked();
-
-			loginPackage["type"] = "profile";
-			loginPackage["profile"].push_back("avatar");
-			loginPackage["profile"].push_back("gender");
-			loginPackage["token"] = currentUser["token"];
-			res = thatboy::storage::accountVerifyClient.Post("/api", loginPackage.dump(), "application/json");
-			body = nlohmann::json::parse(res->body);
-
-			usersStorage["users"][account]["avatar"] = body["profile"]["avatar"];
-			usersStorage["users"][account]["gender"] = body["profile"]["gender"];
-
-			accept();
-		}
+		QMessageBox::warning(this, "Warning", "认证服务器地址无效，或当前构建不支持 HTTPS.");
+		return;
 	}
+
+	auto res = client->Post("/api", loginPackage.dump(), "application/json");
+	if (!res)
+	{
+		QMessageBox::warning(this, "Warning", "无法连接到服务器.");
+		return;
+	}
+
+	auto body = nlohmann::json::parse(res->body, nullptr, false);
+	if (body.is_discarded() || !body.is_object())
+	{
+		QMessageBox::warning(this, "Warning", "服务器返回了无效数据.");
+		return;
+	}
+
+	if (!body.contains("success") || !body["success"].is_boolean() || !body["success"].get<bool>())
+	{
+		const std::string info = (body.contains("info") && body["info"].is_string())
+			? body["info"].get<std::string>() : std::string();
+		QMessageBox::warning(this, "Warning", "登录失败. " + QString::fromStdString(info));
+
+		if (tokenLogin)
+		{
+			// 保存的 token 已失效，清除记住密码与自动登录，避免下次启动重复失败。
+			usersStorage["users"][accountStd]["remember_password"] = false;
+			ui.rememberPasswordCheckBox->setChecked(false);
+			ui.autoLoginCheckBox->setChecked(false);
+			ui.passwordLineEdit->clear();
+		}
+		return;
+	}
+
+	if (!body.contains("token") || !body["token"].is_string())
+	{
+		QMessageBox::warning(this, "Warning", "服务器没有返回登录 token.");
+		return;
+	}
+
+	currentUser["account"] = accountStd;
+	currentUser["token"] = body["token"];
+	usersStorage["users"][accountStd]["token"] = body["token"];
+	usersStorage["users"][accountStd]["pwmask"] = ui.passwordLineEdit->password().length();
+	usersStorage["users"][accountStd]["remember_password"] = ui.rememberPasswordCheckBox->isChecked();
+
+	auto& names = usersStorage["user_names"];
+	if (names.is_array())
+	{
+		bool found = false;
+		for (const auto& name : names)
+		{
+			if (name.is_string() && name.get<std::string>() == accountStd)
+			{
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			names.push_back(accountStd);
+	}
+
+	loginPackage["type"] = "profile";
+	loginPackage["profile"].push_back("avatar");
+	loginPackage["profile"].push_back("gender");
+	loginPackage["token"] = currentUser["token"];
+
+	res = client->Post("/api", loginPackage.dump(), "application/json");
+	if (!res)
+	{
+		QMessageBox::warning(this, "Warning", "登录成功，但无法获取用户资料.");
+		accept();
+		return;
+	}
+
+	body = nlohmann::json::parse(res->body, nullptr, false);
+	if (body.is_discarded() || !body.is_object()
+		|| !body.contains("success") || !body["success"].is_boolean()
+		|| !body["success"].get<bool>()
+		|| !body.contains("profile") || !body["profile"].is_object())
+	{
+		QMessageBox::warning(this, "Warning", "登录成功，但获取用户资料失败.");
+		accept();
+		return;
+	}
+
+	if (body["profile"].contains("avatar") && body["profile"]["avatar"].is_string())
+		usersStorage["users"][accountStd]["avatar"] = body["profile"]["avatar"];
+	if (body["profile"].contains("gender") && body["profile"]["gender"].is_string())
+		usersStorage["users"][accountStd]["gender"] = body["profile"]["gender"];
+
+	accept();
 }
 
 void LiveLoginDialog::applyConfig()
@@ -95,6 +167,19 @@ void LiveLoginDialog::applyConfig()
 	setAccountPasswordAcceptableInputCheck();
 
 	ui.autoLoginCheckBox->setChecked(loginConfig["auto_login"]);
+	connect(ui.autoLoginCheckBox, &QCheckBox::toggled, this, [this](bool checked)
+		{
+			if (!checked)
+				autoLoginTimer.stop();
+		});
+	connect(ui.accountLineEdit, &QLineEdit::textEdited, this, [this]
+		{
+			autoLoginTimer.stop();
+		});
+	connect(ui.passwordLineEdit, &QLineEdit::textEdited, this, [this]
+		{
+			autoLoginTimer.stop();
+		});
 
 	connect(ui.accountLineEdit, &QLineEdit::textChanged, [&] {
 		ui.passwordLineEdit->clear();
@@ -116,13 +201,24 @@ void LiveLoginDialog::applyConfig()
 	connect(this, &DragableDialog::closed, [&]
 		{
 			auto& loginConfig = thatboy::storage::config["login"];
-			loginConfig["current_user"] = ui.accountLineEdit->text();
+			loginConfig["current_user"] = ui.accountLineEdit->text().toStdString();
+			loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
+		});
+	connect(this, &QDialog::accepted, [&]
+		{
+			auto& loginConfig = thatboy::storage::config["login"];
+			loginConfig["current_user"] = ui.accountLineEdit->text().toStdString();
 			loginConfig["auto_login"] = ui.autoLoginCheckBox->isChecked();
 		});
 
-	// 自动登录
-	if (loginConfig["auto_login"])
-		QTimer::singleShot(100, std::bind(&LiveLoginDialog::login, this));
+	// 自动登录；勾选框取消或用户编辑账号/密码会取消本次自动登录。
+	if (ui.autoLoginCheckBox->isChecked())
+	{
+		autoLoginTimer.setSingleShot(true);
+		autoLoginTimer.setInterval(100);
+		connect(&autoLoginTimer, &QTimer::timeout, this, &LiveLoginDialog::login);
+		autoLoginTimer.start();
+	}
 }
 
 void LiveLoginDialog::setAvatar()

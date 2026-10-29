@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QEvent>
+#include <QPointer>
 #include "BaseWidget.h"
 #include "BaseDialog.h"
 #include "BaseMainWindow.h"
@@ -16,4 +18,11 @@ public:
 	void execute(BaseWidget* w);
 	void execute(BaseDialog* d);
 	void execute(BaseMainWindow* m);
+
+protected:
+	bool eventFilter(QObject* watched, QEvent* event) override;
+
+private:
+	bool active{ false };
+	QPointer<QWidget> shadowed;
 };

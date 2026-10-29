@@ -6,10 +6,12 @@
 
 | 项 | 值 |
 | --- | --- |
-| 地址 | `http://localhost:8877`（硬编码于 `src/core/utils.cpp`） |
+| 地址 | `http://localhost:8877`（默认值；可在设置窗口或 `application.json` 的 `auth_server` 中修改） |
 | 方法 | `POST /api` |
 | 请求 / 响应 | `application/json` |
 | 认证 | 无 HTTP 头；凭证放在 JSON body 中 |
+
+当前客户端使用 `cpp-httplib`，只支持 `http://`。如果要连接 Cloudflare 等 HTTPS 服务，需要启用 `CPPHTTPLIB_OPENSSL_SUPPORT`，或把认证请求改用 QtNetwork。
 
 ## 通用字段
 

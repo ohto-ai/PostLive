@@ -12,7 +12,7 @@
    - `QProcess::start(command)`；
    - 禁用摄像头 / 麦克风 / 服务器 / 分辨率控件。
 4. 点击“停播”后向 FFmpeg 标准输入写入 `q`，1 秒后关闭 `QProcess` 通道；进程退出后由 `finished` 信号恢复 UI。
-5. FFmpeg 退出后重新启动预览并恢复控件。
+5. FFmpeg 退出后恢复控件；如果“预览”仍勾选，则重新启动预览。
 
 ## 当前命令
 
@@ -36,6 +36,7 @@ ffmpeg.exe -hide_banner -loglevel warning -nostats
 - 所有输入都放在输出参数之前：视频（0）、logo（1）、音频（2），`overlay` 使用前两个视频输入。
 - `-f dshow` 是 Windows DirectShow 输入，设备名必须与系统名称完全一致。
 - logo 叠加在画面左上角 `(5,5)`；路径相对于可执行文件目录。
+- 设置窗口的“推流时叠加水印”关闭时，不传 logo 输入与 `overlay` 滤镜；水印文件缺失时会提示并跳过。
 - `-s` 来自分辨率下拉框，默认 `1280x720`；代码会把 `×` 归一化为 `x`。
 - 编码器 / 码率 / 帧率为 `Auto` 时不追加对应参数，保留 FFmpeg 的默认选择。
 - 服务器地址来自主窗口输入框，默认 `rtmp://rtmp.ohtoai.top`。
@@ -58,6 +59,8 @@ ffmpeg -list_devices true -f dshow -i dummy
 ```
 
 `virtual-audio-capturer` 来自 [screen-capture-recorder](https://github.com/rdp/screen-capture-recorder-to-video-windows-free)，用于采集系统声音；未安装时不会出现在列表中。
+
+主窗口每 3 秒刷新一次摄像头 / 麦克风列表；推流期间暂停刷新。插拔设备后，下拉框会自动更新并尽量保留当前选择。
 
 ## 本地预览与推流
 

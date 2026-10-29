@@ -3,15 +3,19 @@
 #endif
 
 #include "LivePlatform.h"
+#include "LiveLoginSettingDialog.h"
 
 #include <future>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDesktopServices>
+#include <QEvent>
 #include <QFileInfo>
 #include <QMenu>
 #include <QMessageBox>
+#include <QSet>
+#include <QSignalBlocker>
 #include <QStandardPaths>
 #include <QUrl>
 #include <QAudioDeviceInfo>
@@ -47,51 +51,56 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 	auto m_menu = new QMenu(this);
 	auto actionShowMainWindow = new QAction(QIcon(":/LiveLoginDialog/res/live.ico"), "显示主窗口", m_menu);
+	auto actionSettings = new QAction("设置", m_menu);
 	auto actionViewWebsite = new QAction(QIcon(":/LiveLoginDialog/res/boy.ico"), "浏览官网", m_menu);
 	auto actionViewGithub = new QAction(QIcon(":/LiveLoginDialog/res/github.png"), "项目地址", m_menu);
 	auto actionExit = new QAction("退出客户端", m_menu);
 
 	m_menu->addAction(actionShowMainWindow);
+	m_menu->addAction(actionSettings);
 	m_menu->addAction(actionViewWebsite);
 	m_menu->addAction(actionViewGithub);
 	m_menu->addAction(actionExit);
 
-	connect(actionShowMainWindow, &QAction::triggered, [=]
-	{
-			if (isHidden())
-			{
-				if (ffmpegProcess.state() != QProcess::Running)
-				{
-					startPreview();
-				}
-				show();
-			}
-	});
-	connect(actionViewWebsite, &QAction::triggered, std::bind(&QDesktopServices::openUrl, QUrl(thatboy::storage::WebsiteUrl)));
+	connect(actionShowMainWindow, &QAction::triggered, this, &LivePlatform::showFromTray);
+	connect(actionSettings, &QAction::triggered, this, [this]
+		{
+			auto* dialog = new LiveLoginSettingDialog(this);
+			dialog->setAttribute(Qt::WA_DeleteOnClose);
+			dialog->show();
+			dialog->raise();
+			dialog->activateWindow();
+		});
+	connect(actionViewWebsite, &QAction::triggered, this, [this]
+		{
+			if (!thatboy::storage::websiteUrl.isEmpty())
+				QDesktopServices::openUrl(QUrl(thatboy::storage::websiteUrl));
+		});
 	connect(actionViewGithub, &QAction::triggered, std::bind(&QDesktopServices::openUrl, QUrl(thatboy::storage::GithubUrl)));
-	connect(actionExit, &QAction::triggered, [=] {close(); });
+	connect(actionExit, &QAction::triggered, this, [this]
+		{
+			if (ffmpegProcess.state() != QProcess::NotRunning)
+			{
+				stopStreaming();
+				if (!ffmpegProcess.waitForFinished(3000))
+				{
+					ffmpegProcess.terminate();
+					if (!ffmpegProcess.waitForFinished(2000))
+						ffmpegProcess.kill();
+				}
+			}
+			close();
+		});
 
 	mSysTrayIcon->setContextMenu(m_menu);
 	connect(mSysTrayIcon, &QSystemTrayIcon::activated, [&, actionShowMainWindow](QSystemTrayIcon::ActivationReason reason)
 		{
 			switch (reason) {
 			case QSystemTrayIcon::DoubleClick:
-				if (isHidden())
-				{
-					if (ffmpegProcess.state() != QProcess::Running)
-					{
-						startPreview();
-					}
-					show();
-				}
+				if (isHidden() || isMinimized())
+					showFromTray();
 				else
-				{
-					hide();
-					if (ffmpegProcess.state() != QProcess::Running)
-					{
-						stopPreview();
-					}
-				}
+					hideToTray();
 				break;
 			default:
 				break;
@@ -110,14 +119,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 			stream["preview"] = ui.previewCheckBox->isChecked();
 		});
 	setAttribute(Qt::WA_TranslucentBackground);
-	connect(ui.closeToolButton, &QToolButton::clicked, [&]
-		{
-			hide();
-			if (ffmpegProcess.state() != QProcess::Running)
-			{
-				stopPreview();
-			}
-		});
+	connect(ui.closeToolButton, &QToolButton::clicked, this, &LivePlatform::hideToTray);
 	connect(ui.minimizeToolButton, &QToolButton::clicked, this, &LivePlatform::showMinimized);
 
 	connect(ui.previewCheckBox, &QCheckBox::toggled, this, [this](bool checked)
@@ -227,6 +229,9 @@ LivePlatform::LivePlatform(QWidget* parent)
 	setViewCamera(QCameraInfo::defaultCamera());
 	if (ui.previewCheckBox->isChecked())
 		startPreview();
+
+	connect(&deviceRefreshTimer, &QTimer::timeout, this, &LivePlatform::refreshDevices);
+	deviceRefreshTimer.start(3000);
 }
 
 void LivePlatform::setViewCamera(const QCameraInfo& cameraInfo)
@@ -234,6 +239,51 @@ void LivePlatform::setViewCamera(const QCameraInfo& cameraInfo)
 	delete viewCamera;
 	viewCamera = new QCamera(cameraInfo, this);
 	viewCamera->setViewfinder(&cameraViewfinder);
+}
+
+LivePlatform::~LivePlatform()
+{
+	if (ffmpegProcess.state() != QProcess::NotRunning)
+	{
+		ffmpegProcess.kill();
+		ffmpegProcess.waitForFinished(1000);
+	}
+}
+
+void LivePlatform::changeEvent(QEvent* event)
+{
+	if (event->type() == QEvent::WindowStateChange)
+	{
+		if (isMinimized())
+		{
+			if (ffmpegProcess.state() != QProcess::Running)
+				stopPreview();
+		}
+		else if (isVisible())
+		{
+			if (ffmpegProcess.state() != QProcess::Running)
+				startPreview();
+		}
+	}
+	DragableMainWindow::changeEvent(event);
+}
+
+void LivePlatform::showFromTray()
+{
+	if (isMinimized())
+		showNormal();
+	show();
+	raise();
+	activateWindow();
+	if (ffmpegProcess.state() != QProcess::Running)
+		startPreview();
+}
+
+void LivePlatform::hideToTray()
+{
+	hide();
+	if (ffmpegProcess.state() != QProcess::Running)
+		stopPreview();
 }
 
 void LivePlatform::startPreview()
@@ -293,12 +343,22 @@ void LivePlatform::startStreaming()
 		url.chop(1);
 	url += "/livehime";
 
+	const bool watermarkEnabled = thatboy::storage::config["stream"].value("watermark", true);
+	const bool useWatermark = watermarkEnabled && QFileInfo::exists(logoImage);
+	if (watermarkEnabled && !useWatermark)
+	{
+		QMessageBox::warning(this, tr("提示"),
+			tr("找不到水印文件 %1，本次推流将不使用水印。").arg(logoImage));
+	}
+
 	QStringList arguments;
 	arguments << "-hide_banner" << "-loglevel" << "warning" << "-nostats";
 	arguments << "-f" << "dshow" << "-i" << QString("video=%1").arg(camera);
-	arguments << "-i" << logoImage;
+	if (useWatermark)
+		arguments << "-i" << logoImage;
 	arguments << "-f" << "dshow" << "-i" << QString("audio=%1").arg(microphone);
-	arguments << "-filter_complex" << "overlay=5:5";
+	if (useWatermark)
+		arguments << "-filter_complex" << "overlay=5:5";
 	arguments << "-f" << videoFormt;
 	if (ui.encoderComboBox->currentText() != "Auto")
 		arguments << "-c:v" << ui.encoderComboBox->currentText();
@@ -359,4 +419,69 @@ void LivePlatform::appendStatus(const QString& text)
 {
 	ui.statusLabel->setText(text);
 	ui.statusLabel->setToolTip(text);
+}
+
+void LivePlatform::refreshDevices()
+{
+	if (ffmpegProcess.state() == QProcess::Running)
+		return;
+
+	const auto cameras = QCameraInfo::availableCameras();
+	QStringList cameraNames;
+	for (const auto& camera : cameras)
+		cameraNames << camera.description();
+
+	QStringList currentCameras;
+	for (int i = 0; i < ui.cameraComboBox->count(); ++i)
+		currentCameras << ui.cameraComboBox->itemText(i);
+
+	if (cameraNames != currentCameras)
+	{
+		const QString selected = ui.cameraComboBox->currentText();
+		{
+			const QSignalBlocker blocker(ui.cameraComboBox);
+			ui.cameraComboBox->clear();
+			for (const auto& camera : cameras)
+				ui.cameraComboBox->addItem(camera.description(), QVariant::fromValue(camera));
+
+			int index = ui.cameraComboBox->findText(selected);
+			if (index < 0)
+				index = 0;
+			if (index < ui.cameraComboBox->count())
+				ui.cameraComboBox->setCurrentIndex(index);
+		}
+
+		setViewCamera(ui.cameraComboBox->count() > 0
+			? qvariant_cast<QCameraInfo>(ui.cameraComboBox->currentData())
+			: QCameraInfo());
+		if (isVisible() && !isMinimized() && ui.previewCheckBox->isChecked())
+			startPreview();
+	}
+
+	QSet<QString> microphoneSet;
+	const auto microphones = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
+	for (const auto& microphone : microphones)
+		microphoneSet.insert(microphone.deviceName());
+	microphoneSet.insert("virtual-audio-capturer");
+
+	QSet<QString> currentMicrophoneSet;
+	for (int i = 0; i < ui.microphoneComboBox->count(); ++i)
+		currentMicrophoneSet.insert(ui.microphoneComboBox->itemText(i));
+
+	if (microphoneSet != currentMicrophoneSet)
+	{
+		const QString selected = ui.microphoneComboBox->currentText();
+		QStringList names = microphoneSet.values();
+		names.sort(Qt::CaseInsensitive);
+		ui.microphoneComboBox->clear();
+		ui.microphoneComboBox->addItems(names);
+
+		int index = ui.microphoneComboBox->findText(selected);
+		if (index < 0 && !microphones.isEmpty())
+			index = ui.microphoneComboBox->findText(QAudioDeviceInfo::defaultInputDevice().deviceName());
+		if (index < 0)
+			index = 0;
+		if (index < ui.microphoneComboBox->count())
+			ui.microphoneComboBox->setCurrentIndex(index);
+	}
 }

@@ -3,11 +3,14 @@
         "auto_login": false,
         "current_user": ""
     },
+    "auth_server": "http://localhost:8877",
+    "website": "https://ohtoai.top",
     "stream": {
         "encoder": "Auto",
         "bitrate": "Auto",
         "fps": "Auto",
-        "preview": true
+        "preview": true,
+        "watermark": true
     },
     "user_list": "users.json",
     "widget_info": {

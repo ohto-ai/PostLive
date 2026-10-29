@@ -33,7 +33,7 @@ flowchart LR
 | 类 | 位置 | 说明 |
 | --- | --- | --- |
 | `LiveLoginDialog` | `src/app` | 登录、自动登录、头像、记住密码、打开设置 |
-| `LiveLoginSettingDialog` | `src/app` | 设置窗口外壳（选项待实现） |
+| `LiveLoginSettingDialog` | `src/app` | 认证服务器、官网、水印设置；可从登录界面或托盘打开 |
 | `LivePlatform` | `src/app` | 摄像头预览、设备枚举、推流、托盘 |
 | `AsyncDownloader` | `src/core` | 基于 `QNetworkAccessManager` 的异步下载 |
 | `WidgetConfigInfo` | `src/core` | 窗口几何、透明度、遮罩属性的 JSON 序列化 |
@@ -70,8 +70,9 @@ sequenceDiagram
 ```
 
 - 密码只保存 MD5，且“记住密码”实际上是保存 token 并用假密码回填输入框。
-- `application.json` 的 `login.auto_login` 为 `true` 时，登录窗口显示 100 ms 后自动调用登录。
-- 认证服务端地址目前硬编码在 `src/core/utils.cpp`。
+- `application.json` 的 `login.auto_login` 为 `true` 时，登录窗口显示 100 ms 后自动调用登录；取消勾选或编辑账号 / 密码会停止本次自动登录。
+- 认证地址从 `application.json` 的 `auth_server` 读取（默认 `http://localhost:8877`），连接 / 读取超时为 3 s / 5 s；当前只支持 `http://`。
+- token 登录失败时会清除 `remember_password` 与自动登录，避免下次启动重复失败。
 
 ## 推流流程
 
@@ -110,7 +111,7 @@ ffmpeg.exe -hide_banner -loglevel warning -nostats
 
 | 文件 | 读取方 | 说明 |
 | --- | --- | --- |
-| `application.json` | `utils::loadConfig` | 窗口位置、自动登录、当前用户、编码器 / 码率 / 帧率 / 预览设置 |
+| `application.json` | `utils::loadConfig` | 窗口位置、自动登录、当前用户、认证服务器、官网、编码器 / 码率 / 帧率 / 预览 / 水印设置 |
 | `users.json` | `utils::loadUserData` | 用户列表、token、pwmask、头像路径 |
 | `assets/pilipili-logo.png` | `LivePlatform` | 推流水印 |
 | `user/avatar/*.avatar` | `AsyncDownloader` | 头像缓存 |
@@ -125,7 +126,7 @@ ffmpeg.exe -hide_banner -loglevel warning -nostats
 
 ## 已知限制
 
-- 认证 API 地址、RTMP 路径（`/livehime`）硬编码。
-- 设置窗口只有外壳，码率、预览开关等参数未实现。
+- RTMP 路径（`/livehime`）仍硬编码；认证只支持 `http://`，HTTPS 需要 OpenSSL 或 QtNetwork。
+- 设置窗口目前覆盖认证服务器、官网、水印；码率 / 编码器等仍在主窗口。
 - 密码 / token 使用 MD5 与明文 JSON 存储，不适合生产。
 - 仅支持 Qt 5.15 与 Windows。完整清单见 [TODO.md](../TODO.md)。

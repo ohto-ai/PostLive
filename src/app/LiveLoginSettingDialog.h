@@ -13,5 +13,8 @@ public:
 	~LiveLoginSettingDialog();
 
 private:
+	void save();
+
+private:
 	Ui::LiveLoginSettingDialog ui;
 };

@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <nlohmann/json.hpp>
 #include <fstream>
+#include <memory>
 #include <cpp-httplib/httplib.h>
 #include "GeneralSignal.h"
 #include "AsyncDownloader.h"
@@ -31,6 +32,8 @@ namespace thatboy
 		bool saveConfig();
 		void loadUserData();
 		bool saveUserData();
+
+		std::unique_ptr<httplib::Client> createAuthClient();
 
 		QString generateMD5(QString);
 	}
@@ -53,10 +56,9 @@ namespace thatboy
 
 		constexpr auto RegisterUrl{ "https://ohtoai.top/live/login.html" };
 		constexpr auto ResetPasswordUrl{ "https://ohtoai.top/live" };
-		constexpr auto WebsiteUrl{ "https://ohtoai.top" };
 		constexpr auto GithubUrl{ "https://github.com/ohto-ai/PostLive" };
 
-		extern httplib::Client accountVerifyClient;
+		extern QString websiteUrl;
 		extern std::map<std::string, QPixmap> userAvatarCache;
 		extern nlohmann::json config;
 		extern nlohmann::json usersStorage;

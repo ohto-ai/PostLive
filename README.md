@@ -21,19 +21,19 @@
 
 | 模块 | 状态 | 说明 |
 | --- | --- | --- |
-| 登录窗口 | ✅ | 账号 / 密码校验、头像展示、记住密码（保存 token） |
-| 自动登录 | ✅ | 读取 `application.json` 中的 `auto_login`，启动时自动发起登录 |
+| 登录窗口 | ✅ | 账号 / 密码校验、头像展示、记住密码（保存 token）、连接超时 |
+| 自动登录 | ✅ | `application.json` 中的 `auto_login`；token 失效会清理，编辑账号 / 密码或取消勾选可中止 |
 | 用户资料 | ✅ | 登录后向 `/api` 请求头像与性别 |
-| 摄像头 | ✅ | 枚举设备、本地预览、设备切换 |
-| 麦克风 | ✅ | 枚举 DirectShow 音频设备，支持 `virtual-audio-capturer` |
+| 摄像头 | ✅ | 枚举设备、本地预览、设备切换、热插拔刷新 |
+| 麦克风 | ✅ | 枚举 DirectShow 音频设备，支持 `virtual-audio-capturer`、热插拔刷新 |
 | 分辨率 | ✅ | 通过下拉框选择输出分辨率 |
-| RTMP 推流 | ✅ | `QProcess` 调用 FFmpeg，叠加 logo 水印；状态栏显示启动 / 停止 / 错误 |
-| 系统托盘 | ✅ | 关闭主窗口后隐藏到托盘，双击显示 / 隐藏 |
-| 设置窗口 | 🚧 | 只有窗口外壳，服务器地址、官网、遮罩等选项尚未实现 |
+| RTMP 推流 | ✅ | `QProcess` 调用 FFmpeg，可选 logo 水印；状态栏显示启动 / 停止 / 错误 |
+| 系统托盘 | ✅ | 关闭 / 最小化到托盘、双击显示、退出前停止推流、托盘菜单可打开设置 |
+| 设置窗口 | ✅ | 认证服务器、官网、水印开关，保存到 `application.json`；可从登录界面或托盘打开 |
 | 码率 / 帧率 / 编码器 | ✅ | 主窗口可选择，默认 `Auto`，随 `application.json` 持久化 |
 | 预览开关 | ✅ | 主窗口勾选 / 取消预览；推流时自动停止并禁用 |
-| 遮罩窗口 | 🐞 | 最小化还原后遮罩层可能不再显示 |
-| 认证服务端 | ❌ | 客户端固定连接 `localhost:8877`，仓库不包含可用服务端 |
+| 遮罩窗口 | 🟡 | 已用父窗口事件过滤修复，建议实机复测最小化 / 还原 |
+| 认证服务端 | ❌ | 客户端认证地址可配置，但仓库不包含可用服务端 |
 | Qt 6 | ❌ | 当前使用 Qt 5 的 `QCamera` / `QAudioDeviceInfo` API |
 
 完整清单见 [TODO.md](TODO.md)。
@@ -87,7 +87,7 @@ CMake 会把 `ffmpeg.exe` 与 `av*.dll` / `sw*.dll` 复制到输出目录。没�
 
 ### 认证服务端
 
-客户端会向 `http://localhost:8877/api` 发送登录 / 资料请求。仓库目前**不包含**可用的认证服务端，协议见 [docs/api.md](docs/api.md)。没有服务端时，登录窗口会提示无法连接。
+客户端默认向 `http://localhost:8877/api` 发送登录 / 资料请求，可在设置窗口中修改认证服务器地址（写入 `application.json` 的 `auth_server`）。仓库目前**不包含**可用的认证服务端，协议见 [docs/api.md](docs/api.md)。当前构建只支持 `http://`；HTTPS 需要启用 OpenSSL 或改用 QtNetwork。
 
 ## 项目结构
 
@@ -119,7 +119,7 @@ PostLive/
 
 | 文件 / 目录 | 说明 |
 | --- | --- |
-| `application.json` | 窗口几何、自动登录、当前用户、编码器 / 码率 / 帧率 / 预览设置。首次构建时从 `config/application.default.json` 创建，之后不会被覆盖 |
+| `application.json` | 窗口几何、自动登录、当前用户、认证服务器、官网、编码器 / 码率 / 帧率 / 预览 / 水印设置。首次构建时从 `config/application.default.json` 创建，之后不会被覆盖 |
 | `users.json` | 本地用户列表与 token。首次构建时从 `config/users.default.json` 创建 |
 | `assets/pilipili-logo.png` | 推流时叠加到画面左上角的 logo |
 | `user/avatar/*.avatar` | 登录后下载的头像缓存 |
