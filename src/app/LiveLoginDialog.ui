@@ -103,9 +103,9 @@ QLabel#loginMessageLabel
       <property name="geometry">
        <rect>
         <x>16</x>
-        <y>14</y>
-        <width>64</width>
-        <height>64</height>
+        <y>16</y>
+        <width>32</width>
+        <height>32</height>
        </rect>
       </property>
       <property name="pixmap">
@@ -251,7 +251,7 @@ QLabel#loginMessageLabel
         </item>
        </layout>
       </item>
-      <item>
+      <item alignment="Qt::AlignHCenter">
        <widget class="QLabel" name="avatarLabel">
         <property name="text">
          <string/>
