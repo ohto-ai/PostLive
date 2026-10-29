@@ -35,8 +35,8 @@
 - [ ] **凭证安全**：密码只做 MD5、token 明文存 `users.json`；至少改为加盐哈希 + 加密存储，并在文档中说明。
 - [ ] **HTTPS 支持**：服务端部署 TLS 时，客户端需要 OpenSSL 支持的 `cpp-httplib` 构建。
 - [ ] **补齐 API 类型**：客户端目前只实现 `login` 与 `profile`，`query` / `heartbeat` 尚未实现。
-- [ ] **Cloudflare 免费认证评估**：Workers + D1 + KV 实现 `/api`，客户端改用 QtNetwork HTTPS；详见 [`docs/cloudflare.md`](docs/cloudflare.md)。
-- [ ] **Cloudflare 推流方案评估**：R2 + HLS（免费额度）、Stream（付费）、Realtime（WebRTC，1 TB/月免费 egress）、Tunnel + 自建 RTMP（公网视频受 Free 套餐条款限制）之间做取舍。
+- [x] **Cloudflare 免费认证评估**：Workers + D1 + KV 方案与免费额度见 [`docs/cloudflare.md`](docs/cloudflare.md)；是否采用待定。
+- [x] **Cloudflare 推流方案评估**：R2 + HLS、Stream、Realtime、Tunnel + 自建 RTMP 的对比见 [`docs/cloudflare.md`](docs/cloudflare.md)；推荐先做 R2 + HLS 实验，或直接使用 Stream 付费。
 - [ ] **Cloudflare 部署**：Wrangler 配置、D1 schema、Worker secrets、Pages 注册/播放页、CI 部署。
 
 ## 工程与质量
@@ -53,6 +53,7 @@
 - [ ] **国际化**：界面中文字符串硬编码在 `.ui` / `.cpp`，接入 Qt Linguist。
 - [ ] **移除 MSVC 专有写法**：`#pragma execution_character_set("utf-8")`、`QString::asprintf` + `std::string` 可改为 `QStringLiteral` / `arg()`。
 - [ ] **依赖管理**：评估用 vcpkg / CPM / FetchContent 替代内置头文件，或至少记录升级流程（见 `third_party/README.md`）。
+- [x] **DirectUI 迁移调研**：结论见 [docs/directui-evaluation.md](docs/directui-evaluation.md)；当前不建议迁移，除非有硬性体积/许可证需求。
 - [ ] **CMake 安装 / CPack**：完善 `install()` 与 CPack，生成可复现的安装包。
 - [ ] **FFmpeg 分发合规**：安装包内置 FFmpeg 时附带许可证与源码获取说明（LGPL / GPL 取决于构建）。
 - [ ] **VC++ 运行时**：安装包附带 VC++ 2015-2022 Redistributable，或在 CI 中检测 / 安装；评估静态 CRT 与 Qt 的兼容性。

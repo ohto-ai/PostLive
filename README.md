@@ -141,6 +141,7 @@ PostLive/
 | [docs/ffmpeg-commands.md](docs/ffmpeg-commands.md) | 常用 FFmpeg 命令 |
 | [docs/rtmp-server.md](docs/rtmp-server.md) | Nginx + nginx-rtmp-module 部署 |
 | [docs/cloudflare.md](docs/cloudflare.md) | Cloudflare 免费认证 / 推流方案评估 |
+| [docs/directui-evaluation.md](docs/directui-evaluation.md) | 去除 Qt、改用 DirectUI 的可行性调研 |
 | [docs/legacy.md](docs/legacy.md) | 已移除的旧子工程与找回方式 |
 | [TODO.md](TODO.md) | 路线图 / 未完成事项 |
 | [CHANGELOG.md](CHANGELOG.md) | 变更记录 |
