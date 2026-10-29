@@ -67,7 +67,7 @@ QLabel#loginMessageLabel
     <number>0</number>
    </property>
    <item>
-    <widget class="ImageLabel" name="gallery">
+    <widget class="QWidget" name="galleryContainer" native="true">
      <property name="minimumSize">
       <size>
        <width>380</width>
@@ -80,15 +80,41 @@ QLabel#loginMessageLabel
        <height>480</height>
       </size>
      </property>
-     <property name="pixmap">
-      <pixmap resource="LiveLoginDialog.qrc">:/LiveLoginDialog/res/genshin.jpg</pixmap>
-     </property>
-     <property name="scaledContents">
-      <bool>true</bool>
-     </property>
-     <property name="covered" stdset="0">
-      <bool>true</bool>
-     </property>
+     <widget class="ImageLabel" name="gallery">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>380</width>
+        <height>480</height>
+       </rect>
+      </property>
+      <property name="pixmap">
+       <pixmap resource="LiveLoginDialog.qrc">:/LiveLoginDialog/res/genshin.jpg</pixmap>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+      <property name="covered" stdset="0">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="ImageLabel" name="appLogo">
+      <property name="geometry">
+       <rect>
+        <x>16</x>
+        <y>14</y>
+        <width>64</width>
+        <height>64</height>
+       </rect>
+      </property>
+      <property name="pixmap">
+       <pixmap resource="LiveLoginDialog.qrc">:/LiveLoginDialog/res/LIVE.png</pixmap>
+      </property>
+      <property name="scaledContents">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
    </item>
    <item>
@@ -224,28 +250,6 @@ QLabel#loginMessageLabel
          </widget>
         </item>
        </layout>
-      </item>
-      <item>
-       <widget class="ImageLabel" name="appLogo">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>64</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>160</width>
-          <height>80</height>
-         </size>
-        </property>
-        <property name="pixmap">
-         <pixmap resource="LiveLoginDialog.qrc">:/LiveLoginDialog/res/LIVE.png</pixmap>
-        </property>
-        <property name="margin">
-         <number>4</number>
-        </property>
-       </widget>
       </item>
       <item>
        <widget class="QLabel" name="avatarLabel">
