@@ -22,8 +22,9 @@
 
 ## 下次优先做
 
-1. **用 Cloudflare 账号部署 Worker**（约 15 分钟，步骤见 [worker/README.md](worker/README.md)），然后用真实 HTTPS 服务端跑一次完整登录
-2. **实机验证**：遮罩窗口、设置窗口、登录/设置内嵌错误提示、`log/PostLive.log`、CI 安装包安装流程
+1. **主控制页重做**：方案与截图调研见 [docs/broadcast-ui-research.md](docs/broadcast-ui-research.md)（提案 A 直播姬式极简 / 提案 B OBS 式面板，含 6 个待拍板问题）
+2. **用 Cloudflare 账号部署 Worker**（约 15 分钟，步骤见 [worker/README.md](worker/README.md)），然后用真实 HTTPS 服务端跑一次完整登录
+3. **实机验证**：遮罩窗口、设置窗口、新登录界面、内嵌错误提示、`log/PostLive.log`、CI 安装包安装流程
 
 ## P1 需要决策 / 外部依赖
 
