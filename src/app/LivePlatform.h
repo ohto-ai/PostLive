@@ -2,10 +2,11 @@
 
 #include <QEvent>
 #include <QProcess>
-#include <QCameraInfo>
-#include <QCameraViewfinder>
 #include <QSystemTrayIcon>
 #include <QTimer>
+#include "FFmpegWidget.h"
+#include "FFmpegInputDevice.h"
+#include "StreamArgs.h"
 #include "utils.h"
 #include "DragableMainWindow.h"
 #include "ui_LivePlatform.h"
@@ -18,8 +19,6 @@ public:
 	LivePlatform(QWidget* parent = Q_NULLPTR);
 	~LivePlatform() override;
 
-	void setViewCamera(const QCameraInfo& cameraInfo);
-
 protected:
 	void changeEvent(QEvent* event) override;
 	void showFromTray();
@@ -31,13 +30,19 @@ protected:
 	void updateStreamControls(bool streaming);
 	void appendStatus(const QString& text);
 	void refreshDevices();
+	void refreshWindowList();
+	void applySourceMode();
+	CaptureSource currentSource() const;
+	QString cameraDeviceName() const;
 
 	const QString ffmpegPath{ R"(ffmpeg.exe)" };
-	const QString videoFormt{ "flv" };
 
 	QString logoImage{ "assets/pilipili-logo.png" };
-	QCamera* viewCamera{ nullptr };
-	QCameraViewfinder cameraViewfinder{ this };
+	FFmpegWidget previewWidget{ this };
+	// Backing store whose address is handed to the decoder; the decoder only
+	// keeps the pointer, so the device must outlive the preview session.
+	FFmpegInputDevice currentDevice;
+	QString localFilePath;
 	QProcess ffmpegProcess{ this };
 	QTimer deviceRefreshTimer{ this };
 

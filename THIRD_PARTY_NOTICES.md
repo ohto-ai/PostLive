@@ -13,8 +13,10 @@ PostLive 本身以 [GPL-3.0](LICENSE) 发布。下面的组件随源码或运行
 
 - 项目：<https://ffmpeg.org/>
 - 许可证：默认 LGPL-2.1-or-later；启用 GPL 组件（如 x264）的构建为 GPL。
-- 使用方式：以独立进程调用 `ffmpeg.exe`，不链接 libav*。
-- FFmpeg 二进制不在本仓库中（`third_party/ffmpeg/` 被忽略）。若在安装包中分发，请附带对应许可证与源码获取方式。
+- 使用方式（两种）：
+  1. **独立进程**：推流通过 `ffmpeg.exe` 完成；
+  2. **进程内链接**：预览解码链接 `third_party/ffmpeg/sdk/` 中的 FFmpeg 7.x SDK（LGPL-3.0，见该目录 `LICENSE.txt`），运行时加载 `avcodec-61.dll` 等 FFmpeg 7.x 动态库。仅使用 libav 的解码 API，不修改 FFmpeg。
+- FFmpeg 二进制不在本仓库中（`third_party/ffmpeg/bin/`、`third_party/ffmpeg/sdk/lib/*.dll.a` 除外——后者仅是开发用导入库）。若在安装包中分发 FFmpeg 动态库，请附带对应许可证（`third_party/ffmpeg/sdk/LICENSE.txt`）与源码获取方式。
 
 ## cpp-httplib 0.11.2
 

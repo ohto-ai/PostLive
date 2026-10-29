@@ -5,27 +5,30 @@
 #include "LivePlatform.h"
 #include "LiveLoginSettingDialog.h"
 #include "../core/Logging.h"
+#include "../platform/WindowList.h"
 
-#include <future>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QEvent>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QMenu>
 #include <QSet>
 #include <QSignalBlocker>
 #include <QStandardPaths>
 #include <QUrl>
-#include <QAudioDeviceInfo>
-
-Q_DECLARE_METATYPE(QCameraInfo)
 
 LivePlatform::LivePlatform(QWidget* parent)
 	: DragableMainWindow(parent)
 {
 	ui.setupUi(this);
+
+	ui.sourceComboBox->addItem("摄像头");
+	ui.sourceComboBox->addItem("整个屏幕");
+	ui.sourceComboBox->addItem("窗口");
+	ui.sourceComboBox->addItem("本地文件");
 
 	ui.bitrateComboBox->addItems({ "Auto", "1000", "2500", "4000", "6000" });
 	ui.frameRateComboBox->addItems({ "Auto", "15", "24", "30", "60" });
@@ -44,6 +47,10 @@ LivePlatform::LivePlatform(QWidget* parent)
 		ui.previewCheckBox->setChecked(streamConfig["preview"].get<bool>());
 
 	thatboy::storage::config["widget_info"]["platform"].get<thatboy::WidgetConfigInfo>().config(*this);
+
+	refreshDevices();
+	applySourceMode();
+	ui.cameraViewLayout->addWidget(&previewWidget);
 
 	auto mSysTrayIcon = new QSystemTrayIcon(this);
 	mSysTrayIcon->setIcon(QIcon(":/LiveLoginDialog/res/live.ico"));
@@ -190,52 +197,33 @@ LivePlatform::LivePlatform(QWidget* parent)
 	connect(ui.startPushButton, &QPushButton::clicked, this, &LivePlatform::startStreaming);
 	connect(ui.stopPushButton, &QPushButton::clicked, this, &LivePlatform::stopStreaming);
 
-	auto cameraList = QCameraInfo::availableCameras();
-
-	for (auto& cameraInfo : cameraList)
-		ui.cameraComboBox->addItem(cameraInfo.description(), QVariant::fromValue(cameraInfo));
-	if (!cameraList.isEmpty())
-		ui.cameraComboBox->setCurrentText(QCameraInfo::defaultCamera().description());
-
-	auto microphoneList = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
-	QSet<QString> microphoneNameList;
-	for (auto& microphoneInfo : microphoneList)
-		microphoneNameList.insert(microphoneInfo.deviceName());
-
-	microphoneNameList.insert("virtual-audio-capturer");
-
-	for (auto& microphoneName : microphoneNameList)
-		ui.microphoneComboBox->addItem(microphoneName);
-	if (!microphoneList.isEmpty())
-		ui.microphoneComboBox->setCurrentText(QAudioDeviceInfo::defaultInputDevice().deviceName());
-
-	ui.sizeComboBox->addItems({
-		"640x480", "800x600", "1024x768", "1280x720", "1280x800", "1400x1050", "1440x900", "1600x1200", "1920x1080", "1920x1200"
-		});
-	ui.sizeComboBox->setCurrentText("1280x720");
-
-	ui.cameraViewLayout->addWidget(&cameraViewfinder);
-
-	connect(ui.cameraComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int)
+	// Source switching: show the matching controls and restart the preview.
+	connect(ui.sourceComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int)
 		{
-			setViewCamera(qvariant_cast<QCameraInfo>(ui.cameraComboBox->currentData()));
+			applySourceMode();
+			if (ui.previewCheckBox->isChecked() && ffmpegProcess.state() != QProcess::Running)
+				startPreview();
+		});
+	connect(ui.windowComboBox, &WindowComboBox::aboutToShowPopup, this, &LivePlatform::refreshWindowList);
+	connect(ui.windowComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int)
+		{
+			if (ui.previewCheckBox->isChecked() && ffmpegProcess.state() != QProcess::Running)
+				startPreview();
+		});
+	connect(ui.selectFilePushButton, &QPushButton::clicked, this, [this]
+		{
+			const QString file = QFileDialog::getOpenFileName(this, tr("选择推流文件"), QString(),
+				tr("媒体文件 (*)"));
+			if (file.isEmpty())
+				return;
+			localFilePath = file;
+			appendStatus(tr("已选择文件：%1").arg(file));
 			if (ui.previewCheckBox->isChecked() && ffmpegProcess.state() != QProcess::Running)
 				startPreview();
 		});
 
-	setViewCamera(QCameraInfo::defaultCamera());
-	if (ui.previewCheckBox->isChecked())
-		startPreview();
-
 	connect(&deviceRefreshTimer, &QTimer::timeout, this, &LivePlatform::refreshDevices);
 	deviceRefreshTimer.start(3000);
-}
-
-void LivePlatform::setViewCamera(const QCameraInfo& cameraInfo)
-{
-	delete viewCamera;
-	viewCamera = new QCamera(cameraInfo, this);
-	viewCamera->setViewfinder(&cameraViewfinder);
 }
 
 LivePlatform::~LivePlatform()
@@ -283,16 +271,86 @@ void LivePlatform::hideToTray()
 		stopPreview();
 }
 
+CaptureSource LivePlatform::currentSource() const
+{
+	switch (ui.sourceComboBox->currentIndex())
+	{
+	case 1: return CaptureSource::Desktop;
+	case 2: return CaptureSource::Window;
+	case 3: return CaptureSource::LocalFile;
+	default: return CaptureSource::Camera;
+	}
+}
+
+QString LivePlatform::cameraDeviceName() const
+{
+	const int index = ui.cameraComboBox->currentIndex();
+	return index >= 0 ? ui.cameraComboBox->itemData(index).toString() : QString();
+}
+
+void LivePlatform::applySourceMode()
+{
+	const CaptureSource source = currentSource();
+	ui.cameraLabel->setVisible(source == CaptureSource::Camera);
+	ui.cameraComboBox->setVisible(source == CaptureSource::Camera);
+	ui.microphoneLabel->setVisible(source != CaptureSource::LocalFile);
+	ui.microphoneComboBox->setVisible(source != CaptureSource::LocalFile);
+	ui.windowComboBox->setVisible(source == CaptureSource::Window);
+	ui.selectFilePushButton->setVisible(source == CaptureSource::LocalFile);
+}
+
 void LivePlatform::startPreview()
 {
-	if (viewCamera && ui.previewCheckBox->isChecked())
-		viewCamera->start();
+	if (ffmpegProcess.state() == QProcess::Running || !ui.previewCheckBox->isChecked())
+		return;
+
+	switch (currentSource())
+	{
+	case CaptureSource::Camera:
+	{
+		const QString name = cameraDeviceName();
+		if (name.isEmpty())
+			return;
+		bool found = false;
+		for (const FFmpegInputDevice* device : FFmpegInputDevice::filterVideoDevices())
+		{
+			if (QString::fromStdString(device->device_name) == name)
+			{
+				currentDevice = *device;
+				found = true;
+				break;
+			}
+		}
+		if (!found)
+			return;
+		break;
+	}
+	case CaptureSource::Desktop:
+		currentDevice = FFmpegInputDevice::make_gdi_device();
+		break;
+	case CaptureSource::Window:
+	{
+		const QString title = ui.windowComboBox->currentText();
+		if (title.isEmpty())
+			return;
+		currentDevice = FFmpegInputDevice::make_gdi_device(title.toStdString());
+		break;
+	}
+	case CaptureSource::LocalFile:
+		if (localFilePath.isEmpty() || !QFileInfo::exists(localFilePath))
+			return;
+		currentDevice = FFmpegInputDevice::make_local_file_device(localFilePath.toStdString());
+		break;
+	}
+
+	if (!previewWidget.setInputDevice(&currentDevice))
+		return;
+	previewWidget.play();
 }
 
 void LivePlatform::stopPreview()
 {
-	if (viewCamera)
-		viewCamera->stop();
+	previewWidget.stop();
 }
 
 void LivePlatform::startStreaming()
@@ -300,74 +358,33 @@ void LivePlatform::startStreaming()
 	if (ffmpegProcess.state() != QProcess::NotRunning)
 		return;
 
-	const QString server = ui.streamServerLineEdit->text().trimmed();
-	const QUrl serverUrl(server);
-	if (server.isEmpty() || !serverUrl.isValid()
-		|| serverUrl.scheme().isEmpty() || serverUrl.host().isEmpty())
+	StreamSettings settings;
+	settings.source = currentSource();
+	settings.server = ui.streamServerLineEdit->text().trimmed();
+	settings.cameraName = cameraDeviceName();
+	settings.microphoneName = ui.microphoneComboBox->currentText();
+	settings.windowTitle = ui.windowComboBox->currentText();
+	settings.filePath = localFilePath;
+	settings.size = ui.sizeComboBox->currentText();
+	settings.encoder = ui.encoderComboBox->currentText();
+	settings.bitrate = ui.bitrateComboBox->currentText();
+	settings.fps = ui.frameRateComboBox->currentText();
+	settings.watermark = thatboy::storage::config["stream"].value("watermark", true);
+	settings.watermarkFile = logoImage;
+
+	QString error;
+	const QStringList arguments = buildStreamArgs(settings, &error);
+	if (arguments.isEmpty())
 	{
-		appendStatus(tr("无效的服务器地址"));
-		qCWarning(lcStream) << "stream start aborted: invalid server URL" << server;
+		appendStatus(tr("无法开始推流：%1").arg(error));
+		qCWarning(lcStream) << "stream start aborted:" << error;
 		return;
 	}
-
-	const QString camera = ui.cameraComboBox->currentText();
-	const QString microphone = ui.microphoneComboBox->currentText();
-	if (camera.isEmpty())
-	{
-		appendStatus(tr("没有可用的摄像头"));
-		qCWarning(lcStream) << "stream start aborted: no camera";
-		return;
-	}
-	if (microphone.isEmpty())
-	{
-		appendStatus(tr("没有可用的麦克风"));
-		qCWarning(lcStream) << "stream start aborted: no microphone";
-		return;
-	}
-
-	QString ffmpegExecutable = ffmpegPath;
-	if (!QFileInfo::exists(ffmpegExecutable))
-		ffmpegExecutable = QStandardPaths::findExecutable("ffmpeg.exe");
-	if (ffmpegExecutable.isEmpty())
-	{
-		appendStatus(tr("找不到 FFmpeg，请放到程序目录或 PATH"));
-		qCWarning(lcStream) << "stream start aborted: ffmpeg.exe not found";
-		return;
-	}
-
-	QString size = ui.sizeComboBox->currentText();
-	size.replace(QChar(0x00D7), QLatin1Char('x'));
-
-	QString url = server;
-	while (url.endsWith(QLatin1Char('/')))
-		url.chop(1);
-	url += "/livehime";
-
-	const bool watermarkEnabled = thatboy::storage::config["stream"].value("watermark", true);
-	const bool useWatermark = watermarkEnabled && QFileInfo::exists(logoImage);
-	if (watermarkEnabled && !useWatermark)
+	if (settings.watermark && !QFileInfo::exists(settings.watermarkFile))
 	{
 		appendStatus(tr("找不到水印文件，本次推流不叠加水印"));
-		qCInfo(lcStream) << "watermark file missing, streaming without it:" << logoImage;
+		qCInfo(lcStream) << "watermark file missing, streaming without it:" << settings.watermarkFile;
 	}
-
-	QStringList arguments;
-	arguments << "-hide_banner" << "-loglevel" << "warning" << "-nostats";
-	arguments << "-f" << "dshow" << "-i" << QString("video=%1").arg(camera);
-	if (useWatermark)
-		arguments << "-i" << logoImage;
-	arguments << "-f" << "dshow" << "-i" << QString("audio=%1").arg(microphone);
-	if (useWatermark)
-		arguments << "-filter_complex" << "overlay=5:5";
-	arguments << "-f" << videoFormt;
-	if (ui.encoderComboBox->currentText() != "Auto")
-		arguments << "-c:v" << ui.encoderComboBox->currentText();
-	if (ui.bitrateComboBox->currentText() != "Auto")
-		arguments << "-b:v" << ui.bitrateComboBox->currentText() + "k";
-	if (ui.frameRateComboBox->currentText() != "Auto")
-		arguments << "-r" << ui.frameRateComboBox->currentText();
-	arguments << "-pix_fmt" << "yuv420p";
-	arguments << "-s" << size << url;
 
 	stopPreview();
 	stopRequested = false;
@@ -375,8 +392,8 @@ void LivePlatform::startStreaming()
 	lastErrorOutput.clear();
 	ffmpegProcess.readAllStandardError();
 	appendStatus(tr("正在启动 FFmpeg..."));
-	qCInfo(lcStream) << "starting FFmpeg:" << ffmpegExecutable << arguments.join(QLatin1Char(' '));
-	ffmpegProcess.start(ffmpegExecutable, arguments);
+	qCInfo(lcStream) << "starting FFmpeg:" << ffmpegPath << arguments.join(QLatin1Char(' '));
+	ffmpegProcess.start(ffmpegPath, arguments);
 }
 
 void LivePlatform::stopStreaming()
@@ -404,6 +421,9 @@ void LivePlatform::stopStreaming()
 
 void LivePlatform::updateStreamControls(bool streaming)
 {
+	ui.sourceComboBox->setEnabled(!streaming);
+	ui.windowComboBox->setEnabled(!streaming);
+	ui.selectFilePushButton->setEnabled(!streaming);
 	ui.cameraComboBox->setEnabled(!streaming);
 	ui.microphoneComboBox->setEnabled(!streaming);
 	ui.streamServerLineEdit->setEnabled(!streaming);
@@ -427,10 +447,12 @@ void LivePlatform::refreshDevices()
 	if (ffmpegProcess.state() == QProcess::Running)
 		return;
 
-	const auto cameras = QCameraInfo::availableCameras();
+	FFmpegInputDevice::updateInputDeviceList();
+
+	const auto cameras = FFmpegInputDevice::filterVideoDevices();
 	QStringList cameraNames;
 	for (const auto& camera : cameras)
-		cameraNames << camera.description();
+		cameraNames << QString::fromStdString(camera->device_description);
 
 	QStringList currentCameras;
 	for (int i = 0; i < ui.cameraComboBox->count(); ++i)
@@ -443,7 +465,8 @@ void LivePlatform::refreshDevices()
 			const QSignalBlocker blocker(ui.cameraComboBox);
 			ui.cameraComboBox->clear();
 			for (const auto& camera : cameras)
-				ui.cameraComboBox->addItem(camera.description(), QVariant::fromValue(camera));
+				ui.cameraComboBox->addItem(QString::fromStdString(camera->device_description),
+					QString::fromStdString(camera->device_name));
 
 			int index = ui.cameraComboBox->findText(selected);
 			if (index < 0)
@@ -451,38 +474,51 @@ void LivePlatform::refreshDevices()
 			if (index < ui.cameraComboBox->count())
 				ui.cameraComboBox->setCurrentIndex(index);
 		}
-
-		setViewCamera(ui.cameraComboBox->count() > 0
-			? qvariant_cast<QCameraInfo>(ui.cameraComboBox->currentData())
-			: QCameraInfo());
-		if (isVisible() && !isMinimized() && ui.previewCheckBox->isChecked())
+		if (ui.previewCheckBox->isChecked() && ffmpegProcess.state() != QProcess::Running
+			&& isVisible() && !isMinimized() && currentSource() == CaptureSource::Camera)
 			startPreview();
 	}
 
-	QSet<QString> microphoneSet;
-	const auto microphones = QAudioDeviceInfo::availableDevices(QAudio::AudioInput);
-	for (const auto& microphone : microphones)
-		microphoneSet.insert(microphone.deviceName());
-	microphoneSet.insert("virtual-audio-capturer");
+	QStringList microphoneNames;
+	for (const auto& microphone : FFmpegInputDevice::filterAudioDevices())
+		microphoneNames << QString::fromStdString(microphone->device_name);
+	microphoneNames << "virtual-audio-capturer";
 
-	QSet<QString> currentMicrophoneSet;
+	QStringList currentMicrophones;
 	for (int i = 0; i < ui.microphoneComboBox->count(); ++i)
-		currentMicrophoneSet.insert(ui.microphoneComboBox->itemText(i));
+		currentMicrophones << ui.microphoneComboBox->itemText(i);
 
-	if (microphoneSet != currentMicrophoneSet)
+	if (microphoneNames != currentMicrophones)
 	{
 		const QString selected = ui.microphoneComboBox->currentText();
-		QStringList names = microphoneSet.values();
-		names.sort(Qt::CaseInsensitive);
-		ui.microphoneComboBox->clear();
-		ui.microphoneComboBox->addItems(names);
+		{
+			const QSignalBlocker blocker(ui.microphoneComboBox);
+			ui.microphoneComboBox->clear();
+			ui.microphoneComboBox->addItems(microphoneNames);
 
-		int index = ui.microphoneComboBox->findText(selected);
-		if (index < 0 && !microphones.isEmpty())
-			index = ui.microphoneComboBox->findText(QAudioDeviceInfo::defaultInputDevice().deviceName());
-		if (index < 0)
-			index = 0;
-		if (index < ui.microphoneComboBox->count())
-			ui.microphoneComboBox->setCurrentIndex(index);
+			int index = ui.microphoneComboBox->findText(selected);
+			if (index < 0)
+				index = 0;
+			if (index < ui.microphoneComboBox->count())
+				ui.microphoneComboBox->setCurrentIndex(index);
+		}
+	}
+
+	if (ui.windowComboBox->isVisible())
+		refreshWindowList();
+}
+
+void LivePlatform::refreshWindowList()
+{
+	const QString selected = ui.windowComboBox->currentText();
+	const QSignalBlocker blocker(ui.windowComboBox);
+	ui.windowComboBox->clear();
+	for (const WindowInfo& window : visibleTopLevelWindows())
+		ui.windowComboBox->addItem(window.title);
+	if (!selected.isEmpty())
+	{
+		const int index = ui.windowComboBox->findText(selected);
+		if (index >= 0)
+			ui.windowComboBox->setCurrentIndex(index);
 	}
 }

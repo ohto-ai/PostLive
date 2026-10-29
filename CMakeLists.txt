@@ -23,9 +23,7 @@ find_package(Qt5 5.15 REQUIRED COMPONENTS
     Core
     Gui
     Widgets
-    Network
-    Multimedia
-    MultimediaWidgets)
+    Network)
 
 # ---------------------------------------------------------------------------
 # Sources
@@ -43,12 +41,20 @@ set(POSTLIVE_SOURCES
     src/core/WidgetConfigInfo.cpp
     src/core/utils.cpp
 
+    src/media/FFmpegInputDevice.cpp
+    src/media/FFmpegVideo.cpp
+    src/media/FFmpegWidget.cpp
+    src/media/StreamArgs.cpp
+
+    src/platform/WindowList.cpp
+
     src/widgets/BaseDialog.cpp
     src/widgets/BaseMainWindow.cpp
     src/widgets/BaseWidget.cpp
     src/widgets/DragableDialog.cpp
     src/widgets/DragableMainWindow.cpp
     src/widgets/DragableWidget.cpp
+    src/widgets/FileDropZone.cpp
     src/widgets/PasswordEdit.cpp
     src/widgets/ShadowWidget.cpp
     src/widgets/TouchedLabel.cpp
@@ -65,6 +71,13 @@ set(POSTLIVE_HEADERS
     src/core/WidgetConfigInfo.h
     src/core/utils.h
 
+    src/media/FFmpegInputDevice.h
+    src/media/FFmpegVideo.h
+    src/media/FFmpegWidget.h
+    src/media/StreamArgs.h
+
+    src/platform/WindowList.h
+
     src/widgets/BaseDialog.h
     src/widgets/BaseMainWindow.h
     src/widgets/BaseWidget.h
@@ -72,10 +85,12 @@ set(POSTLIVE_HEADERS
     src/widgets/DragableDialog.h
     src/widgets/DragableMainWindow.h
     src/widgets/DragableWidget.h
+    src/widgets/FileDropZone.h
     src/widgets/PasswordEdit.h
     src/widgets/ShadowWidget.h
     src/widgets/TouchedLabel.h
-    src/widgets/TouchedLineEdit.h)
+    src/widgets/TouchedLineEdit.h
+    src/widgets/WindowComboBox.h)
 
 set(POSTLIVE_FORMS
     src/app/LiveLoginDialog.ui
@@ -103,8 +118,26 @@ add_executable(PostLive WIN32
 target_include_directories(PostLive PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/src/app"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/core"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/media"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/platform"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets"
     "${CMAKE_CURRENT_SOURCE_DIR}/third_party")
+
+# In-process FFmpeg (decode/preview only; encoding stays in ffmpeg.exe).
+# The import libs match the av*-61 / swscale-8 runtime DLLs deployed from
+# third_party/ffmpeg/bin. SDK is LGPL v3, see third_party/ffmpeg/sdk/LICENSE.txt.
+set(POSTLIVE_FFMPEG_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ffmpeg/sdk"
+    CACHE PATH "FFmpeg SDK directory containing include/ and lib/")
+target_include_directories(PostLive PRIVATE
+    "${POSTLIVE_FFMPEG_SDK_DIR}/include")
+target_link_directories(PostLive PRIVATE
+    "${POSTLIVE_FFMPEG_SDK_DIR}/lib")
+target_link_libraries(PostLive PRIVATE
+    avcodec
+    avdevice
+    avformat
+    avutil
+    swscale)
 
 target_compile_definitions(PostLive PRIVATE
     POSTLIVE_VERSION="${PROJECT_VERSION}"
@@ -119,8 +152,6 @@ endif()
 target_link_libraries(PostLive PRIVATE
     Qt5::Widgets
     Qt5::Network
-    Qt5::Multimedia
-    Qt5::MultimediaWidgets
     ws2_32
     dbghelp
     crypt32)

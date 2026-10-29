@@ -67,14 +67,29 @@ int main(int argc, char* argv[])
 	thatboy::utils::loadConfig();
 	thatboy::utils::loadUserData();
 
-	// CI / 冒烟测试：启动后自动退出，便于验证配置与用户数据保存。
+	// CI / 冒烟测试：POSTLIVE_SMOKE_TEST=1 在登录窗口自动退出；=platform 无头
+	// 构造主窗口（设备枚举、预览控件、窗口列表）后退出，覆盖媒体链路。
 	if (qEnvironmentVariableIsSet("POSTLIVE_SMOKE_TEST"))
-		QTimer::singleShot(500, &a, &QCoreApplication::quit);
+	{
+		if (qEnvironmentVariable("POSTLIVE_SMOKE_TEST") == QLatin1String("platform"))
+		{
+			LivePlatform w;
+			w.show();
+			QTimer::singleShot(1500, &a, &QCoreApplication::quit);
+			a.exec();
+		}
+		else
+			QTimer::singleShot(500, &a, &QCoreApplication::quit);
+	}
 
 #ifndef _DEBUG
 	try
 	{
 #endif
+		if (qEnvironmentVariableIsSet("POSTLIVE_SMOKE_TEST")
+			&& qEnvironmentVariable("POSTLIVE_SMOKE_TEST") == QLatin1String("platform"))
+			return 0;
+
 		LiveLoginDialog d;
 		if (d.exec() == QDialog::Accepted)
 		{

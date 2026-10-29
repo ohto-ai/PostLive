@@ -51,7 +51,8 @@ compile_commands.json
 /PostLive.dmp
 
 # Local FFmpeg runtime drop (large, not distributed via git)
-/third_party/ffmpeg/
+/third_party/ffmpeg/*
+!/third_party/ffmpeg/sdk/
 
 # OS files
 Thumbs.db
@@ -61,3 +62,6 @@ Desktop.ini
 # Mock auth server local data
 /tools/mock-server/users.json
 /tools/mock-server/*.log
+
+# ZCode workspace artifacts
+/.zcode/
