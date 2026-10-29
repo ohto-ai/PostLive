@@ -18,13 +18,13 @@
 ## 功能
 
 - [ ] **设置窗口**：实现服务器地址、官网、遮罩开关等选项，并持久化到 `application.json`。
-- [ ] **码率 / 帧率 / 编码器设置**：目前只有分辨率，FFmpeg 参数硬编码在 `LivePlatform.cpp`。
-- [ ] **预览开关**：开播时 `viewCamera->stop()`，无法在推流时切换预览。
+- [x] **码率 / 帧率 / 编码器设置**：主窗口下拉框，默认 `Auto`，写入 FFmpeg 参数并持久化。
+- [x] **预览开关**：主窗口 `previewCheckBox`；推流时自动停止并禁用。
 - [ ] **修复遮罩窗口**：最小化还原后遮罩层可能不再显示（`ShadowWidget`）。
 - [ ] **自动登录可靠性**：网络失败、token 过期时给出明确提示，并支持取消自动登录。
-- [ ] **推流状态与错误提示**：监听 `QProcess::errorOccurred` / stderr，在界面上显示 FFmpeg 失败原因。
+- [x] **推流状态与错误提示**：状态栏 + `QProcess::errorOccurred` / stderr 对话框。
 - [ ] **设备热插拔**：摄像头 / 麦克风插拔后刷新下拉框。
-- [ ] **停止推流**：`QProcess::write("q")` 之后等待进程退出，超时再 terminate，避免僵尸进程。
+- [x] **停止推流**：写 `q` → 3 秒后 terminate → 2 秒后 kill。
 - [ ] **窗口 / 托盘行为**：统一关闭、最小化、退出菜单与托盘状态。
 - [ ] **品牌统一**：类名（`LivePlatform`）、资源前缀（`:/LiveLoginDialog/...`）与部分图片仍是旧命名，统一为 PostLive。
 
@@ -48,7 +48,7 @@
 - [ ] **代码格式检查**：接入 `.clang-format` 检查（先统一格式化，再在 CI 中校验）。
 - [ ] **静态分析**：接入 clang-tidy / MSVC `/analyze`。
 - [ ] **配置目录**：把 `application.json` / `users.json` / 头像移到 `QStandardPaths::AppDataLocation`，而不是可执行文件旁边。
-- [ ] **配置容错**：`application.json` / `users.json` 缺失、为空或 JSON 损坏时回退到默认值并提示，而不是抛出异常；保存失败也要提示。
+- [x] **配置容错**：缺失 / 损坏时回退到内置默认值；保存失败会提示。
 - [ ] **日志**：增加统一日志（`QLoggingCategory` 或 spdlog），替代散落的 `QMessageBox`。
 - [ ] **国际化**：界面中文字符串硬编码在 `.ui` / `.cpp`，接入 Qt Linguist。
 - [ ] **移除 MSVC 专有写法**：`#pragma execution_character_set("utf-8")`、`QString::asprintf` + `std::string` 可改为 `QStringLiteral` / `arg()`。
@@ -56,6 +56,14 @@
 - [ ] **CMake 安装 / CPack**：完善 `install()` 与 CPack，生成可复现的安装包。
 - [ ] **FFmpeg 分发合规**：安装包内置 FFmpeg 时附带许可证与源码获取说明（LGPL / GPL 取决于构建）。
 - [ ] **VC++ 运行时**：安装包附带 VC++ 2015-2022 Redistributable，或在 CI 中检测 / 安装；评估静态 CRT 与 Qt 的兼容性。
+
+## 最近完成（2026-10-29）
+
+- [x] 主窗口推流参数：编码器 / 码率 / 帧率，持久化到 `application.json`。
+- [x] 预览开关，推流时自动停止预览。
+- [x] 推流状态栏与 FFmpeg 错误提示。
+- [x] 优雅停播（`q` → terminate → kill）。
+- [x] `application.json` / `users.json` 缺失或损坏时回退到内置默认值；保存失败提示。
 
 ## 本次整理已完成
 

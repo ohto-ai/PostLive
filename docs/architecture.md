@@ -95,18 +95,22 @@ sequenceDiagram
 FFmpeg 命令由 `LivePlatform.cpp` 拼接，当前参数：
 
 ```text
-ffmpeg.exe -f dshow -i video="<camera>" -i assets/pilipili-logo.png
-  -filter_complex "overlay=5:5" -f dshow -i audio="<microphone>"
-  -f flv -s <WxH> <server>/livehime
+ffmpeg.exe -hide_banner -loglevel warning -nostats
+  -f dshow -i video="<camera>"
+  -i assets/pilipili-logo.png
+  -f dshow -i audio="<microphone>"
+  -filter_complex "overlay=5:5"
+  -f flv [-c:v <encoder>] [-b:v <kbps>k] [-r <fps>]
+  -pix_fmt yuv420p -s <WxH> <server>/livehime
 ```
 
-具体说明见 [streaming.md](streaming.md)。
+编码器 / 码率 / 帧率为 `Auto` 时不追加对应参数；本地预览由主窗口“预览”复选框控制，推流期间自动停止。具体说明见 [streaming.md](streaming.md)。
 
 ## 运行时文件
 
 | 文件 | 读取方 | 说明 |
 | --- | --- | --- |
-| `application.json` | `utils::loadConfig` | 窗口位置、自动登录、当前用户 |
+| `application.json` | `utils::loadConfig` | 窗口位置、自动登录、当前用户、编码器 / 码率 / 帧率 / 预览设置 |
 | `users.json` | `utils::loadUserData` | 用户列表、token、pwmask、头像路径 |
 | `assets/pilipili-logo.png` | `LivePlatform` | 推流水印 |
 | `user/avatar/*.avatar` | `AsyncDownloader` | 头像缓存 |
@@ -116,6 +120,7 @@ ffmpeg.exe -f dshow -i video="<camera>" -i assets/pilipili-logo.png
 
 - UI、网络、配置读写都在主线程；`AsyncDownloader` 使用 Qt 事件循环，不阻塞登录窗口。
 - FFmpeg 是独立进程，通过 `QProcess` 启动；客户端的摄像头预览在推流期间停止，避免设备占用冲突。
+- 停播先向 FFmpeg 写入 `q`，3 秒后 `terminate()`，再 2 秒后 `kill()`；状态与错误通过状态栏和对话框呈现。
 - 没有显式的线程池或后台任务队列。
 
 ## 已知限制

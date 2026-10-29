@@ -27,11 +27,11 @@
 | 摄像头 | ✅ | 枚举设备、本地预览、设备切换 |
 | 麦克风 | ✅ | 枚举 DirectShow 音频设备，支持 `virtual-audio-capturer` |
 | 分辨率 | ✅ | 通过下拉框选择输出分辨率 |
-| RTMP 推流 | ✅ | `QProcess` 调用 FFmpeg，叠加 logo 水印，可开播 / 停播 |
+| RTMP 推流 | ✅ | `QProcess` 调用 FFmpeg，叠加 logo 水印；状态栏显示启动 / 停止 / 错误 |
 | 系统托盘 | ✅ | 关闭主窗口后隐藏到托盘，双击显示 / 隐藏 |
 | 设置窗口 | 🚧 | 只有窗口外壳，服务器地址、官网、遮罩等选项尚未实现 |
-| 码率 / 编码参数 | ❌ | 需要 UI 与 FFmpeg 参数支持 |
-| 预览开关 | ❌ | 开播时预览会停止，尚不能在推流时切换 |
+| 码率 / 帧率 / 编码器 | ✅ | 主窗口可选择，默认 `Auto`，随 `application.json` 持久化 |
+| 预览开关 | ✅ | 主窗口勾选 / 取消预览；推流时自动停止并禁用 |
 | 遮罩窗口 | 🐞 | 最小化还原后遮罩层可能不再显示 |
 | 认证服务端 | ❌ | 客户端固定连接 `localhost:8877`，仓库不包含可用服务端 |
 | Qt 6 | ❌ | 当前使用 Qt 5 的 `QCamera` / `QAudioDeviceInfo` API |
@@ -119,7 +119,7 @@ PostLive/
 
 | 文件 / 目录 | 说明 |
 | --- | --- |
-| `application.json` | 窗口几何、自动登录、当前用户。首次构建时从 `config/application.default.json` 创建，之后不会被覆盖 |
+| `application.json` | 窗口几何、自动登录、当前用户、编码器 / 码率 / 帧率 / 预览设置。首次构建时从 `config/application.default.json` 创建，之后不会被覆盖 |
 | `users.json` | 本地用户列表与 token。首次构建时从 `config/users.default.json` 创建 |
 | `assets/pilipili-logo.png` | 推流时叠加到画面左上角的 logo |
 | `user/avatar/*.avatar` | 登录后下载的头像缓存 |

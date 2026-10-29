@@ -19,21 +19,25 @@
 `src/app/LivePlatform.cpp` 中拼接的命令：
 
 ```text
-ffmpeg.exe
+ffmpeg.exe -hide_banner -loglevel warning -nostats
   -f dshow -i video="<摄像头名称>"
   -i assets/pilipili-logo.png
-  -filter_complex "overlay=5:5"
   -f dshow -i audio="<麦克风名称>"
+  -filter_complex "overlay=5:5"
   -f flv
+  [-c:v <编码器>] [-b:v <码率>k] [-r <帧率>]
+  -pix_fmt yuv420p
   -s <宽x高>
   <服务器地址>/livehime
 ```
 
 说明：
 
+- 所有输入都放在输出参数之前：视频（0）、logo（1）、音频（2），`overlay` 使用前两个视频输入。
 - `-f dshow` 是 Windows DirectShow 输入，设备名必须与系统名称完全一致。
 - logo 叠加在画面左上角 `(5,5)`；路径相对于可执行文件目录。
-- `-s` 来自分辨率下拉框，默认 `1280x720`。
+- `-s` 来自分辨率下拉框，默认 `1280x720`；代码会把 `×` 归一化为 `x`。
+- 编码器 / 码率 / 帧率为 `Auto` 时不追加对应参数，保留 FFmpeg 的默认选择。
 - 服务器地址来自主窗口输入框，默认 `rtmp://rtmp.ohtoai.top`。
 - 代码固定追加 `/livehime`，最终推流地址形如 `rtmp://rtmp.ohtoai.top/livehime`。这个路径是硬编码的，建议后续改为 `<base>/live/<stream_key>`，见 [TODO.md](../TODO.md)。
 
@@ -57,18 +61,20 @@ ffmpeg -list_devices true -f dshow -i dummy
 
 ## 本地预览与推流
 
-- 预览和推流不会同时进行：开播时摄像头被 FFmpeg 独占，客户端先停止 `QCamera`。
-- 推流结束后客户端重新 `viewCamera->start()`。
-- 如果摄像头被其他程序占用，开播会失败；关闭占用程序后重试。
+- 主窗口的“预览”复选框控制本地预览；取消勾选会停止 `QCamera`。
+- 开播时自动停止预览并禁用复选框；推流结束后如果复选框仍勾选，客户端会重新 `viewCamera->start()`。
+- 如果摄像头被其他程序占用，开播会失败；错误会显示在状态栏，并弹出 FFmpeg 的 stderr。
 
 ## 停播
 
 ```cpp
-QTimer::singleShot(1000, std::bind(&QProcess::close, &ffmpegProcess));
+stopRequested = true;
 ffmpegProcess.write("q");
+ffmpegProcess.closeWriteChannel();
+// 3 秒后仍未退出则 terminate；再 2 秒后 kill
 ```
 
-FFmpeg 收到 `q` 后正常结束。`QProcess::close` 只关闭通道，不会强制结束进程；如果 FFmpeg 卡住，需要手动结束进程。稳定性改进见 [TODO.md](../TODO.md)。
+FFmpeg 收到 `q` 后正常结束。如果进程卡住，客户端会先 `terminate()`，再 `kill()`，避免留下后台进程。
 
 ## 排错
 
@@ -99,13 +105,15 @@ ffplay rtmp://<server>:1935/live/<stream>
 
 ### 4. 检查编码器
 
-当前命令使用 `-f flv`，FFmpeg 会自动选择默认视频 / 音频编码器。如果构建不含 `libx264`，可能回退到其他编码器或失败。可在命令中显式指定：
+编码器下拉框默认 `Auto`，此时不传 `-c:v`，由 FFmpeg 选择默认编码器。也可以选择 `libx264`、`h264_nvenc`、`h264_amf`、`h264_qsv`、`libopenh264`。
 
-```text
--c:v libx264 -preset veryfast -tune zerolatency -c:a aac
+如果选择当前 FFmpeg 构建不包含的编码器，开播会失败；错误会显示在状态栏和对话框中。可以用下面的命令查看可用编码器：
+
+```bash
+ffmpeg -hide_banner -encoders | findstr h264
 ```
 
-客户端尚未暴露这些参数，见 [TODO.md](../TODO.md)。
+当前测试用的 FFmpeg 构建启用了 `libopenh264`，但未启用 `libx264`。
 
 ### 5. 检查防火墙 / 端口
 

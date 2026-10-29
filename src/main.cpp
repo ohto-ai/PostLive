@@ -70,18 +70,26 @@ int main(int argc, char* argv[])
 			w.show();
 			a.exec();
 		}
-		thatboy::utils::saveUserData();
-		thatboy::utils::saveConfig();
+		bool saved = thatboy::utils::saveUserData();
+		saved = thatboy::utils::saveConfig() && saved;
+		if (!saved)
+			QMessageBox::warning(nullptr, "错误", "配置或用户数据保存失败，请检查程序目录的写入权限.");
 		return 0;
 #ifndef _DEBUG
 	}
 	catch (...)
 	{
+		bool saved = false;
 		try {
-			thatboy::utils::saveUserData();
-			thatboy::utils::saveConfig();
+			saved = thatboy::utils::saveUserData();
+			saved = thatboy::utils::saveConfig() && saved;
 		}
 		catch (...)
+		{
+			QMessageBox::warning(nullptr, "错误", "未预料的错误，数据保存失败.");
+			return -2;
+		}
+		if (!saved)
 		{
 			QMessageBox::warning(nullptr, "错误", "未预料的错误，数据保存失败.");
 			return -2;

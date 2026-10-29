@@ -3,6 +3,12 @@
         "auto_login": false,
         "current_user": ""
     },
+    "stream": {
+        "encoder": "Auto",
+        "bitrate": "Auto",
+        "fps": "Auto",
+        "preview": true
+    },
     "user_list": "users.json",
     "widget_info": {
         "login": {

@@ -1,5 +1,29 @@
 ﻿#include "utils.h"
 
+#include <QDebug>
+#include <QFile>
+#include <string>
+
+namespace
+{
+	nlohmann::json readJsonFile(const QString& path, bool* ok = nullptr)
+	{
+		if (ok)
+			*ok = false;
+
+		QFile file(path);
+		if (!file.open(QIODevice::ReadOnly))
+			return nlohmann::json();
+
+		const QByteArray data = file.readAll();
+		const auto json = nlohmann::json::parse(
+			std::string(data.constData(), static_cast<size_t>(data.size())), nullptr, false);
+		if (ok)
+			*ok = !json.is_discarded() && json.is_object();
+		return json;
+	}
+}
+
 QPixmap thatboy::utils::roundedPixmap(const QPixmap& src)
 {
 	if (src.isNull()) {
@@ -45,9 +69,21 @@ void thatboy::utils::to_json(nlohmann::json& j, const QStringList& stringList)
 
 void thatboy::utils::loadUserData()
 {
-	std::ifstream ifs(storage::config["user_list"].get<std::string>());
-	storage::usersStorage = nlohmann::json::parse(std::string{ (std::istreambuf_iterator<char>(ifs)),
-		(std::istreambuf_iterator<char>()) });
+	const std::string userListPath = storage::config.value("user_list", std::string("users.json"));
+	bool ok = false;
+	auto users = readJsonFile(QString::fromStdString(userListPath), &ok);
+	if (!ok)
+	{
+		qWarning() << "users.json is missing or invalid; using built-in defaults";
+		users = readJsonFile(QStringLiteral(":/LiveLoginDialog/config/users.default.json"));
+	}
+	if (!users.is_object())
+		users = nlohmann::json::object();
+	if (!users.contains("user_names") || !users["user_names"].is_array())
+		users["user_names"] = nlohmann::json::array();
+	if (!users.contains("users") || !users["users"].is_object())
+		users["users"] = nlohmann::json::object();
+	storage::usersStorage = users;
 
 	// load avatars
 	QObject::connect(&storage::avatarDownloader, &AsyncDownloader::finished, [&](QString url, QString file, bool success)
@@ -57,13 +93,24 @@ void thatboy::utils::loadUserData()
 			emit storage::generalSignal.avatarDownloaded(QFileInfo(file).completeBaseName(), success);
 		});
 
-	for (std::string userName : storage::usersStorage["user_names"])
+	for (const auto& userNameJson : storage::usersStorage["user_names"])
 	{
-		auto& avatar = storage::userAvatarCache[userName];
-		auto& user = storage::usersStorage["users"][userName];
+		if (!userNameJson.is_string())
+			continue;
+		const std::string userName = userNameJson.get<std::string>();
 
-		if (!user.contains("avatar_file"))
+		if (!storage::usersStorage["users"].contains(userName)
+			|| !storage::usersStorage["users"][userName].is_object())
+			continue;
+
+		auto& user = storage::usersStorage["users"][userName];
+		if (!user.contains("avatar") || !user["avatar"].is_string())
+			continue;
+
+		if (!user.contains("avatar_file") || !user["avatar_file"].is_string())
 			user["avatar_file"] = "";
+
+		auto& avatar = storage::userAvatarCache[userName];
 		avatar = QPixmap{ user["avatar_file"] };
 		if (avatar.isNull())
 		{
@@ -73,10 +120,17 @@ void thatboy::utils::loadUserData()
 	}
 }
 
-void thatboy::utils::saveUserData()
+bool thatboy::utils::saveUserData()
 {
-	std::ofstream ofs(storage::config["user_list"].get<std::string>());
+	const std::string userListPath = storage::config.value("user_list", std::string("users.json"));
+	std::ofstream ofs(userListPath);
+	if (!ofs)
+	{
+		qWarning() << "failed to save user data to" << QString::fromStdString(userListPath);
+		return false;
+	}
 	ofs << storage::usersStorage.dump(4);
+	return ofs.good();
 }
 
 QString thatboy::utils::generateMD5(QString str)
@@ -87,15 +141,65 @@ QString thatboy::utils::generateMD5(QString str)
 
 void thatboy::utils::loadConfig()
 {
-	std::ifstream ifs(storage::ConfigFilePath);
-	storage::config = nlohmann::json::parse(std::string{ (std::istreambuf_iterator<char>(ifs)),
-		(std::istreambuf_iterator<char>()) });
+	const auto defaults = readJsonFile(QStringLiteral(":/LiveLoginDialog/config/application.default.json"));
+	bool ok = false;
+	const auto userConfig = readJsonFile(QString::fromUtf8(storage::ConfigFilePath), &ok);
+
+	if (ok)
+	{
+		storage::config = defaults.is_object() ? defaults : nlohmann::json::object();
+		storage::config.merge_patch(userConfig);
+	}
+	else
+	{
+		qWarning() << "application.json is missing or invalid; using built-in defaults";
+		storage::config = defaults.is_object() ? defaults : nlohmann::json::object();
+	}
+
+	if (!storage::config.contains("login") || !storage::config["login"].is_object())
+	{
+		storage::config["login"] = {
+			{ "auto_login", false },
+			{ "current_user", "" }
+		};
+	}
+	if (!storage::config.contains("stream") || !storage::config["stream"].is_object())
+	{
+		storage::config["stream"] = {
+			{ "encoder", "Auto" },
+			{ "bitrate", "Auto" },
+			{ "fps", "Auto" },
+			{ "preview", true }
+		};
+	}
+	if (!storage::config.contains("widget_info") || !storage::config["widget_info"].is_object())
+		storage::config["widget_info"] = nlohmann::json::object();
+	for (const char* name : { "login", "login_setting", "platform" })
+	{
+		if (!storage::config["widget_info"].contains(name)
+			|| !storage::config["widget_info"][name].is_object())
+		{
+			storage::config["widget_info"][name] = {
+				{ "geometry", { { "x", 100 }, { "y", 100 }, { "width", 600 }, { "height", 450 } } },
+				{ "opacity", 1.0 },
+				{ "translucent", true }
+			};
+		}
+	}
+	if (!storage::config.contains("user_list") || !storage::config["user_list"].is_string())
+		storage::config["user_list"] = "users.json";
 }
 
-void thatboy::utils::saveConfig()
+bool thatboy::utils::saveConfig()
 {
 	std::ofstream ofs(storage::ConfigFilePath);
+	if (!ofs)
+	{
+		qWarning() << "failed to save application config to" << storage::ConfigFilePath;
+		return false;
+	}
 	ofs << storage::config.dump(4);
+	return ofs.good();
 }
 
 nlohmann::json thatboy::storage::usersStorage;

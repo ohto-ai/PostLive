@@ -6,6 +6,11 @@
 
 ### Added
 
+- 主窗口推流参数：编码器 / 码率 / 帧率下拉框，并持久化到 `application.json`。
+- 主窗口预览开关；推流时自动停止预览，结束后恢复。
+- 推流状态栏、FFmpeg stderr / `errorOccurred` 错误提示。
+- `application.json` / `users.json` 缺失或损坏时回退到内置默认值（qrc）。
+- 保存配置 / 用户数据失败时提示。
 - 完整的 CMake 构建：`CMakeLists.txt`、`CMakePresets.json`、`cmake/DeployRuntime.cmake`。
 - GitHub Actions Windows 构建与 `windeployqt` 打包产物。
 - Issue / Pull Request 模板与 Dependabot 配置。
@@ -15,6 +20,9 @@
 
 ### Changed
 
+- 停播改为 `q` → 3 秒后 terminate → 2 秒后 kill 的优雅退出。
+- 分辨率统一为 FFmpeg 的 `WxH` 格式（`×` → `x`）。
+- 推流命令显式设置 `-pix_fmt yuv420p`，并按选择追加编码器 / 码率 / 帧率参数。
 - 源码重组为 `src/app`、`src/core`、`src/widgets`、`src/resources`、`src/platform`。
 - 第三方头文件移动到 `third_party/`。
 - 可执行文件与安装包名称统一为 `PostLive`。

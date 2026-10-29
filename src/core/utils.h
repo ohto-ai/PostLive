@@ -28,9 +28,9 @@ namespace thatboy
 		void to_json(nlohmann::json& j, const QStringList& stringList);
 
 		void loadConfig();
-		void saveConfig();
+		bool saveConfig();
 		void loadUserData();
-		void saveUserData();
+		bool saveUserData();
 
 		QString generateMD5(QString);
 	}
