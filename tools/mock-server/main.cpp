@@ -1,6 +1,8 @@
 #include <cpp-httplib/httplib.h>
 #include <nlohmann/json.hpp>
 #include <QCryptographicHash>
+#include <QMessageAuthenticationCode>
+#include <QRandomGenerator>
 
 #include <fstream>
 #include <iostream>
@@ -8,12 +10,71 @@
 
 namespace
 {
+	// Dev-only speed-up. The real worker (worker/src/worker.js) uses 50 000
+	// iterations; the users file format and the algorithm are identical.
+	constexpr int kDefaultPbkdf2Iterations = 1000;
+
 	std::string md5(const std::string& value)
 	{
 		return QCryptographicHash::hash(QByteArray::fromStdString(value), QCryptographicHash::Md5)
 			.toHex()
 			.toUpper()
 			.toStdString();
+	}
+
+	std::string bytesToHex(const QByteArray& bytes)
+	{
+		static const char* digits = "0123456789abcdef";
+		std::string out;
+		out.reserve(size_t(bytes.size()) * 2);
+		for (char c : bytes)
+		{
+			out.push_back(digits[(c >> 4) & 0xF]);
+			out.push_back(digits[c & 0xF]);
+		}
+		return out;
+	}
+
+	QByteArray hexToBytes(const std::string& hex)
+	{
+		QByteArray bytes;
+		bytes.reserve(int(hex.size() / 2));
+		for (size_t i = 0; i + 1 < hex.size(); i += 2)
+			bytes.push_back(char(std::stoi(hex.substr(i, 2), nullptr, 16)));
+		return bytes;
+	}
+
+	// PBKDF2-HMAC-SHA256 (RFC 2898). dkLen is 32 bytes, so a single block.
+	QByteArray pbkdf2HmacSha256(const std::string& password, const QByteArray& salt, int iterations)
+	{
+		const QByteArray key = QByteArray::fromStdString(password);
+		QByteArray u = QMessageAuthenticationCode::hash(salt + QByteArray("\0\0\0\1", 4), key, QCryptographicHash::Sha256);
+		QByteArray accumulator = u;
+		for (int i = 1; i < iterations; ++i)
+		{
+			u = QMessageAuthenticationCode::hash(u, key, QCryptographicHash::Sha256);
+			for (int j = 0; j < u.size(); ++j)
+				accumulator[j] = char(accumulator[j] ^ u[j]);
+		}
+		return accumulator;
+	}
+
+	std::string randomSaltHex()
+	{
+		QByteArray salt(16, '\0');
+		for (int i = 0; i < salt.size(); ++i)
+			salt[i] = char(QRandomGenerator::system()->generate() & 0xFF);
+		return bytesToHex(salt);
+	}
+
+	bool timingSafeEqual(const std::string& a, const std::string& b)
+	{
+		if (a.size() != b.size())
+			return false;
+		unsigned char diff = 0;
+		for (size_t i = 0; i < a.size(); ++i)
+			diff |= unsigned char(a[i]) ^ unsigned char(b[i]);
+		return diff == 0;
 	}
 
 	void sendJson(httplib::Response& response, const nlohmann::json& body)
@@ -52,17 +113,40 @@ namespace
 
 int main(int argc, char** argv)
 {
-	const std::string usersPath = argc > 1 ? argv[1] : "users.example.json";
+	const std::vector<std::string> args(argv + 1, argv + argc);
+
+	// PostLiveMockServer.exe --hash <password> prints the JSON fragment to
+	// paste into a users file. The stored password is the exact string the
+	// desktop client sends (the uppercase MD5 hex of the real password).
+	if (!args.empty() && args.front() == "--hash")
+	{
+		if (args.size() != 2)
+		{
+			std::cerr << "usage: PostLiveMockServer.exe --hash <password-as-sent-by-client>\n";
+			return 2;
+		}
+		const std::string salt = randomSaltHex();
+		const std::string hash = bytesToHex(pbkdf2HmacSha256(
+			args[1], hexToBytes(salt), kDefaultPbkdf2Iterations));
+		std::cout << nlohmann::json{
+			{ "password_salt", salt },
+			{ "password_hash", hash },
+			{ "password_iterations", kDefaultPbkdf2Iterations },
+		}.dump(4) << "\n";
+		return 0;
+	}
+
+	const std::string usersPath = !args.empty() ? args[0] : "users.example.json";
 	int port = 8877;
-	if (argc > 2)
+	if (args.size() > 1)
 	{
 		try
 		{
-			port = std::stoi(argv[2]);
+			port = std::stoi(args[1]);
 		}
 		catch (...)
 		{
-			std::cerr << "Invalid port: " << argv[2] << "\n";
+			std::cerr << "Invalid port: " << args[1] << "\n";
 			return 2;
 		}
 	}
@@ -112,8 +196,21 @@ int main(int argc, char** argv)
 				bool authenticated = false;
 				if (login == "token")
 					authenticated = body.value("token", std::string()) == savedToken;
+				else if (user.contains("password_salt") && user.contains("password_hash")
+					&& user["password_salt"].is_string() && user["password_hash"].is_string())
+				{
+					// Salted storage (same algorithm as worker/src/worker.js).
+					const int iterations = user.value("password_iterations", kDefaultPbkdf2Iterations);
+					const std::string derived = bytesToHex(pbkdf2HmacSha256(
+						body.value("password", std::string()),
+						hexToBytes(user["password_salt"].get<std::string>()), iterations));
+					authenticated = timingSafeEqual(derived, user["password_hash"].get<std::string>());
+				}
 				else
+				{
+					// Legacy users file without salted fields: compare against the token.
 					authenticated = md5(body.value("password", std::string())) == savedToken;
+				}
 
 				reply["success"] = authenticated;
 				reply["info"] = authenticated ? "login success." : "invalid credentials";

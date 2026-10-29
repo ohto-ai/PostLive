@@ -1,6 +1,9 @@
 # 认证 API
 
-> 客户端期望的 HTTP 接口说明。仓库**不包含**可用的服务端实现；没有服务端时登录会失败。
+> 客户端期望的 HTTP 接口说明。服务端实现有两个：
+>
+> - **Cloudflare Worker**（[worker/](../worker/README.md)）：真实服务端，PBKDF2 加盐哈希 + KV token，部署后可直接使用；
+> - **mock 服务端**（[tools/mock-server/](../tools/mock-server/README.md)）：本地开发用，存储格式与 Worker 相同。
 
 ## 连接信息
 
@@ -98,7 +101,7 @@
 }
 ```
 
-密码与 token 都是 **MD5 大写十六进制**（历史实现）。这不是安全做法，见 [TODO.md](../TODO.md)。
+密码与 token 都是 **MD5 大写十六进制**（历史实现，经 HTTPS 传输）。两个服务端实现都**不以 MD5 形式存储密码**：存储的是 `PBKDF2-SHA256(收到的字符串, 每用户随机盐 + 服务端 pepper)`，见 [worker/README.md](../worker/README.md)。
 
 ## Profile
 
@@ -178,7 +181,7 @@
 
 ## Heartbeat（未实现）
 
-> 客户端定时发送以维持在线。当前代码没有实现定时器。
+> 客户端定时发送以维持在线。当前代码没有实现定时器。Worker / mock 服务端已实现：heartbeat 在 KV 中写一个 15 分钟 TTL 的在线标记，`query` 请求 `online` 字段时读取。
 
 ```json
 {
@@ -196,6 +199,10 @@
     "info": ""
 }
 ```
+
+## Register（仅管理员）
+
+> 客户端不发起注册（注册走网页）。Worker 实现了管理员专用的注册 / 重置密码：请求头带 `x-admin-token: <REGISTER_SECRET>`，body 同 login 的账号格式，`password` 必须是客户端会发送的大写 MD5 十六进制。重复调用同一账号即为重置密码。见 [worker/README.md](../worker/README.md)。
 
 ## 示例会话
 

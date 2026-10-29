@@ -1,6 +1,8 @@
 # Cloudflare 免费方案评估
 
 > 评估日期：2026-10-29。Cloudflare 的免费额度、条款和产品状态会变化，部署前请以官方文档为准。
+>
+> **2026-10-29 更新**：认证部分（Workers + D1 + KV）已实现为 [worker/](../worker/README.md)，采用下文“密码哈希”中的做法 1（PBKDF2 50 000 次 + 服务端 pepper）；待 Cloudflare 账号部署。推流部分维持本文结论：保留自建 RTMP，不使用 Tunnel 公网分发。
 
 ## 结论
 

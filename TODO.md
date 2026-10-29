@@ -1,7 +1,7 @@
 # TODO / 路线图
 
 > 最后更新：2026-10-29
-> 当前分支：`feat/auth-network`（包含 A2 / B1 / B2 / C1 / C2）；`master` 仍为 `416d3cb`。
+> 当前分支：`feat/auth-network`（包含 A2 / B1 / B2 / B3 / C1 / C2）；`master` 仍为 `416d3cb`。
 > 下次开始前可先合并：
 >
 > ```bash
@@ -16,20 +16,20 @@
 | 工程化整理 | ✅ CMake / 目录 / 文档 / CI / GitHub 模板 |
 | A 功能补齐 | ✅ 除品牌统一、遮罩窗口实机复测 |
 | B 认证客户端侧 | ✅ API 地址、mock server、QtNetwork HTTPS、DPAPI token |
-| B 服务端 / 部署 | ⏳ 需要决策 |
+| B 服务端 / 部署 | 🔄 Worker + D1 + KV 代码就绪（含单元测试），待 Cloudflare 账号部署 |
 | C 工程质量 | 🔄 C1（单元测试 + 日志）、C2（CI 安装包 + OpenSSL）完成；其余见 P2 |
 | 调研 | ✅ Cloudflare、DirectUI |
 
 ## 下次优先做
 
-1. **实机验证**：遮罩窗口、设置窗口、登录/设置内嵌错误提示、`log/PostLive.log`、CI 安装包安装流程
-2. 定 B 的后端方向（Cloudflare Workers / 自建服务端 + 密码哈希）
+1. **用 Cloudflare 账号部署 Worker**（约 15 分钟，步骤见 [worker/README.md](worker/README.md)），然后用真实 HTTPS 服务端跑一次完整登录
+2. **实机验证**：遮罩窗口、设置窗口、登录/设置内嵌错误提示、`log/PostLive.log`、CI 安装包安装流程
 
 ## P1 需要决策 / 外部依赖
 
-- [ ] **凭证安全（服务端）**：密码仍是 MD5。需要改 API 协议 + 真实服务端；`tools/mock-server` 同步加盐哈希。涉及 `src/app/LiveLoginDialog.cpp`、`tools/mock-server/main.cpp`、`docs/api.md`。
-- [ ] **Cloudflare 部署**：Workers + D1 + KV + Pages + Wrangler / CI。需要 Cloudflare 账号、域名、API Token；方案与免费额度见 [docs/cloudflare.md](docs/cloudflare.md)。
-- [ ] **query / heartbeat 客户端**：mock server 已实现；客户端目前只发 login / profile。需要决定是否加好友在线状态 UI，或只做后台 heartbeat。
+- [x] **凭证安全（服务端）**：客户端协议不变（HTTPS + 大写 MD5 hex），服务端存储改为 PBKDF2-SHA256（每用户盐 + pepper）；Worker 与 mock server 同步实现，含 `register` 管理接口。剩余风险记录在 [worker/README.md](worker/README.md)。
+- [ ] **Cloudflare 部署**：代码与配置已就绪（[worker/](worker/README.md)），需要 Cloudflare 账号：`wrangler login` → 创建 D1/KV → 填 `wrangler.toml` id → `secret put` → `wrangler deploy`。方案与免费额度见 [docs/cloudflare.md](docs/cloudflare.md)。
+- [ ] **query / heartbeat 客户端**：服务端（Worker + mock）已实现全部端点；客户端目前只发 login / profile。需要决定是否加好友在线状态 UI，或只做后台 heartbeat（注意 KV 写配额）。
 - [ ] **遮罩窗口实机复测**：代码已加父窗口事件过滤；需要在真实桌面验证“打开设置 → 最小化 → 还原”时遮罩层是否恢复。
 - [ ] **设置窗口实机检查**：新增官网 / 水印 / 保存按钮的布局、DPI、最小尺寸。
 - [ ] **HTTPS 端到端验证**：需要真实 HTTPS 认证服务端 + OpenSSL 1.1.x DLL；当前只验证了 QtNetwork TLS 探针。
@@ -96,7 +96,15 @@
 - [x] CI 打包前自动获取 OpenSSL 1.1.1w（slproweb Light 安装包静默安装），把两枚 DLL 复制进构建目录；zip 与安装包因此都支持 HTTPS 认证。
 - [x] `packaging/README.md` 更新安装包内容清单与本地 OpenSSL 补齐方式。
 
-### B 认证与后端
+### B 认证与后端（B3：真实服务端 + 凭证安全）
+
+- [x] `worker/`：Cloudflare Workers 认证服务端（ES Module，无构建步骤）——`login`（密码 / token）/ `profile` / `query` / `heartbeat` 与 `docs/api.md` 一致，另有管理员 `register`（`x-admin-token` 头）；D1 存用户，KV 存 token（30 天）/ 失败计数（10 次 / 15 分钟锁定）/ 在线标记（15 分钟 TTL）。
+- [x] 密码存储：PBKDF2-SHA256（每用户随机盐 + `PEPPER` secret，50 000 次，迭代数随用户入库）；客户端协议不变（HTTPS + 大写 MD5 hex，服务端视为密码等价物，绝不明文存储）。
+- [x] Worker 单元测试（`node --test`，11 个用例，stub D1/KV）：注册校验、密码 / token 登录、token 与账号绑定、profile 字段过滤、heartbeat→query 在线状态、失败锁定、注册 upsert；CI 独立 Linux job 运行。
+- [x] mock server 同步：同样的 PBKDF2 存储格式（`password_salt` / `password_hash` / `password_iterations`），`--hash` 子命令生成字段，旧格式文件自动回退；curl 端到端验证五条链路。
+- [x] 文档：`worker/README.md`（部署 / 注册 / 配额 / 风险）、`docs/api.md`、`docs/cloudflare.md`、`docs/database.md`、`tools/mock-server/README.md`。
+
+### B 认证与后端（客户端侧）
 
 - [x] API 地址可配置（`auth_server`），设置窗口可编辑。
 - [x] `tools/mock-server`：login / profile / query / heartbeat。
