@@ -6,6 +6,10 @@
 
 ### Added
 
+- 认证改用 QtNetwork 异步请求，支持 `http://` / `https://`；Qt 5.15 的 HTTPS 通过 OpenSSL 1.1.x 提供。
+- QtNetwork 使用 Windows 系统代理设置。
+- token 使用 Windows DPAPI 加密存储，旧的明文 token 会在下次保存时迁移。
+- 新增 `POSTLIVE_SMOKE_TEST=1` 冒烟退出入口。
 - 本地 mock 认证服务端 `tools/mock-server`（`PostLiveMockServer`），支持 login / profile / query / heartbeat。
 - 设置窗口：认证服务器、官网、水印开关，保存到 `application.json`。
 - 认证地址可配置；`createAuthClient()` 每次登录读取 `auth_server`，连接 / 读取超时 3 s / 5 s。
@@ -27,7 +31,7 @@
 
 ### Changed
 
-- 登录客户端改为每次请求从配置创建，支持运行时切换认证服务器。
+- 登录客户端改为异步 QtNetwork 请求，支持运行时切换认证服务器。
 - 水印可关闭；关闭时不再传入 logo 输入与 overlay 滤镜。
 - 停播改为 `q` → 3 秒后 terminate → 2 秒后 kill 的优雅退出。
 - 分辨率统一为 FFmpeg 的 `WxH` 格式（`×` → `x`）。

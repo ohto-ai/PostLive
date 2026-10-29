@@ -3,6 +3,9 @@
 #include "LiveLoginDialog.h"
 #include <QtWidgets/QApplication>
 #include <QDir>
+#include <QNetworkProxyFactory>
+#include <QTimer>
+#include <windows.h>
 #include <DbgHelp.h>
 
 #pragma comment(lib, "Dbghelp.lib")
@@ -45,6 +48,7 @@ LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS* pExceptionPointers)
 int main(int argc, char* argv[])
 {
 	QApplication a(argc, argv);
+	QNetworkProxyFactory::setUseSystemConfiguration(true);
 	QCoreApplication::setApplicationName("PostLive");
 	QCoreApplication::setOrganizationName("ohto-ai");
 	QCoreApplication::setApplicationVersion(POSTLIVE_VERSION);
@@ -58,6 +62,10 @@ int main(int argc, char* argv[])
 	// 加载设置和用户列表
 	thatboy::utils::loadConfig();
 	thatboy::utils::loadUserData();
+
+	// CI / 冒烟测试：启动后自动退出，便于验证配置与用户数据保存。
+	if (qEnvironmentVariableIsSet("POSTLIVE_SMOKE_TEST"))
+		QTimer::singleShot(500, &a, &QCoreApplication::quit);
 
 #ifndef _DEBUG
 	try

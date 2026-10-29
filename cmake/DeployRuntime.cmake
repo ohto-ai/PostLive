@@ -44,3 +44,19 @@ if(DEFINED FFMPEG_BIN_DIR AND NOT FFMPEG_BIN_DIR STREQUAL "")
             ONLY_IF_DIFFERENT)
     endforeach()
 endif()
+
+# Qt 5.15 on Windows uses OpenSSL 1.1.x for HTTPS. Copy the DLLs when the
+# developer points POSTLIVE_OPENSSL_DIR at a directory containing them.
+if(DEFINED OPENSSL_DIR AND NOT OPENSSL_DIR STREQUAL "")
+    file(GLOB _openssl_runtime
+        "${OPENSSL_DIR}/libssl-1_1-x64.dll"
+        "${OPENSSL_DIR}/libcrypto-1_1-x64.dll")
+
+    foreach(_file IN LISTS _openssl_runtime)
+        get_filename_component(_name "${_file}" NAME)
+        file(COPY_FILE
+            "${_file}"
+            "${RUNTIME_DIR}/${_name}"
+            ONLY_IF_DIFFERENT)
+    endforeach()
+endif()

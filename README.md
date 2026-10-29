@@ -44,8 +44,9 @@
 | --- | --- | --- | --- |
 | Qt | 5.15.2 (MSVC 2019 64-bit) | Widgets / Network / Multimedia | Qt 官方安装器 |
 | FFmpeg | 7.x（运行时） | 摄像头采集、编码、RTMP 推流 | 外部安装或 `third_party/ffmpeg`（已忽略，不入库） |
-| cpp-httplib | 0.11.2 | 同步 HTTP 客户端 | 已内置于 `third_party/` |
+| cpp-httplib | 0.11.2 | mock 服务端 HTTP | 已内置于 `third_party/` |
 | nlohmann/json | 3.11.2 | 配置与用户数据 | 已内置于 `third_party/` |
+| OpenSSL | 1.1.x（仅 HTTPS 认证时需要） | QtNetwork TLS | 外部部署，见 [docs/building.md](docs/building.md) |
 | Windows SDK | 10 | DbgHelp、Win32 API | Visual Studio 安装器 |
 | Inno Setup | 6 | 安装包（可选） | 外部安装 |
 
@@ -87,7 +88,9 @@ CMake 会把 `ffmpeg.exe` 与 `av*.dll` / `sw*.dll` 复制到输出目录。没�
 
 ### 认证服务端
 
-客户端默认向 `http://localhost:8877/api` 发送登录 / 资料请求，可在设置窗口中修改认证服务器地址（写入 `application.json` 的 `auth_server`）。仓库包含一个开发用 mock 服务端，见 [tools/mock-server/README.md](tools/mock-server/README.md)；生产认证服务端仍不包含，协议见 [docs/api.md](docs/api.md)。当前构建只支持 `http://`；HTTPS 需要启用 OpenSSL 或改用 QtNetwork。
+客户端默认向 `http://localhost:8877/api` 发送登录 / 资料请求，可在设置窗口中修改认证服务器地址（写入 `application.json` 的 `auth_server`）。仓库包含一个开发用 mock 服务端，见 [tools/mock-server/README.md](tools/mock-server/README.md)；生产认证服务端仍不包含，协议见 [docs/api.md](docs/api.md)。
+
+认证请求使用 QtNetwork，支持 `http://` 与 `https://`。Qt 5.15 在 Windows 上使用 OpenSSL 1.1.x：连接 HTTPS 服务时，需要把 `libssl-1_1-x64.dll` / `libcrypto-1_1-x64.dll` 放到 `PostLive.exe` 旁边，或通过 `POSTLIVE_OPENSSL_DIR` 让 CMake 复制。
 
 ## 项目结构
 
@@ -121,7 +124,7 @@ PostLive/
 | 文件 / 目录 | 说明 |
 | --- | --- |
 | `application.json` | 窗口几何、自动登录、当前用户、认证服务器、官网、编码器 / 码率 / 帧率 / 预览 / 水印设置。首次构建时从 `config/application.default.json` 创建，之后不会被覆盖 |
-| `users.json` | 本地用户列表与 token。首次构建时从 `config/users.default.json` 创建 |
+| `users.json` | 本地用户列表与 token（Windows DPAPI 加密）。首次构建时从 `config/users.default.json` 创建；换 Windows 用户或机器后 token 失效，需要重新登录 |
 | `assets/pilipili-logo.png` | 推流时叠加到画面左上角的 logo |
 | `user/avatar/*.avatar` | 登录后下载的头像缓存 |
 | `ffmpeg.exe`、`av*.dll`、`sw*.dll` | 推流运行时，由 CMake 复制 |

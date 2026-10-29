@@ -11,8 +11,6 @@
 #include <QTimer>
 #include <nlohmann/json.hpp>
 #include <fstream>
-#include <memory>
-#include <cpp-httplib/httplib.h>
 #include "GeneralSignal.h"
 #include "AsyncDownloader.h"
 #include "WidgetConfigInfo.h"
@@ -33,7 +31,9 @@ namespace thatboy
 		void loadUserData();
 		bool saveUserData();
 
-		std::unique_ptr<httplib::Client> createAuthClient();
+		QString authServerUrl();
+		QString protectToken(const QString& token);
+		QString unprotectToken(const QString& stored);
 
 		QString generateMD5(QString);
 	}

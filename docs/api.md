@@ -11,7 +11,7 @@
 | 请求 / 响应 | `application/json` |
 | 认证 | 无 HTTP 头；凭证放在 JSON body 中 |
 
-当前客户端使用 `cpp-httplib`，只支持 `http://`。如果要连接 Cloudflare 等 HTTPS 服务，需要启用 `CPPHTTPLIB_OPENSSL_SUPPORT`，或把认证请求改用 QtNetwork。
+客户端认证使用 QtNetwork（`QNetworkAccessManager`），支持 `http://` 与 `https://`。Qt 5.15 在 Windows 上通过 OpenSSL 1.1.x 提供 TLS：连接 HTTPS 时，需要把 `libssl-1_1-x64.dll` / `libcrypto-1_1-x64.dll` 放到程序目录，部署方式见 [building.md](building.md)。
 
 ## 本地联调
 

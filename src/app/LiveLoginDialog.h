@@ -8,6 +8,8 @@
 #include <QRegExpValidator>
 #include <QStyle>
 #include <QTimer>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include "LiveLoginSettingDialog.h"
 #include "DragableDialog.h"
 #include "ShadowWidget.h"
@@ -22,6 +24,10 @@ public:
 	LiveLoginDialog(QWidget* parent = Q_NULLPTR);
 protected:
 	void login();
+	void handleLoginReply(QNetworkReply* reply, nlohmann::json loginPackage,
+		std::string account, bool tokenLogin);
+	void handleProfileReply(QNetworkReply* reply, const std::string& account);
+	void finishLoginAttempt();
 	void applyConfig();
 	void setAvatar();
 	void setAccountCompleter();
@@ -32,6 +38,8 @@ protected:
 	LiveLoginSettingDialog settingDialog{ this };
 	ShadowWidget shadowWidget{ this };
 	QTimer autoLoginTimer{ this };
+	QNetworkAccessManager networkManager;
+	bool loginInProgress{ false };
 
 private:
 	Ui::LiveLoginDialogClass ui;

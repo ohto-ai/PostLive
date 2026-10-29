@@ -30,10 +30,10 @@
 
 ## 认证与后端
 
-- [x] **可配置 API 地址**：`createAuthClient()` 读取 `application.json` 的 `auth_server`；设置窗口可编辑，默认 `http://localhost:8877`。
+- [x] **可配置 API 地址**：QtNetwork 请求读取 `application.json` 的 `auth_server`；设置窗口可编辑，默认 `http://localhost:8877`。
 - [x] **提供本地 mock 服务端**：`tools/mock-server`，实现 login / profile / query / heartbeat，开发用。
-- [ ] **凭证安全**：密码只做 MD5、token 明文存 `users.json`；至少改为加盐哈希 + 加密存储，并在文档中说明。
-- [ ] **HTTPS 支持**：服务端部署 TLS 时，客户端需要 OpenSSL 支持的 `cpp-httplib` 构建。
+- [ ] **凭证安全**：token 已用 Windows DPAPI 加密；密码仍是 MD5，服务端加盐哈希待定。
+- [x] **HTTPS 支持**：认证改用 QtNetwork；Qt 5.15 通过 OpenSSL 1.1.x 提供 TLS，`POSTLIVE_OPENSSL_DIR` 可部署 DLL。
 - [ ] **补齐 API 类型**：客户端目前只实现 `login` 与 `profile`，`query` / `heartbeat` 尚未实现。
 - [x] **Cloudflare 免费认证评估**：Workers + D1 + KV 方案与免费额度见 [`docs/cloudflare.md`](docs/cloudflare.md)；是否采用待定。
 - [x] **Cloudflare 推流方案评估**：R2 + HLS、Stream、Realtime、Tunnel + 自建 RTMP 的对比见 [`docs/cloudflare.md`](docs/cloudflare.md)；推荐先做 R2 + HLS 实验，或直接使用 Stream 付费。
@@ -57,6 +57,7 @@
 - [ ] **CMake 安装 / CPack**：完善 `install()` 与 CPack，生成可复现的安装包。
 - [ ] **FFmpeg 分发合规**：安装包内置 FFmpeg 时附带许可证与源码获取说明（LGPL / GPL 取决于构建）。
 - [ ] **VC++ 运行时**：安装包附带 VC++ 2015-2022 Redistributable，或在 CI 中检测 / 安装；评估静态 CRT 与 Qt 的兼容性。
+- [ ] **CI OpenSSL**：为 HTTPS 认证在 CI 中部署 OpenSSL 1.1.x DLL，或迁移 Qt 6 使用 Schannel。
 
 ## 最近完成（2026-10-29）
 
@@ -72,6 +73,9 @@
 - [x] 托盘显示 / 隐藏、退出前停止推流。
 - [x] 遮罩窗口最小化 / 还原事件过滤（待实机复测）。
 - [x] 本地 mock 认证服务端 `tools/mock-server`（login / profile / query / heartbeat）。
+- [x] 认证改用 QtNetwork 异步请求，支持 http / https；5 s 超时。
+- [x] token 使用 Windows DPAPI 加密存储，旧明文 token 自动迁移。
+- [x] `POSTLIVE_SMOKE_TEST=1` 冒烟退出入口，用于 CI 验证配置保存。
 
 ## 本次整理已完成
 

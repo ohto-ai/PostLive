@@ -60,6 +60,7 @@ cmake -S . -B build -G "Visual Studio 16 2019" -A x64 `
 | --- | --- | --- |
 | `CMAKE_PREFIX_PATH` | 空 | 指向 Qt 5.15.2 的 `msvc2019_64` 目录 |
 | `POSTLIVE_FFMPEG_DIR` | `third_party/ffmpeg` | 包含 `ffmpeg.exe` 的目录；也支持其 `bin/` 子目录 |
+| `POSTLIVE_OPENSSL_DIR` | 空 | 包含 OpenSSL 1.1.x DLL 的目录，用于 HTTPS 认证 |
 | `CMAKE_BUILD_TYPE` | VS 多配置生成器忽略 | 单配置生成器（Ninja）使用 |
 
 修改选项后需要重新配置，例如：
@@ -67,6 +68,23 @@ cmake -S . -B build -G "Visual Studio 16 2019" -A x64 `
 ```powershell
 cmake -S . -B build -DPOSTLIVE_FFMPEG_DIR="D:/tools/ffmpeg"
 ```
+
+### HTTPS / OpenSSL
+
+Qt 5.15 在 Windows 上的 QtNetwork 通过 OpenSSL 1.1.x 提供 TLS。使用 `https://` 认证服务器时，需要：
+
+- `libssl-1_1-x64.dll`
+- `libcrypto-1_1-x64.dll`
+
+放到 `PostLive.exe` 旁边。可以让 CMake 在构建时复制：
+
+```powershell
+cmake -S . -B build -DPOSTLIVE_OPENSSL_DIR="C:/Qt/Tools/QtCreator/bin"
+```
+
+默认的 `http://localhost:8877` 不需要 OpenSSL。Qt 6 可以使用 Windows Schannel，不再依赖 OpenSSL 1.1.x。
+
+QtNetwork 会读取 Windows 系统代理设置（`QNetworkProxyFactory::setUseSystemConfiguration`），代理环境下不需要额外配置。
 
 ## 构建产物
 
@@ -117,6 +135,15 @@ cmake --build build/windows-x64 --config Release --target deploy-qt
 ```
 
 该目标调用 `windeployqt`，把 Qt DLL、平台插件、多媒体插件复制到 `Release/`。
+
+### 冒烟测试
+
+设置 `POSTLIVE_SMOKE_TEST=1` 时，程序启动后会在 500 ms 后自动退出，用于 CI 验证配置加载与用户数据保存：
+
+```powershell
+$env:POSTLIVE_SMOKE_TEST = "1"
+.\build\windows-x64\Release\PostLive.exe
+```
 
 ### 本地 mock 认证服务端
 

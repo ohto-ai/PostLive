@@ -36,6 +36,7 @@ iscc packaging/PostLive.iss
 ## 注意
 
 - 安装包内置 FFmpeg 时，请遵守其许可证（LGPL / GPL，取决于构建）并附带源码获取方式。
+- 使用 HTTPS 认证服务器时，需要 OpenSSL 1.1.x DLL。配置 `-DPOSTLIVE_OPENSSL_DIR=...` 后 CMake 会复制到构建目录，安装包会一并包含；请附带 OpenSSL 许可证。
 - 程序使用动态 CRT（`/MD`），目标机器需要安装 VC++ 2015-2022 Redistributable；发布前应把 `vc_redist.x64.exe` 一起分发，或评估改用静态 CRT。
 - 当前安装包没有数字签名；发布前建议配置代码签名证书。
 - CI 目前只生成 zip，不生成安装包；自动化打包见 [TODO.md](../TODO.md)。

@@ -26,7 +26,7 @@ flowchart LR
 | `src/widgets/` | 可复用的无边框窗口基类、拖拽、阴影、点击标签与密码输入框 |
 | `src/resources/` | Qt 资源（`.qrc`）与图片 / 图标 |
 | `src/platform/` | Windows 版本资源模板，由 CMake 注入版本号与图标路径 |
-| `third_party/` | cpp-httplib、nlohmann/json 头文件；FFmpeg 本地目录被忽略 |
+| `third_party/` | cpp-httplib（mock 服务端）、nlohmann/json 头文件；FFmpeg 本地目录被忽略 |
 
 ### 关键类
 
@@ -71,7 +71,7 @@ sequenceDiagram
 
 - 密码只保存 MD5，且“记住密码”实际上是保存 token 并用假密码回填输入框。
 - `application.json` 的 `login.auto_login` 为 `true` 时，登录窗口显示 100 ms 后自动调用登录；取消勾选或编辑账号 / 密码会停止本次自动登录。
-- 认证地址从 `application.json` 的 `auth_server` 读取（默认 `http://localhost:8877`），连接 / 读取超时为 3 s / 5 s；当前只支持 `http://`。
+- 认证地址从 `application.json` 的 `auth_server` 读取（默认 `http://localhost:8877`），QtNetwork 异步请求，5 s transfer timeout；HTTPS 需要 OpenSSL 1.1.x DLL。
 - token 登录失败时会清除 `remember_password` 与自动登录，避免下次启动重复失败。
 
 ## 推流流程
@@ -126,7 +126,7 @@ ffmpeg.exe -hide_banner -loglevel warning -nostats
 
 ## 已知限制
 
-- RTMP 路径（`/livehime`）仍硬编码；认证只支持 `http://`，HTTPS 需要 OpenSSL 或 QtNetwork。
+- RTMP 路径（`/livehime`）仍硬编码；认证支持 `http(s)://`，Qt 5.15 的 HTTPS 需要 OpenSSL 1.1.x DLL。
 - 设置窗口目前覆盖认证服务器、官网、水印；码率 / 编码器等仍在主窗口。
 - 密码 / token 使用 MD5 与明文 JSON 存储，不适合生产。
 - 仅支持 Qt 5.15 与 Windows。完整清单见 [TODO.md](../TODO.md)。

@@ -2,7 +2,9 @@
 
 #include "LiveLoginDialog.h"
 
+#include <QApplication>
 #include <QCheckBox>
+#include <QNetworkRequest>
 
 LiveLoginDialog::LiveLoginDialog(QWidget* parent)
 	: DragableDialog(parent)
@@ -13,6 +15,9 @@ LiveLoginDialog::LiveLoginDialog(QWidget* parent)
 
 void LiveLoginDialog::login()
 {
+	if (loginInProgress)
+		return;
+
 	using thatboy::storage::currentUser;
 	using thatboy::storage::usersStorage;
 
@@ -37,29 +42,73 @@ void LiveLoginDialog::login()
 		loginPackage["login"] = "password";
 	}
 
-	auto client = thatboy::utils::createAuthClient();
-	if (!client)
+	const QUrl server(thatboy::utils::authServerUrl());
+	const QString scheme = server.scheme().toLower();
+	if (!server.isValid() || server.host().isEmpty()
+		|| (scheme != "http" && scheme != "https"))
 	{
-		QMessageBox::warning(this, "Warning", "认证服务器地址无效，或当前构建不支持 HTTPS.");
+		QMessageBox::warning(this, "Warning",
+			"认证服务器地址无效，请在设置中填写 http(s)://host:port。");
 		return;
 	}
 
-	auto res = client->Post("/api", loginPackage.dump(), "application/json");
-	if (!res)
+	QUrl endpoint = server;
+	endpoint.setPath("/api");
+	endpoint.setQuery(QString());
+	endpoint.setFragment(QString());
+
+	QNetworkRequest request(endpoint);
+	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+	request.setTransferTimeout(5000);
+
+	loginInProgress = true;
+	ui.loginPushButton->setEnabled(false);
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+
+	auto* reply = networkManager.post(request, QByteArray::fromStdString(loginPackage.dump()));
+	connect(reply, &QNetworkReply::finished, this,
+		[this, reply, loginPackage, accountStd, tokenLogin]
+		{
+			handleLoginReply(reply, loginPackage, accountStd, tokenLogin);
+		});
+}
+
+void LiveLoginDialog::handleLoginReply(QNetworkReply* reply, nlohmann::json loginPackage,
+	std::string accountStd, bool tokenLogin)
+{
+	const QUrl endpoint = reply->url();
+	const QByteArray data = reply->readAll();
+	const auto networkError = reply->error();
+	const QString networkErrorString = reply->errorString();
+	const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+	reply->deleteLater();
+
+	using thatboy::storage::currentUser;
+	using thatboy::storage::usersStorage;
+
+	if (networkError != QNetworkReply::NoError && data.isEmpty())
 	{
-		QMessageBox::warning(this, "Warning", "无法连接到服务器.");
+		finishLoginAttempt();
+		QMessageBox::warning(this, "Warning",
+			"无法连接到服务器: " + networkErrorString);
 		return;
 	}
 
-	auto body = nlohmann::json::parse(res->body, nullptr, false);
+	auto body = nlohmann::json::parse(data.toStdString(), nullptr, false);
 	if (body.is_discarded() || !body.is_object())
 	{
-		QMessageBox::warning(this, "Warning", "服务器返回了无效数据.");
+		finishLoginAttempt();
+		if (networkError != QNetworkReply::NoError)
+			QMessageBox::warning(this, "Warning",
+				QString("服务器返回 HTTP %1: %2").arg(httpStatus).arg(networkErrorString));
+		else
+			QMessageBox::warning(this, "Warning", "服务器返回了无效数据.");
 		return;
 	}
 
 	if (!body.contains("success") || !body["success"].is_boolean() || !body["success"].get<bool>())
 	{
+		finishLoginAttempt();
 		const std::string info = (body.contains("info") && body["info"].is_string())
 			? body["info"].get<std::string>() : std::string();
 		QMessageBox::warning(this, "Warning", "登录失败. " + QString::fromStdString(info));
@@ -77,6 +126,7 @@ void LiveLoginDialog::login()
 
 	if (!body.contains("token") || !body["token"].is_string())
 	{
+		finishLoginAttempt();
 		QMessageBox::warning(this, "Warning", "服务器没有返回登录 token.");
 		return;
 	}
@@ -108,31 +158,66 @@ void LiveLoginDialog::login()
 	loginPackage["profile"].push_back("gender");
 	loginPackage["token"] = currentUser["token"];
 
-	res = client->Post("/api", loginPackage.dump(), "application/json");
-	if (!res)
+	QNetworkRequest request(endpoint);
+	request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+	request.setTransferTimeout(5000);
+
+	auto* profileReply = networkManager.post(request, QByteArray::fromStdString(loginPackage.dump()));
+	connect(profileReply, &QNetworkReply::finished, this,
+		[this, profileReply, accountStd]
+		{
+			handleProfileReply(profileReply, accountStd);
+		});
+}
+
+void LiveLoginDialog::handleProfileReply(QNetworkReply* reply, const std::string& accountStd)
+{
+	const QByteArray data = reply->readAll();
+	const auto networkError = reply->error();
+	const QString networkErrorString = reply->errorString();
+	const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+	reply->deleteLater();
+
+	if (networkError != QNetworkReply::NoError && data.isEmpty())
 	{
-		QMessageBox::warning(this, "Warning", "登录成功，但无法获取用户资料.");
+		finishLoginAttempt();
+		QMessageBox::warning(this, "Warning",
+			"登录成功，但无法获取用户资料: " + networkErrorString);
 		accept();
 		return;
 	}
 
-	body = nlohmann::json::parse(res->body, nullptr, false);
+	auto body = nlohmann::json::parse(data.toStdString(), nullptr, false);
 	if (body.is_discarded() || !body.is_object()
 		|| !body.contains("success") || !body["success"].is_boolean()
 		|| !body["success"].get<bool>()
 		|| !body.contains("profile") || !body["profile"].is_object())
 	{
-		QMessageBox::warning(this, "Warning", "登录成功，但获取用户资料失败.");
+		finishLoginAttempt();
+		if (networkError != QNetworkReply::NoError)
+			QMessageBox::warning(this, "Warning",
+				QString("登录成功，但获取用户资料失败（HTTP %1: %2）").arg(httpStatus).arg(networkErrorString));
+		else
+			QMessageBox::warning(this, "Warning", "登录成功，但获取用户资料失败.");
 		accept();
 		return;
 	}
 
+	auto& usersStorage = thatboy::storage::usersStorage;
 	if (body["profile"].contains("avatar") && body["profile"]["avatar"].is_string())
 		usersStorage["users"][accountStd]["avatar"] = body["profile"]["avatar"];
 	if (body["profile"].contains("gender") && body["profile"]["gender"].is_string())
 		usersStorage["users"][accountStd]["gender"] = body["profile"]["gender"];
 
+	finishLoginAttempt();
 	accept();
+}
+
+void LiveLoginDialog::finishLoginAttempt()
+{
+	loginInProgress = false;
+	QApplication::restoreOverrideCursor();
+	checkAccountPasswordAcceptableInput();
 }
 
 void LiveLoginDialog::applyConfig()

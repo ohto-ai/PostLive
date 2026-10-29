@@ -76,6 +76,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
+## OpenSSL 1.1.x（可选，HTTPS 认证）
+
+- 项目：<https://www.openssl.org/>
+- 许可证：OpenSSL License / SSLeay License（1.1.x）
+- 使用方式：Qt 5.15 的 QtNetwork 在 Windows 上通过 OpenSSL 1.1.x 提供 TLS。
+- 仓库不包含 OpenSSL DLL。如果安装包分发 `libssl-1_1-x64.dll` / `libcrypto-1_1-x64.dll`，请附带 OpenSSL 的许可证文本。
+
 ## Windows SDK / DbgHelp
 
 Windows SDK 随 Visual Studio 安装，受 Microsoft 许可约束；DbgHelp 仅用于生成崩溃转储。

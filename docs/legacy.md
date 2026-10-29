@@ -47,5 +47,5 @@ git show pre-cmake-reorg --stat
 ## 迁移建议
 
 - 需要旧登录逻辑时，优先阅读 `src/app/LiveLoginDialog.cpp` 与 `src/core/utils.cpp`，而不是复制旧工程；
-- `LiveServerTestDemo` 的协议仍记录在 [api.md](api.md)，将来可以用 `cpp-httplib` + Qt 重写为 `tools/mock-server`；
+- `LiveServerTestDemo` 的协议仍记录在 [api.md](api.md)，已实现为 [`tools/mock-server`](../tools/mock-server/README.md)；
 - `ffmpeg-demo` 中的解码预览思路可以用于“预览开关”功能，但需要重新对接 FFmpeg 7.x。

@@ -5,6 +5,12 @@
 #include <QUrl>
 #include <string>
 
+#ifdef _WIN32
+#define NOMINMAX
+#include <windows.h>
+#include <dpapi.h>
+#endif
+
 namespace
 {
 	nlohmann::json readJsonFile(const QString& path, bool* ok = nullptr)
@@ -86,6 +92,29 @@ void thatboy::utils::loadUserData()
 		users["users"] = nlohmann::json::object();
 	storage::usersStorage = users;
 
+	// Decrypt tokens at rest. Plaintext values from older versions are kept as-is.
+	if (storage::usersStorage["users"].is_object())
+	{
+		for (auto& item : storage::usersStorage["users"].items())
+		{
+			auto& user = item.value();
+			if (!user.is_object() || !user.contains("token") || !user["token"].is_string())
+				continue;
+
+			const QString stored = QString::fromStdString(user["token"].get<std::string>());
+			const QString token = unprotectToken(stored);
+			if (stored.startsWith(QStringLiteral("dpapi:")) && token.isEmpty())
+			{
+				user["token"] = "";
+				user["remember_password"] = false;
+			}
+			else
+			{
+				user["token"] = token.toStdString();
+			}
+		}
+	}
+
 	// load avatars
 	QObject::connect(&storage::avatarDownloader, &AsyncDownloader::finished, [&](QString url, QString file, bool success)
 		{
@@ -130,7 +159,22 @@ bool thatboy::utils::saveUserData()
 		qWarning() << "failed to save user data to" << QString::fromStdString(userListPath);
 		return false;
 	}
-	ofs << storage::usersStorage.dump(4);
+
+	auto serialized = storage::usersStorage;
+	if (serialized.contains("users") && serialized["users"].is_object())
+	{
+		for (auto& item : serialized["users"].items())
+		{
+			auto& user = item.value();
+			if (!user.is_object() || !user.contains("token") || !user["token"].is_string())
+				continue;
+
+			const QString token = QString::fromStdString(user["token"].get<std::string>());
+			user["token"] = protectToken(token).toStdString();
+		}
+	}
+
+	ofs << serialized.dump(4);
 	return ofs.good();
 }
 
@@ -140,23 +184,69 @@ QString thatboy::utils::generateMD5(QString str)
 		, QCryptographicHash::Md5).toHex().toUpper();
 }
 
-std::unique_ptr<httplib::Client> thatboy::utils::createAuthClient()
+QString thatboy::utils::authServerUrl()
 {
-	const std::string raw = storage::config.value("auth_server", std::string("http://localhost:8877"));
-	const QUrl url(QString::fromStdString(raw));
-	if (!url.isValid() || url.host().isEmpty())
-		return nullptr;
+	return QString::fromStdString(
+		storage::config.value("auth_server", std::string("http://localhost:8877")));
+}
 
-	const QString scheme = url.scheme().toLower();
-	if (scheme != "http")
-		return nullptr;
+QString thatboy::utils::protectToken(const QString& token)
+{
+#ifdef _WIN32
+	if (token.isEmpty() || token.startsWith(QStringLiteral("dpapi:")))
+		return token;
 
-	const int port = url.port(80);
-	const QString base = scheme + "://" + url.host() + ":" + QString::number(port);
-	auto client = std::make_unique<httplib::Client>(base.toStdString());
-	client->set_connection_timeout(3, 0);
-	client->set_read_timeout(5, 0);
-	return client;
+	const QByteArray utf8 = token.toUtf8();
+	DATA_BLOB input{};
+	input.pbData = reinterpret_cast<BYTE*>(const_cast<char*>(utf8.constData()));
+	input.cbData = static_cast<DWORD>(utf8.size());
+
+	DATA_BLOB output{};
+	if (!CryptProtectData(&input, L"PostLive token", nullptr, nullptr, nullptr,
+		CRYPTPROTECT_UI_FORBIDDEN, &output))
+	{
+		qWarning() << "CryptProtectData failed for token";
+		return token;
+	}
+
+	const QByteArray encrypted(reinterpret_cast<const char*>(output.pbData),
+		static_cast<int>(output.cbData));
+	LocalFree(output.pbData);
+	return QStringLiteral("dpapi:") + QString::fromLatin1(encrypted.toBase64());
+#else
+	return token;
+#endif
+}
+
+QString thatboy::utils::unprotectToken(const QString& stored)
+{
+#ifdef _WIN32
+	if (!stored.startsWith(QStringLiteral("dpapi:")))
+		return stored;
+
+	const QByteArray encrypted = QByteArray::fromBase64(stored.mid(6).toLatin1());
+	if (encrypted.isEmpty())
+		return {};
+
+	DATA_BLOB input{};
+	input.pbData = reinterpret_cast<BYTE*>(const_cast<char*>(encrypted.constData()));
+	input.cbData = static_cast<DWORD>(encrypted.size());
+
+	DATA_BLOB output{};
+	if (!CryptUnprotectData(&input, nullptr, nullptr, nullptr, nullptr,
+		CRYPTPROTECT_UI_FORBIDDEN, &output))
+	{
+		qWarning() << "CryptUnprotectData failed for token";
+		return {};
+	}
+
+	const QString token = QString::fromUtf8(reinterpret_cast<const char*>(output.pbData),
+		static_cast<int>(output.cbData));
+	LocalFree(output.pbData);
+	return token;
+#else
+	return stored;
+#endif
 }
 
 void thatboy::utils::loadConfig()

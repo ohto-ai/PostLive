@@ -49,11 +49,6 @@ void LiveLoginSettingDialog::save()
 		QMessageBox::warning(this, "错误", "认证服务器只填写协议、主机和端口，不要包含路径。");
 		return;
 	}
-	if (serverScheme == "https")
-	{
-		QMessageBox::warning(this, "错误", "当前构建未启用 HTTPS（OpenSSL），请使用 http:// 地址。");
-		return;
-	}
 
 	const QString website = ui.websiteLineEdit->text().trimmed();
 	if (!website.isEmpty())

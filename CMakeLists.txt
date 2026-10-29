@@ -120,7 +120,8 @@ target_link_libraries(PostLive PRIVATE
     Qt5::Multimedia
     Qt5::MultimediaWidgets
     ws2_32
-    dbghelp)
+    dbghelp
+    crypt32)
 
 # Local development server for the authentication API.
 add_executable(PostLiveMockServer tools/mock-server/main.cpp)
@@ -145,6 +146,9 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/tools" PREFIX "Tools"
 
 set(POSTLIVE_FFMPEG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ffmpeg"
     CACHE PATH "Directory containing a standalone FFmpeg build (ffmpeg.exe)")
+
+set(POSTLIVE_OPENSSL_DIR ""
+    CACHE PATH "Directory containing OpenSSL 1.1.x DLLs for QtNetwork HTTPS")
 
 find_program(POSTLIVE_FFMPEG_EXECUTABLE
     NAMES ffmpeg.exe
@@ -176,6 +180,7 @@ add_custom_command(TARGET PostLive POST_BUILD
         "-DASSETS_DIR=${CMAKE_CURRENT_SOURCE_DIR}/assets"
         "-DCONFIG_DIR=${CMAKE_CURRENT_SOURCE_DIR}/config"
         "-DFFMPEG_BIN_DIR=${POSTLIVE_FFMPEG_BIN_DIR}"
+        "-DOPENSSL_DIR=${POSTLIVE_OPENSSL_DIR}"
         -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/DeployRuntime.cmake"
     COMMENT "Deploying runtime files next to PostLive.exe"
     VERBATIM)
