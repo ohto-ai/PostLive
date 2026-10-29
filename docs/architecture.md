@@ -20,9 +20,9 @@ flowchart LR
 
 | 目录 | 职责 |
 | --- | --- |
-| `src/main.cpp` | 初始化 `QApplication`、工作目录、配置与用户数据，控制登录 → 主窗口流程 |
+| `src/main.cpp` | 初始化 `QApplication`、工作目录、日志、配置与用户数据，控制登录 → 主窗口流程 |
 | `src/app/` | 业务窗口：登录、设置、直播 |
-| `src/core/` | 与界面无关的支撑代码：配置读写、HTTP 客户端、头像下载、窗口配置序列化 |
+| `src/core/` | 与界面无关的支撑代码：配置读写、HTTP 客户端、头像下载、窗口配置序列化、日志 |
 | `src/widgets/` | 可复用的无边框窗口基类、拖拽、阴影、点击标签与密码输入框 |
 | `src/resources/` | Qt 资源（`.qrc`）与图片 / 图标 |
 | `src/platform/` | Windows 版本资源模板，由 CMake 注入版本号与图标路径 |
@@ -37,6 +37,7 @@ flowchart LR
 | `LivePlatform` | `src/app` | 摄像头预览、设备枚举、推流、托盘 |
 | `AsyncDownloader` | `src/core` | 基于 `QNetworkAccessManager` 的异步下载 |
 | `WidgetConfigInfo` | `src/core` | 窗口几何、透明度、遮罩属性的 JSON 序列化 |
+| `log`（Logging） | `src/core` | `QLoggingCategory` 分类日志，写入 `log/PostLive.log` 并镜像 stderr |
 | `utils` / `storage` | `src/core` | 配置与用户数据加载、保存，全局状态 |
 | `BaseWidget` / `BaseDialog` / `BaseMainWindow` | `src/widgets` | 统一窗口事件与信号 |
 | `DragableWidget` / `DragableDialog` / `DragableMainWindow` | `src/widgets` | 无边框窗口拖动 |
@@ -47,10 +48,17 @@ flowchart LR
 
 1. `main.cpp` 创建 `QApplication`，设置应用名 / 版本。
 2. `QDir::setCurrent(QCoreApplication::applicationDirPath())`，让所有相对路径以可执行文件目录为基准。
-3. `utils::loadConfig()` 读取 `application.json`。
-4. `utils::loadUserData()` 读取 `users.json`，异步下载缺失头像。
-5. 显示 `LiveLoginDialog`；登录成功（`QDialog::Accepted`）后创建 `LivePlatform`。
-6. 关闭主窗口时保存配置与用户数据；未处理异常生成 `PostLive.dmp`。
+3. `log::initLogging()` 安装消息处理器，日志写入 `log/PostLive.log`（2 MB 轮转，保留 1 份备份）。
+4. `utils::loadConfig()` 读取 `application.json`。
+5. `utils::loadUserData()` 读取 `users.json`，异步下载缺失头像。
+6. 显示 `LiveLoginDialog`；登录成功（`QDialog::Accepted`）后创建 `LivePlatform`。
+7. 关闭主窗口时保存配置与用户数据；未处理异常生成 `PostLive.dmp` 并记录日志。
+
+## 错误反馈与日志
+
+应用不使用 `QMessageBox` 等模态弹窗：登录失败显示在登录框底部的内嵌提示（约 8 秒后自动清除），设置校验失败在字段上标红并内嵌说明，推流错误显示在主窗口状态栏，全局 / 崩溃路径只记录日志。
+
+日志使用 `QLoggingCategory` 分类：`postlive.app`（生命周期）、`postlive.core`（配置与存储）、`postlive.network`（认证请求）、`postlive.stream`（推流）、`postlive.device`（设备枚举）。每条日志形如 `2026-10-29 23:27:22.462 [info] postlive.app: ...`，文件超过 2 MB 时在启动或写入时轮转为 `PostLive.log.1`。核心逻辑的单元测试在 `tests/`，用 `ctest --preset windows-x64` 运行。
 
 ## 登录流程
 
@@ -121,7 +129,7 @@ ffmpeg.exe -hide_banner -loglevel warning -nostats
 
 - UI、网络、配置读写都在主线程；`AsyncDownloader` 使用 Qt 事件循环，不阻塞登录窗口。
 - FFmpeg 是独立进程，通过 `QProcess` 启动；客户端的摄像头预览在推流期间停止，避免设备占用冲突。
-- 停播先向 FFmpeg 写入 `q`，3 秒后 `terminate()`，再 2 秒后 `kill()`；状态与错误通过状态栏和对话框呈现。
+- 停播先向 FFmpeg 写入 `q`，3 秒后 `terminate()`，再 2 秒后 `kill()`；状态与错误通过状态栏呈现，详情写入 `log/PostLive.log`。
 - 没有显式的线程池或后台任务队列。
 
 ## 已知限制

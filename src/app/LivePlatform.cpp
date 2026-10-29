@@ -4,6 +4,7 @@
 
 #include "LivePlatform.h"
 #include "LiveLoginSettingDialog.h"
+#include "../core/Logging.h"
 
 #include <future>
 #include <QCheckBox>
@@ -13,7 +14,6 @@
 #include <QEvent>
 #include <QFileInfo>
 #include <QMenu>
-#include <QMessageBox>
 #include <QSet>
 #include <QSignalBlocker>
 #include <QStandardPaths>
@@ -152,8 +152,8 @@ LivePlatform::LivePlatform(QWidget* parent)
 			if (!errorNotified)
 			{
 				errorNotified = true;
-				QMessageBox::critical(this, tr("错误"),
-					tr("无法启动 FFmpeg。请确认 ffmpeg.exe 位于程序目录或 PATH 中。"));
+				qCCritical(lcStream) << "FFmpeg failed to start; expected at"
+					<< ffmpegPath << "or on PATH";
 			}
 			if (ui.previewCheckBox->isChecked())
 				startPreview();
@@ -174,11 +174,8 @@ LivePlatform::LivePlatform(QWidget* parent)
 				if (!errorNotified)
 				{
 					errorNotified = true;
-					QString detail = errorText;
-					if (detail.size() > 1500)
-						detail = detail.right(1500);
-					QMessageBox::warning(this, tr("推流结束"),
-						tr("FFmpeg 退出码 %1。\n\n%2").arg(code).arg(detail));
+					qCWarning(lcStream) << "FFmpeg exited abnormally with code" << code
+						<< "stderr tail:" << errorText;
 				}
 			}
 			else
@@ -308,7 +305,8 @@ void LivePlatform::startStreaming()
 	if (server.isEmpty() || !serverUrl.isValid()
 		|| serverUrl.scheme().isEmpty() || serverUrl.host().isEmpty())
 	{
-		QMessageBox::warning(this, tr("错误"), tr("无效的服务器地址！"));
+		appendStatus(tr("无效的服务器地址"));
+		qCWarning(lcStream) << "stream start aborted: invalid server URL" << server;
 		return;
 	}
 
@@ -316,12 +314,14 @@ void LivePlatform::startStreaming()
 	const QString microphone = ui.microphoneComboBox->currentText();
 	if (camera.isEmpty())
 	{
-		QMessageBox::warning(this, tr("错误"), tr("没有可用的摄像头。"));
+		appendStatus(tr("没有可用的摄像头"));
+		qCWarning(lcStream) << "stream start aborted: no camera";
 		return;
 	}
 	if (microphone.isEmpty())
 	{
-		QMessageBox::warning(this, tr("错误"), tr("没有可用的麦克风。"));
+		appendStatus(tr("没有可用的麦克风"));
+		qCWarning(lcStream) << "stream start aborted: no microphone";
 		return;
 	}
 
@@ -330,8 +330,8 @@ void LivePlatform::startStreaming()
 		ffmpegExecutable = QStandardPaths::findExecutable("ffmpeg.exe");
 	if (ffmpegExecutable.isEmpty())
 	{
-		QMessageBox::warning(this, tr("错误"),
-			tr("找不到 %1。请把 FFmpeg 放到程序目录，或加入 PATH。").arg(ffmpegPath));
+		appendStatus(tr("找不到 FFmpeg，请放到程序目录或 PATH"));
+		qCWarning(lcStream) << "stream start aborted: ffmpeg.exe not found";
 		return;
 	}
 
@@ -347,8 +347,8 @@ void LivePlatform::startStreaming()
 	const bool useWatermark = watermarkEnabled && QFileInfo::exists(logoImage);
 	if (watermarkEnabled && !useWatermark)
 	{
-		QMessageBox::warning(this, tr("提示"),
-			tr("找不到水印文件 %1，本次推流将不使用水印。").arg(logoImage));
+		appendStatus(tr("找不到水印文件，本次推流不叠加水印"));
+		qCInfo(lcStream) << "watermark file missing, streaming without it:" << logoImage;
 	}
 
 	QStringList arguments;
@@ -375,6 +375,7 @@ void LivePlatform::startStreaming()
 	lastErrorOutput.clear();
 	ffmpegProcess.readAllStandardError();
 	appendStatus(tr("正在启动 FFmpeg..."));
+	qCInfo(lcStream) << "starting FFmpeg:" << ffmpegExecutable << arguments.join(QLatin1Char(' '));
 	ffmpegProcess.start(ffmpegExecutable, arguments);
 }
 

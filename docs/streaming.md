@@ -110,7 +110,7 @@ ffplay rtmp://<server>:1935/live/<stream>
 
 编码器下拉框默认 `Auto`，此时不传 `-c:v`，由 FFmpeg 选择默认编码器。也可以选择 `libx264`、`h264_nvenc`、`h264_amf`、`h264_qsv`、`libopenh264`。
 
-如果选择当前 FFmpeg 构建不包含的编码器，开播会失败；错误会显示在状态栏和对话框中。可以用下面的命令查看可用编码器：
+如果选择当前 FFmpeg 构建不包含的编码器，开播会失败；错误会显示在状态栏中，FFmpeg 的 stderr 详情记录在 `log/PostLive.log`。可以用下面的命令查看可用编码器：
 
 ```bash
 ffmpeg -hide_banner -encoders | findstr h264

@@ -1,5 +1,6 @@
 ﻿#include "utils.h"
 
+#include "Logging.h"
 #include <QDebug>
 #include <QFile>
 #include <QUrl>
@@ -81,7 +82,7 @@ void thatboy::utils::loadUserData()
 	auto users = readJsonFile(QString::fromStdString(userListPath), &ok);
 	if (!ok)
 	{
-		qWarning() << "users.json is missing or invalid; using built-in defaults";
+		qCWarning(lcCore) << "users.json is missing or invalid; using built-in defaults";
 		users = readJsonFile(QStringLiteral(":/LiveLoginDialog/config/users.default.json"));
 	}
 	if (!users.is_object())
@@ -156,7 +157,7 @@ bool thatboy::utils::saveUserData()
 	std::ofstream ofs(userListPath);
 	if (!ofs)
 	{
-		qWarning() << "failed to save user data to" << QString::fromStdString(userListPath);
+		qCWarning(lcCore) << "failed to save user data to" << QString::fromStdString(userListPath);
 		return false;
 	}
 
@@ -205,7 +206,7 @@ QString thatboy::utils::protectToken(const QString& token)
 	if (!CryptProtectData(&input, L"PostLive token", nullptr, nullptr, nullptr,
 		CRYPTPROTECT_UI_FORBIDDEN, &output))
 	{
-		qWarning() << "CryptProtectData failed for token";
+		qCWarning(lcCore) << "CryptProtectData failed for token";
 		return token;
 	}
 
@@ -236,7 +237,7 @@ QString thatboy::utils::unprotectToken(const QString& stored)
 	if (!CryptUnprotectData(&input, nullptr, nullptr, nullptr, nullptr,
 		CRYPTPROTECT_UI_FORBIDDEN, &output))
 	{
-		qWarning() << "CryptUnprotectData failed for token";
+		qCWarning(lcCore) << "CryptUnprotectData failed for token";
 		return {};
 	}
 
@@ -262,7 +263,7 @@ void thatboy::utils::loadConfig()
 	}
 	else
 	{
-		qWarning() << "application.json is missing or invalid; using built-in defaults";
+		qCWarning(lcCore) << "application.json is missing or invalid; using built-in defaults";
 		storage::config = defaults.is_object() ? defaults : nlohmann::json::object();
 	}
 
@@ -315,7 +316,7 @@ bool thatboy::utils::saveConfig()
 	std::ofstream ofs(storage::ConfigFilePath);
 	if (!ofs)
 	{
-		qWarning() << "failed to save application config to" << storage::ConfigFilePath;
+		qCWarning(lcCore) << "failed to save application config to" << storage::ConfigFilePath;
 		return false;
 	}
 	ofs << storage::config.dump(4);

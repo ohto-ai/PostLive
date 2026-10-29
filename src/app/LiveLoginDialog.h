@@ -2,7 +2,6 @@
 
 #include <QDesktopServices>
 #include <QToolButton>
-#include <QMessageBox>
 #include <QUrl>
 #include <QCompleter>
 #include <QRegExpValidator>
@@ -33,11 +32,15 @@ protected:
 	void setAccountCompleter();
 	void setAccountPasswordAcceptableInputCheck();
 	bool checkAccountPasswordAcceptableInput() const;
+	// Shows a login failure inline on the dialog (no modal popup); the message
+	// clears itself after storage::LoginErrorLabelTime.
+	void showLoginMessage(const QString& message);
 
 protected:
 	LiveLoginSettingDialog settingDialog{ this };
 	ShadowWidget shadowWidget{ this };
 	QTimer autoLoginTimer{ this };
+	QTimer loginMessageTimer{ this };
 	QNetworkAccessManager networkManager;
 	bool loginInProgress{ false };
 

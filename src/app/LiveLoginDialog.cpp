@@ -2,6 +2,7 @@
 
 #include "LiveLoginDialog.h"
 
+#include "../core/Logging.h"
 #include <QApplication>
 #include <QCheckBox>
 #include <QNetworkRequest>
@@ -47,8 +48,8 @@ void LiveLoginDialog::login()
 	if (!server.isValid() || server.host().isEmpty()
 		|| (scheme != "http" && scheme != "https"))
 	{
-		QMessageBox::warning(this, "Warning",
-			"认证服务器地址无效，请在设置中填写 http(s)://host:port。");
+		qCWarning(lcNetwork) << "login aborted: invalid auth server URL" << server.toString();
+		showLoginMessage("认证服务器地址无效，请在设置中填写 http(s)://host:port。");
 		return;
 	}
 
@@ -89,8 +90,8 @@ void LiveLoginDialog::handleLoginReply(QNetworkReply* reply, nlohmann::json logi
 	if (networkError != QNetworkReply::NoError && data.isEmpty())
 	{
 		finishLoginAttempt();
-		QMessageBox::warning(this, "Warning",
-			"无法连接到服务器: " + networkErrorString);
+		qCWarning(lcNetwork) << "login request failed for" << accountStd.c_str() << networkErrorString;
+		showLoginMessage("无法连接到服务器: " + networkErrorString);
 		return;
 	}
 
@@ -98,11 +99,11 @@ void LiveLoginDialog::handleLoginReply(QNetworkReply* reply, nlohmann::json logi
 	if (body.is_discarded() || !body.is_object())
 	{
 		finishLoginAttempt();
+		qCWarning(lcNetwork) << "login reply is not valid JSON (HTTP" << httpStatus << ")";
 		if (networkError != QNetworkReply::NoError)
-			QMessageBox::warning(this, "Warning",
-				QString("服务器返回 HTTP %1: %2").arg(httpStatus).arg(networkErrorString));
+			showLoginMessage(QString("服务器返回 HTTP %1: %2").arg(httpStatus).arg(networkErrorString));
 		else
-			QMessageBox::warning(this, "Warning", "服务器返回了无效数据.");
+			showLoginMessage("服务器返回了无效数据.");
 		return;
 	}
 
@@ -111,7 +112,8 @@ void LiveLoginDialog::handleLoginReply(QNetworkReply* reply, nlohmann::json logi
 		finishLoginAttempt();
 		const std::string info = (body.contains("info") && body["info"].is_string())
 			? body["info"].get<std::string>() : std::string();
-		QMessageBox::warning(this, "Warning", "登录失败. " + QString::fromStdString(info));
+		qCWarning(lcNetwork) << "login rejected for" << accountStd.c_str() << info.c_str();
+		showLoginMessage("登录失败. " + QString::fromStdString(info));
 
 		if (tokenLogin)
 		{
@@ -127,9 +129,12 @@ void LiveLoginDialog::handleLoginReply(QNetworkReply* reply, nlohmann::json logi
 	if (!body.contains("token") || !body["token"].is_string())
 	{
 		finishLoginAttempt();
-		QMessageBox::warning(this, "Warning", "服务器没有返回登录 token.");
+		qCWarning(lcNetwork) << "login reply carries no token for" << accountStd.c_str();
+		showLoginMessage("服务器没有返回登录 token.");
 		return;
 	}
+
+	qCInfo(lcNetwork) << "login ok for" << accountStd.c_str();
 
 	currentUser["account"] = accountStd;
 	currentUser["token"] = body["token"];
@@ -181,8 +186,8 @@ void LiveLoginDialog::handleProfileReply(QNetworkReply* reply, const std::string
 	if (networkError != QNetworkReply::NoError && data.isEmpty())
 	{
 		finishLoginAttempt();
-		QMessageBox::warning(this, "Warning",
-			"登录成功，但无法获取用户资料: " + networkErrorString);
+		// The dialog is about to close on success, so this is log-only.
+		qCWarning(lcNetwork) << "profile request failed for" << accountStd.c_str() << networkErrorString;
 		accept();
 		return;
 	}
@@ -194,11 +199,8 @@ void LiveLoginDialog::handleProfileReply(QNetworkReply* reply, const std::string
 		|| !body.contains("profile") || !body["profile"].is_object())
 	{
 		finishLoginAttempt();
-		if (networkError != QNetworkReply::NoError)
-			QMessageBox::warning(this, "Warning",
-				QString("登录成功，但获取用户资料失败（HTTP %1: %2）").arg(httpStatus).arg(networkErrorString));
-		else
-			QMessageBox::warning(this, "Warning", "登录成功，但获取用户资料失败.");
+		qCWarning(lcNetwork) << "profile reply invalid for" << accountStd.c_str()
+			<< "HTTP" << httpStatus << networkErrorString;
 		accept();
 		return;
 	}
@@ -209,8 +211,16 @@ void LiveLoginDialog::handleProfileReply(QNetworkReply* reply, const std::string
 	if (body["profile"].contains("gender") && body["profile"]["gender"].is_string())
 		usersStorage["users"][accountStd]["gender"] = body["profile"]["gender"];
 
+	qCInfo(lcNetwork) << "profile loaded for" << accountStd.c_str();
 	finishLoginAttempt();
 	accept();
+}
+
+void LiveLoginDialog::showLoginMessage(const QString& message)
+{
+	ui.loginMessageLabel->setText(message);
+	if (!message.isEmpty())
+		loginMessageTimer.start();
 }
 
 void LiveLoginDialog::finishLoginAttempt()
@@ -250,6 +260,13 @@ void LiveLoginDialog::applyConfig()
 	setAvatar();
 	setAccountCompleter();
 	setAccountPasswordAcceptableInputCheck();
+
+	loginMessageTimer.setSingleShot(true);
+	loginMessageTimer.setInterval(thatboy::storage::LoginErrorLabelTime);
+	connect(&loginMessageTimer, &QTimer::timeout, this, [this]
+		{
+			ui.loginMessageLabel->clear();
+		});
 
 	ui.autoLoginCheckBox->setChecked(loginConfig["auto_login"]);
 	connect(ui.autoLoginCheckBox, &QCheckBox::toggled, this, [this](bool checked)

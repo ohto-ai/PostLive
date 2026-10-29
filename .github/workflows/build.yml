@@ -37,6 +37,9 @@ jobs:
       - name: Build
         run: cmake --build --preset release --parallel
 
+      - name: Run tests
+        run: ctest --preset windows-x64
+
       - name: Deploy Qt runtime
         run: cmake --build build/windows-x64 --config Release --target deploy-qt
 

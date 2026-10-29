@@ -1,6 +1,7 @@
 ﻿#pragma execution_character_set("utf-8")
 #include "LivePlatform.h"
 #include "LiveLoginDialog.h"
+#include "Logging.h"
 #include <QtWidgets/QApplication>
 #include <QDir>
 #include <QNetworkProxyFactory>
@@ -36,11 +37,11 @@ int GenerateDump(EXCEPTION_POINTERS* pExceptionPointers)
 LONG WINAPI ExceptionFilter(EXCEPTION_POINTERS* pExceptionPointers)
 {
 	if (IsDebuggerPresent()) {
-		QMessageBox::critical(nullptr, "错误", "发生了未处理的异常.");
+		qCCritical(lcApp) << "Unhandled exception; a debugger is attached, letting it take over.";
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
 	else {
-		QMessageBox::critical(nullptr, "错误", "发生了未处理的异常，程序即将退出. 将生成转储文件...");
+		qCCritical(lcApp) << "Unhandled exception; the program will exit. Writing minidump...";
         return GenerateDump(pExceptionPointers);
 	}
 }
@@ -56,6 +57,9 @@ int main(int argc, char* argv[])
 	// Resolve application.json, users.json, assets/, user/ and ffmpeg.exe
 	// relative to the executable, regardless of how the process was started.
 	QDir::setCurrent(QCoreApplication::applicationDirPath());
+
+	thatboy::log::initLogging();
+	qCInfo(lcApp) << "PostLive" << POSTLIVE_VERSION << "starting";
 
 	SetUnhandledExceptionFilter(ExceptionFilter);
 
@@ -81,12 +85,13 @@ int main(int argc, char* argv[])
 		bool saved = thatboy::utils::saveUserData();
 		saved = thatboy::utils::saveConfig() && saved;
 		if (!saved)
-			QMessageBox::warning(nullptr, "错误", "配置或用户数据保存失败，请检查程序目录的写入权限.");
+			qCCritical(lcApp) << "Failed to save config or user data; check write access to the program directory.";
 		return 0;
 #ifndef _DEBUG
 	}
 	catch (...)
 	{
+		qCCritical(lcApp) << "Unexpected exception; attempting to save data before exiting.";
 		bool saved = false;
 		try {
 			saved = thatboy::utils::saveUserData();
@@ -94,15 +99,15 @@ int main(int argc, char* argv[])
 		}
 		catch (...)
 		{
-			QMessageBox::warning(nullptr, "错误", "未预料的错误，数据保存失败.");
+			qCCritical(lcApp) << "Unexpected exception; saving data failed.";
 			return -2;
 		}
 		if (!saved)
 		{
-			QMessageBox::warning(nullptr, "错误", "未预料的错误，数据保存失败.");
+			qCCritical(lcApp) << "Unexpected exception; data could not be saved.";
 			return -2;
 		}
-		QMessageBox::warning(nullptr, "错误", "未预料的错误，数据已保存.");
+		qCCritical(lcApp) << "Unexpected exception; data has been saved.";
 		return -1;
 	}
 #endif

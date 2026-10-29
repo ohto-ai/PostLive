@@ -39,6 +39,7 @@ set(POSTLIVE_SOURCES
     src/app/LivePlatform.cpp
 
     src/core/AsyncDownloader.cpp
+    src/core/Logging.cpp
     src/core/WidgetConfigInfo.cpp
     src/core/utils.cpp
 
@@ -60,6 +61,7 @@ set(POSTLIVE_HEADERS
 
     src/core/AsyncDownloader.h
     src/core/GeneralSignal.h
+    src/core/Logging.h
     src/core/WidgetConfigInfo.h
     src/core/utils.h
 
@@ -139,6 +141,16 @@ set_target_properties(PostLiveMockServer PROPERTIES
 
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/tools" PREFIX "Tools"
     FILES tools/mock-server/main.cpp)
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+option(POSTLIVE_BUILD_TESTS "Build the core unit tests" ON)
+if(POSTLIVE_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 # ---------------------------------------------------------------------------
 # Runtime deployment
