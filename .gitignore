@@ -57,3 +57,7 @@ compile_commands.json
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Mock auth server local data
+/tools/mock-server/users.json
+/tools/mock-server/*.log

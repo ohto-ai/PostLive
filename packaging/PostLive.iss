@@ -49,7 +49,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Everything produced by CMake + windeployqt (FFmpeg binaries included when present).
-Source: "{#BuildDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "application.json,users.json,user\*,*.pdb,*.dmp,*.ilk"
+Source: "{#BuildDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "PostLiveMockServer.exe,application.json,users.json,user\*,*.pdb,*.dmp,*.ilk"
 ; Never overwrite a user's local configuration on upgrade.
 Source: "{#BuildDir}\application.json"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "{#BuildDir}\users.json"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall

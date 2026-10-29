@@ -87,7 +87,7 @@ CMake 会把 `ffmpeg.exe` 与 `av*.dll` / `sw*.dll` 复制到输出目录。没�
 
 ### 认证服务端
 
-客户端默认向 `http://localhost:8877/api` 发送登录 / 资料请求，可在设置窗口中修改认证服务器地址（写入 `application.json` 的 `auth_server`）。仓库目前**不包含**可用的认证服务端，协议见 [docs/api.md](docs/api.md)。当前构建只支持 `http://`；HTTPS 需要启用 OpenSSL 或改用 QtNetwork。
+客户端默认向 `http://localhost:8877/api` 发送登录 / 资料请求，可在设置窗口中修改认证服务器地址（写入 `application.json` 的 `auth_server`）。仓库包含一个开发用 mock 服务端，见 [tools/mock-server/README.md](tools/mock-server/README.md)；生产认证服务端仍不包含，协议见 [docs/api.md](docs/api.md)。当前构建只支持 `http://`；HTTPS 需要启用 OpenSSL 或改用 QtNetwork。
 
 ## 项目结构
 
@@ -106,6 +106,7 @@ PostLive/
 │   ├── resources/           # .qrc 与图片 / 图标
 │   ├── platform/            # Windows 版本资源模板
 │   └── main.cpp
+├── tools/mock-server/       # 本地 mock 认证服务端（开发用）
 ├── third_party/             # 内置头文件依赖；FFmpeg 本地目录被忽略
 ├── CMakeLists.txt
 ├── CMakePresets.json
@@ -143,6 +144,7 @@ PostLive/
 | [docs/cloudflare.md](docs/cloudflare.md) | Cloudflare 免费认证 / 推流方案评估 |
 | [docs/directui-evaluation.md](docs/directui-evaluation.md) | 去除 Qt、改用 DirectUI 的可行性调研 |
 | [docs/legacy.md](docs/legacy.md) | 已移除的旧子工程与找回方式 |
+| [tools/mock-server/README.md](tools/mock-server/README.md) | 本地 mock 认证服务端 |
 | [TODO.md](TODO.md) | 路线图 / 未完成事项 |
 | [CHANGELOG.md](CHANGELOG.md) | 变更记录 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南 |

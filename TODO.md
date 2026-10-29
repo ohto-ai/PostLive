@@ -31,7 +31,7 @@
 ## 认证与后端
 
 - [x] **可配置 API 地址**：`createAuthClient()` 读取 `application.json` 的 `auth_server`；设置窗口可编辑，默认 `http://localhost:8877`。
-- [ ] **提供本地 mock 服务端**：旧 `LiveServerTestDemo` 依赖缺失的 `MD5.h`，已移除；可用 `cpp-httplib` + Qt 重写一个开发用服务端。
+- [x] **提供本地 mock 服务端**：`tools/mock-server`，实现 login / profile / query / heartbeat，开发用。
 - [ ] **凭证安全**：密码只做 MD5、token 明文存 `users.json`；至少改为加盐哈希 + 加密存储，并在文档中说明。
 - [ ] **HTTPS 支持**：服务端部署 TLS 时，客户端需要 OpenSSL 支持的 `cpp-httplib` 构建。
 - [ ] **补齐 API 类型**：客户端目前只实现 `login` 与 `profile`，`query` / `heartbeat` 尚未实现。
@@ -71,6 +71,7 @@
 - [x] 摄像头 / 麦克风热插拔刷新。
 - [x] 托盘显示 / 隐藏、退出前停止推流。
 - [x] 遮罩窗口最小化 / 还原事件过滤（待实机复测）。
+- [x] 本地 mock 认证服务端 `tools/mock-server`（login / profile / query / heartbeat）。
 
 ## 本次整理已完成
 

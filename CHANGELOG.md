@@ -6,6 +6,7 @@
 
 ### Added
 
+- 本地 mock 认证服务端 `tools/mock-server`（`PostLiveMockServer`），支持 login / profile / query / heartbeat。
 - 设置窗口：认证服务器、官网、水印开关，保存到 `application.json`。
 - 认证地址可配置；`createAuthClient()` 每次登录读取 `auth_server`，连接 / 读取超时 3 s / 5 s。
 - 自动登录可靠性：token 失效清理、编辑账号 / 密码或取消勾选可中止。

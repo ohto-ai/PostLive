@@ -13,6 +13,16 @@
 
 当前客户端使用 `cpp-httplib`，只支持 `http://`。如果要连接 Cloudflare 等 HTTPS 服务，需要启用 `CPPHTTPLIB_OPENSSL_SUPPORT`，或把认证请求改用 QtNetwork。
 
+## 本地联调
+
+仓库包含一个最小 mock 服务端，实现下面的 `login` / `profile` / `query` / `heartbeat`：
+
+```powershell
+.\build\windows-x64\Release\PostLiveMockServer.exe tools\mock-server\users.example.json 8877
+```
+
+示例账号 `test` / 密码 `123456`。详见 [tools/mock-server/README.md](../tools/mock-server/README.md)。
+
 ## 通用字段
 
 请求：

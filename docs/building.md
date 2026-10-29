@@ -118,6 +118,17 @@ cmake --build build/windows-x64 --config Release --target deploy-qt
 
 该目标调用 `windeployqt`，把 Qt DLL、平台插件、多媒体插件复制到 `Release/`。
 
+### 本地 mock 认证服务端
+
+构建还会生成 `PostLiveMockServer.exe`（开发用，不随安装包发布）：
+
+```powershell
+# 从仓库根目录运行；示例账号 test / 123456
+.\build\windows-x64\Release\PostLiveMockServer.exe tools\mock-server\users.example.json 8877
+```
+
+客户端保持默认 `http://localhost:8877` 即可。详见 [tools/mock-server/README.md](../tools/mock-server/README.md)。
+
 ## 安装包
 
 安装包脚本位于 [packaging/PostLive.iss](../packaging/PostLive.iss)，步骤见 [packaging/README.md](../packaging/README.md)：
@@ -145,7 +156,7 @@ Qt 的 `bin` 目录不在 `PATH` 中。开发时把 Qt `bin` 加到 `PATH`，发
 
 ### 登录失败
 
-客户端固定连接 `localhost:8877`，仓库不包含认证服务端。没有服务端时无法登录；协议见 [api.md](api.md)。
+客户端默认连接 `localhost:8877`，可在设置窗口修改 `auth_server`。仓库包含开发用 mock 服务端；没有服务端时无法登录，协议见 [api.md](api.md)。
 
 ### 开播失败 / 没有画面
 

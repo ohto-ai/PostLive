@@ -122,6 +122,23 @@ target_link_libraries(PostLive PRIVATE
     ws2_32
     dbghelp)
 
+# Local development server for the authentication API.
+add_executable(PostLiveMockServer tools/mock-server/main.cpp)
+target_include_directories(PostLiveMockServer PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/third_party")
+target_link_libraries(PostLiveMockServer PRIVATE
+    Qt5::Core
+    ws2_32)
+if(MSVC)
+    target_compile_options(PostLiveMockServer PRIVATE
+        "$<$<COMPILE_LANGUAGE:CXX>:/utf-8>")
+endif()
+set_target_properties(PostLiveMockServer PROPERTIES
+    VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tools/mock-server")
+
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}/tools" PREFIX "Tools"
+    FILES tools/mock-server/main.cpp)
+
 # ---------------------------------------------------------------------------
 # Runtime deployment
 # ---------------------------------------------------------------------------
