@@ -3,6 +3,7 @@
 #include "FFmpegInputDevice.h"
 #include "FFmpegVideo.h"
 #include "capture/DesktopDuplicationCapture.h"
+#include "capture/GraphicsCapture.h"
 #include "capture/WindowPrintCapture.h"
 #include "../core/Logging.h"
 #include "../core/utils.h"
@@ -153,6 +154,8 @@ void ScenePreview::setSources(const QList<StreamSource>& sources)
 			slot->video->stop();
 			delete slot->video;
 		}
+		if (auto* wgc = qobject_cast<GraphicsCapture*>(slot->capture))
+			wgc->stop();
 		if (auto* desktop = qobject_cast<DesktopDuplicationCapture*>(slot->capture))
 			desktop->stop();
 		if (auto* window = qobject_cast<WindowPrintCapture*>(slot->capture))
@@ -191,16 +194,28 @@ void ScenePreview::startSlot(RenderSlot* slot)
 	}
 	else
 	{
+		// WGC (OBS's modern method) captures DWM-composited content —
+		// hardware-accelerated windows and fullscreen games — where the GDI
+		// and duplication paths return black frames. Fall back to the older
+		// engines on systems without the 1903+ APIs.
+		const bool useWgc = GraphicsCapture::isSupported();
 		switch (slot->source.kind)
 		{
 		case StreamSource::Kind::Desktop:
 		{
-			slot->capture = new DesktopDuplicationCapture(slot->source.name, 30, this);
+			qCInfo(lcStream) << "desktop capture provider:" << (useWgc ? "WGC" : "DXGI");
+			slot->capture = useWgc
+				? static_cast<QThread*>(new GraphicsCapture(slot->source.name,
+					GraphicsCapture::Target::Monitor, 30, this))
+				: new DesktopDuplicationCapture(slot->source.name, 30, this);
 			break;
 		}
 		case StreamSource::Kind::Window:
 		{
-			slot->capture = new WindowPrintCapture(slot->source.name, 30, this);
+			slot->capture = useWgc
+				? static_cast<QThread*>(new GraphicsCapture(slot->source.name,
+					GraphicsCapture::Target::Window, 30, this))
+				: new WindowPrintCapture(slot->source.name, 30, this);
 			break;
 		}
 		default:
@@ -281,6 +296,8 @@ void ScenePreview::stopAll()
 			delete slot->video;
 			slot->video = nullptr;
 		}
+		if (auto* wgc = qobject_cast<GraphicsCapture*>(slot->capture))
+			wgc->stop();
 		if (auto* desktop = qobject_cast<DesktopDuplicationCapture*>(slot->capture))
 			desktop->stop();
 		if (auto* window = qobject_cast<WindowPrintCapture*>(slot->capture))
@@ -518,10 +535,11 @@ void ScenePreview::mouseMoveEvent(QMouseEvent* event)
 		newHeight = qMax(MinSourceSize, newHeight);
 		rect.setSize(QSize(newWidth, newHeight));
 	}
-	rect.moveLeft(qBound(0, rect.x(), qMax(0, m_canvasSize.width() - MinSourceSize)));
-	rect.moveTop(qBound(0, rect.y(), qMax(0, m_canvasSize.height() - MinSourceSize)));
-	rect.setWidth(qMin(rect.width(), m_canvasSize.width() - rect.x()));
-	rect.setHeight(qMin(rect.height(), m_canvasSize.height() - rect.y()));
+	// Keep the source fully inside the canvas without ever touching its
+	// size here: the old width/height-forcing clamp shrank sources that were
+	// dragged across the right/bottom edge.
+	rect.moveLeft(qBound(0, rect.x(), qMax(0, m_canvasSize.width() - rect.width())));
+	rect.moveTop(qBound(0, rect.y(), qMax(0, m_canvasSize.height() - rect.height())));
 	slot->source.rect = rect;
 	// Live preview of the transform; persistence happens on mouse release.
 	composeCanvas();

@@ -47,6 +47,7 @@ set(POSTLIVE_SOURCES
     src/media/StreamArgs.cpp
     src/media/StreamSource.cpp
     src/media/capture/DesktopDuplicationCapture.cpp
+    src/media/capture/GraphicsCapture.cpp
     src/media/capture/WindowPrintCapture.cpp
 
     src/platform/WindowList.cpp
@@ -81,6 +82,7 @@ set(POSTLIVE_HEADERS
     src/media/StreamArgs.h
     src/media/StreamSource.h
     src/media/capture/DesktopDuplicationCapture.h
+    src/media/capture/GraphicsCapture.h
     src/media/capture/WindowPrintCapture.h
 
     src/platform/WindowList.h
@@ -147,7 +149,8 @@ target_link_libraries(PostLive PRIVATE
     avutil
     swscale
     d3d11
-    dxgi)
+    dxgi
+    windowsapp)
 
 target_compile_definitions(PostLive PRIVATE
     POSTLIVE_VERSION="${PROJECT_VERSION}"
@@ -156,7 +159,8 @@ target_compile_definitions(PostLive PRIVATE
 
 if(MSVC)
     target_compile_options(PostLive PRIVATE
-        "$<$<COMPILE_LANGUAGE:CXX>:/utf-8>")
+        "$<$<COMPILE_LANGUAGE:CXX>:/utf-8>" "$<$<CONFIG:Release>:/Zi>")
+    target_link_options(PostLive PRIVATE "$<$<CONFIG:Release>:/DEBUG>")
 endif()
 
 target_link_libraries(PostLive PRIVATE
