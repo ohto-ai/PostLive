@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>PostLive 本地观看</title>
+<style>
+	body { background: #202225; color: #fff; font-family: "Segoe UI", sans-serif; text-align: center; margin: 0; padding: 24px; }
+	h1 { font-size: 20px; font-weight: 600; }
+	video { max-width: 92vw; max-height: 80vh; background: #000; border-radius: 8px; }
+	p { color: #9aa0a6; font-size: 13px; }
+</style>
+</head>
+<body>
+<h1>PostLive 本地观看（HLS，延迟约 4–10 秒）</h1>
+<video id="video" controls autoplay muted playsinline></video>
+<p>开播后若黑屏，请等待几秒让分片生成；播放列表仅保留最近的分片。</p>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+<script>
+	const video = document.getElementById("video");
+	const source = "/livehime.m3u8";
+	if (window.Hls && Hls.isSupported()) {
+		const hls = new Hls({ liveSyncDurationCount: 3 });
+		hls.loadSource(source);
+		hls.attachMedia(video);
+		hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+	} else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+		video.src = source;
+		video.play();
+	} else {
+		document.body.appendChild(document.createTextNode("当前浏览器不支持 HLS 播放"));
+	}
+</script>
+</body>
+</html>

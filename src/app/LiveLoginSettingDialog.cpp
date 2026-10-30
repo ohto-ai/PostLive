@@ -25,6 +25,7 @@ LiveLoginSettingDialog::LiveLoginSettingDialog(QWidget* parent)
 	ui.websiteLineEdit->setText(QString::fromStdString(
 		config.value("website", std::string("https://ohtoai.top"))));
 	ui.watermarkCheckBox->setChecked(config["stream"].value("watermark", true));
+	ui.localHlsCheckBox->setChecked(config["stream"].value("local_hls", false));
 
 	ui.streamSizeComboBox->addItems({
 		"640x480", "800x600", "1024x768", "1280x720", "1280x800", "1400x1050", "1440x900", "1600x1200", "1920x1080", "1920x1200"
@@ -140,6 +141,7 @@ void LiveLoginSettingDialog::save()
 	config["auth_server"] = server.toStdString();
 	config["website"] = website.toStdString();
 	config["stream"]["watermark"] = ui.watermarkCheckBox->isChecked();
+	config["stream"]["local_hls"] = ui.localHlsCheckBox->isChecked();
 	config["stream"]["server"] = streamServer.toStdString();
 	config["stream"]["size"] = ui.streamSizeComboBox->currentText().toStdString();
 	config["stream"]["bitrate"] = ui.streamBitrateComboBox->currentText().toStdString();

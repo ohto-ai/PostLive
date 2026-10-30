@@ -24,13 +24,22 @@ QStringList buildStreamPipeArgs(const QSize& canvasSize, const StreamSettings& s
 		return {};
 	}
 
-	const QString server = settings.server.trimmed();
-	const QUrl serverUrl(server);
-	if (server.isEmpty() || !serverUrl.isValid()
-		|| serverUrl.scheme().isEmpty() || serverUrl.host().isEmpty())
+	if (!settings.localHls)
+	{
+		const QString server = settings.server.trimmed();
+		const QUrl serverUrl(server);
+		if (server.isEmpty() || !serverUrl.isValid()
+			|| serverUrl.scheme().isEmpty() || serverUrl.host().isEmpty())
+		{
+			if (error)
+				*error = QStringLiteral("invalid server url");
+			return {};
+		}
+	}
+	else if (settings.hlsDir.isEmpty())
 	{
 		if (error)
-			*error = QStringLiteral("invalid server url");
+			*error = QStringLiteral("hls dir not set");
 		return {};
 	}
 
@@ -66,12 +75,31 @@ QStringList buildStreamPipeArgs(const QSize& canvasSize, const StreamSettings& s
 		arguments << QStringLiteral("-b:v") << settings.bitrate + QStringLiteral("k");
 	arguments << QStringLiteral("-pix_fmt") << QStringLiteral("yuv420p");
 
-	QString url = server;
-	while (url.endsWith(QLatin1Char('/')))
-		url.chop(1);
-	url += QStringLiteral("/livehime");
 	// Real-time stats (duration/bitrate/fps) for the control dock come from
 	// the progress key=value lines written to stdout.
-	arguments << QStringLiteral("-progress") << QStringLiteral("pipe:1") << url;
+	arguments << QStringLiteral("-progress") << QStringLiteral("pipe:1");
+
+	if (settings.localHls)
+	{
+		// Ring-buffered HLS: the browser playlist always holds ~6 recent
+		// segments; temp_files avoids players reading half-written files.
+		arguments
+			<< QStringLiteral("-f") << QStringLiteral("hls")
+			<< QStringLiteral("-hls_time") << QStringLiteral("2")
+			<< QStringLiteral("-hls_list_size") << QStringLiteral("6")
+			<< QStringLiteral("-hls_flags")
+			<< QStringLiteral("delete_segments+independent_segments+temp_files")
+			<< QStringLiteral("-hls_segment_filename")
+			<< settings.hlsDir + QStringLiteral("/livehime_%05d.ts")
+			<< settings.hlsDir + QStringLiteral("/livehime.m3u8");
+	}
+	else
+	{
+		QString url = settings.server.trimmed();
+		while (url.endsWith(QLatin1Char('/')))
+			url.chop(1);
+		url += QStringLiteral("/livehime");
+		arguments << url;
+	}
 	return arguments;
 }

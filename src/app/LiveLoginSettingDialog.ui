@@ -561,6 +561,13 @@ QToolTip
            </layout>
           </item>
           <item row="9" column="0" colspan="2">
+           <widget class="QCheckBox" name="localHlsCheckBox">
+            <property name="text">
+             <string>本地 HLS 输出（浏览器观看，忽略推流服务器）</string>
+            </property>
+           </widget>
+          </item>
+          <item row="11" column="0" colspan="2">
            <widget class="QLabel" name="messageLabel">
             <property name="minimumSize">
              <size>
@@ -579,7 +586,7 @@ QToolTip
             </property>
            </widget>
           </item>
-          <item row="10" column="0" colspan="2">
+          <item row="12" column="0" colspan="2">
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
              <spacer name="horizontalSpacer_3">

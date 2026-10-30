@@ -18,6 +18,8 @@ struct StreamSettings
 	QString encoder;         // "Auto" keeps ffmpeg's default
 	QString bitrate;         // "Auto" or kbps
 	QString fps;             // "Auto" or a number
+	QString hlsDir;          // local HLS output directory (localHls mode)
+	bool localHls{ false };  // write HLS segments instead of pushing RTMP
 };
 
 // Builds the arguments for streaming the composited canvas. `includeAudio`

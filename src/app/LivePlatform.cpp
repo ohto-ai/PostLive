@@ -11,6 +11,7 @@
 
 #include <QComboBox>
 #include <QCoreApplication>
+#include <QDir>
 #include <QDesktopServices>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -551,6 +552,8 @@ void LivePlatform::startStreaming()
 	settings.encoder = streamSetting("encoder", "Auto");
 	settings.bitrate = streamSetting("bitrate", "Auto");
 	settings.fps = streamSetting("fps", "Auto");
+	settings.localHls = thatboy::storage::config["stream"].value("local_hls", false);
+	settings.hlsDir = QCoreApplication::applicationDirPath() + QStringLiteral("/hls");
 
 	QString error;
 	const QStringList arguments = buildStreamPipeArgs(previewWidget.canvasSize(),
@@ -571,6 +574,14 @@ void LivePlatform::startStreaming()
 	appendStatus(tr("正在启动 FFmpeg..."));
 	qCInfo(lcStream) << "starting FFmpeg:" << ffmpegPath << arguments.join(QLatin1Char(' '));
 	ffmpegProcess.start(ffmpegPath, arguments);
+	if (settings.localHls)
+	{
+		QDir().mkpath(settings.hlsDir);
+		connect(&ffmpegProcess, &QProcess::started, this, [this]
+			{
+				appendStatus(tr("本地观看：http://localhost:18080/player.html"));
+			});
+	}
 }
 
 void LivePlatform::stopStreaming()

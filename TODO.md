@@ -23,7 +23,8 @@
 ## 下次优先做
 
 1. **直播页实机复测**：窗口采集已换 PrintWindow（修复 Chrome/黑屏）、屏幕采集换 DXGI 桌面复制（多屏逐显示器）、画布 16:9 可拖拽缩放、推流改为合成画布 rawvideo 管道——需真机推流验证端到端，并重点测试 Chrome/游戏窗口采集效果
-2. **用 Cloudflare 账号部署 Worker**（约 15 分钟，步骤见 [worker/README.md](worker/README.md)），然后用真实 HTTPS 服务端跑一次完整登录
+2. **本地观看链路实测**：设置勾选"本地 HLS 输出"→ 开播 → 浏览器打开 http://localhost:18080/player.html（nginx 已配置在 C:\Tools
+ginx-1.30.6，模板见 [tools/nginx/](tools/nginx/)）；以及用 Cloudflare Worker 跑一次真实 HTTPS 登录（[worker/README.md](worker/README.md)）
 3. **实机验证**：遮罩窗口、设置窗口（新增直播设置区）、新登录界面、CI 安装包安装流程
 
 ## P1 需要决策 / 外部依赖
@@ -106,7 +107,8 @@
 - [x] 预览画布重构：固定 16:9（=推流分辨率）合成画布，OBS 式交互——点击选中（列表联动）、拖拽移动、右下角手柄缩放，首次出帧自动按源宽高比修正；选择框只画在预览层、不进推流画面。
 - [x] 推流架构改为 **OBS 式合成推流**：ScenePreview 以推流分辨率合成画布，`canvasReady` 通过 stdin 以 rawvideo/bgra 喂给 ffmpeg.exe（背压丢帧保护），`buildStreamPipeArgs` 重写参数构建；**预览与推流同源所见即所得，可边推流边改场景**，dshow 设备不再被双开占用。
 - [x] 控制 dock 新增"音轨"区：麦克风音频开关（持久化 stream.audio_enabled）；设置对话框已有麦克风设备选择。
-- [x] `POSTLIVE_SMOKE_CAPTURE=desktop|window:<标题>` 无头采集探针；已知限制：文件源音频暂不进推流、桌面光标为简化箭头绘制、rawvideo 起播音视频对齐误差 ~1s。
+- [x] `POSTLIVE_SMOKE_CAPTURE=desktop|window:<标题>` 无头采集探针；WGC 的 Win10/Win11 双路径（Win11 TryCreateFromWindowId、Win10 IGraphicsCaptureItemInterop）。
+- [x] 本地观看：设置勾选"本地 HLS 输出"后，合成画布直接写 HLS（2s 分片环形缓冲）到 exe 目录 hls/，官方 nginx 静态分发 + hls.js 播放页（[tools/nginx/](tools/nginx/)，本机已配置 http://localhost:18080/player.html）；已知限制：文件源音频暂不进推流、桌面光标为简化箭头绘制、HLS 起播延迟 4–10s。
 
 ### F 直播页推倒重做（提案 B：OBS 式源管理 + 多源合成）
 
