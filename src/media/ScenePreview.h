@@ -79,4 +79,5 @@ private:
 	enum class DragMode { None, Move, Resize };
 	DragMode m_dragMode = DragMode::None;
 	QPointF m_dragGrabOffset;
+	QRect m_dragStartRect;
 };

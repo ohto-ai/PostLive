@@ -20,6 +20,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
+#include <QShortcut>
 #include <QSignalBlocker>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -272,9 +273,11 @@ LivePlatform::LivePlatform(QWidget* parent)
 	for (int i = 0; i < monitors.size(); ++i)
 	{
 		const DesktopDuplicationCapture::MonitorInfo monitor = monitors[i];
-		addMenu->addAction(tr("屏幕 %1 (%2x%3)").arg(i + 1)
-				.arg(monitor.geometry.width()).arg(monitor.geometry.height()),
-			this, [this, monitor]
+		const QString label = monitor.primary
+			? tr("主屏幕 (%1x%2)").arg(monitor.geometry.width()).arg(monitor.geometry.height())
+			: tr("屏幕 %1 (%2x%3)").arg(i + 1)
+				.arg(monitor.geometry.width()).arg(monitor.geometry.height());
+		addMenu->addAction(label, this, [this, monitor]
 			{
 				StreamSource source;
 				source.kind = StreamSource::Kind::Desktop;
@@ -315,6 +318,44 @@ LivePlatform::LivePlatform(QWidget* parent)
 	connect(ui.moveDownToolButton, &QToolButton::clicked, this, [this]
 		{
 			moveSource(1);
+		});
+	connect(ui.fitSourceToolButton, &QToolButton::clicked, this, [this]
+		{
+			const int row = ui.sourceListWidget->currentRow();
+			if (row < 0 || row >= m_scene.size())
+				return;
+			m_scene[row].rect = QRect(QPoint(0, 0), previewWidget.canvasSize());
+			persistScene();
+			syncPreview();
+		});
+	// OBS-style source list context menu and Delete shortcut.
+	connect(ui.sourceListWidget, &QListWidget::customContextMenuRequested, this,
+		[this](const QPoint& pos)
+		{
+			if (ui.sourceListWidget->itemAt(pos) == nullptr)
+				return;
+			QMenu menu(this);
+			menu.addAction(tr("适配画布"), this, [this]
+				{
+					emit ui.fitSourceToolButton->clicked();
+				});
+			menu.addAction(tr("移除"), this, &LivePlatform::removeSource);
+			menu.addSeparator();
+			menu.addAction(tr("上移"), this, [this]
+				{
+					moveSource(-1);
+				});
+			menu.addAction(tr("下移"), this, [this]
+				{
+					moveSource(1);
+				});
+			menu.exec(ui.sourceListWidget->mapToGlobal(pos));
+		});
+	auto* deleteShortcut = new QShortcut(QKeySequence::Delete, this);
+	connect(deleteShortcut, &QShortcut::activated, this, [this]
+		{
+			if (ui.sourceListWidget->hasFocus() || !ui.sourceListWidget->selectedItems().isEmpty())
+				removeSource();
 		});
 
 	connect(&deviceRefreshTimer, &QTimer::timeout, this, &LivePlatform::refreshDevices);

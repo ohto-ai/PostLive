@@ -458,6 +458,7 @@ void ScenePreview::mousePressEvent(QMouseEvent* event)
 	if (QRectF(handleTopLeft, QSizeF(HandleSize, HandleSize)).contains(canvasPos))
 	{
 		m_dragMode = DragMode::Resize;
+		m_dragStartRect = rect;
 	}
 	else
 	{
@@ -501,10 +502,20 @@ void ScenePreview::mouseMoveEvent(QMouseEvent* event)
 	}
 	else
 	{
-		const int newWidth = qBound(MinSourceSize, int(canvasPos.x()) - rect.x(),
+		// Aspect-locked resize anchored at the top-left corner: overshooting
+		// the canvas edge clamps cleanly instead of shrinking or skewing.
+		const qreal aspect = qMax(0.01, qreal(m_dragStartRect.width())
+			/ qMax(1, m_dragStartRect.height()));
+		int newWidth = qBound(MinSourceSize, int(canvasPos.x()) - rect.x(),
 			m_canvasSize.width() - rect.x());
-		const int newHeight = qBound(MinSourceSize, int(canvasPos.y()) - rect.y(),
-			m_canvasSize.height() - rect.y());
+		int newHeight = int(newWidth / aspect);
+		if (rect.y() + newHeight > m_canvasSize.height())
+		{
+			newHeight = m_canvasSize.height() - rect.y();
+			newWidth = int(newHeight * aspect);
+		}
+		newWidth = qMax(MinSourceSize, newWidth);
+		newHeight = qMax(MinSourceSize, newHeight);
 		rect.setSize(QSize(newWidth, newHeight));
 	}
 	rect.moveLeft(qBound(0, rect.x(), qMax(0, m_canvasSize.width() - MinSourceSize)));

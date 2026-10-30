@@ -307,6 +307,20 @@ void thatboy::utils::loadConfig()
 			};
 		}
 	}
+	// The platform window grew to fit the scene editor; stale small geometry
+	// from older builds is bumped so the preview stays readable.
+	{
+		auto& platformInfo = storage::config["widget_info"]["platform"];
+		if (platformInfo["geometry"]["width"].is_number()
+			&& platformInfo["geometry"]["width"].get<int>() < 1000)
+		{
+			platformInfo = {
+				{ "geometry", { { "x", 60 }, { "y", 60 }, { "width", 1280 }, { "height", 800 } } },
+				{ "opacity", 1.0 },
+				{ "translucent", false }
+			};
+		}
+	}
 	// The login dialog was redesigned at a fixed 760x480; stale geometry from
 	// the 600x450 skin (and its translucency) would fight the new layout.
 	auto& loginInfo = storage::config["widget_info"]["login"];

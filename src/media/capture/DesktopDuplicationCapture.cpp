@@ -71,6 +71,7 @@ QList<DesktopDuplicationCapture::MonitorInfo> DesktopDuplicationCapture::availab
 				entry.geometry = QRect(info.rcMonitor.left, info.rcMonitor.top,
 					info.rcMonitor.right - info.rcMonitor.left,
 					info.rcMonitor.bottom - info.rcMonitor.top);
+				entry.primary = (info.dwFlags & MONITORINFOF_PRIMARY) != 0;
 				list->append(entry);
 			}
 			return TRUE;
@@ -251,6 +252,7 @@ void DesktopDuplicationCapture::run()
 	makeThreadDpiAware();
 
 	const qint64 frameInterval = 1000 / m_fps;
+	qint64 lastFrameMs = QDateTime::currentMSecsSinceEpoch();
 	while (!isInterruptionRequested())
 	{
 		const qint64 tick = QDateTime::currentMSecsSinceEpoch();
@@ -264,8 +266,18 @@ void DesktopDuplicationCapture::run()
 		QImage frame = grabFrame();
 		if (!frame.isNull())
 		{
+			lastFrameMs = tick;
 			drawCursor(frame, m_monitorName);
 			emit frameReady(frame);
+		}
+		else if (tick - lastFrameMs > 5000)
+		{
+			// A duplication session can go stale without ACCESS_LOST after
+			// topology changes; rebuild it when nothing arrives for a while.
+			qCDebug(lcStream) << "desktop duplication stale, rebuilding:" << m_monitorName;
+			shutdownOutput();
+			lastFrameMs = tick;
+			continue;
 		}
 
 		const qint64 elapsed = QDateTime::currentMSecsSinceEpoch() - tick;

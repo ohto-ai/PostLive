@@ -17,6 +17,7 @@ public:
 	{
 		QString deviceName; // "\\.\DISPLAY1" as reported by DXGI / EnumDisplayMonitors
 		QRect geometry;     // virtual-desktop coordinates
+		bool primary = false;
 	};
 
 	static QList<MonitorInfo> availableMonitors();
