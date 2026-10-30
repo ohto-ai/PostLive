@@ -22,7 +22,7 @@
 
 ## 下次优先做
 
-1. **直播页实机复测**：OBS 式三栏布局已实现（源列表 + 多源叠加 + 控制 dock + 状态条），需实机过目文字渲染 / DPI / 布局，并真机推流验证 filter_complex 链（桌面+摄像头画中画）
+1. **直播页实机复测**：窗口采集已换 PrintWindow（修复 Chrome/黑屏）、屏幕采集换 DXGI 桌面复制（多屏逐显示器）、画布 16:9 可拖拽缩放、推流改为合成画布 rawvideo 管道——需真机推流验证端到端，并重点测试 Chrome/游戏窗口采集效果
 2. **用 Cloudflare 账号部署 Worker**（约 15 分钟，步骤见 [worker/README.md](worker/README.md)），然后用真实 HTTPS 服务端跑一次完整登录
 3. **实机验证**：遮罩窗口、设置窗口（新增直播设置区）、新登录界面、CI 安装包安装流程
 
@@ -98,6 +98,15 @@
 - [x] CI 用 GitHub 预装的 Inno Setup 6 编译 `packaging/PostLive.iss`（版本号从 CMakeLists 解析传入），安装包与 zip 一起上传为 Actions 产物；升级不覆盖用户 `application.json` / `users.json`。
 - [x] CI 打包前自动获取 OpenSSL 1.1.1w（slproweb Light 安装包静默安装），把两枚 DLL 复制进构建目录；zip 与安装包因此都支持 HTTPS 认证。
 - [x] `packaging/README.md` 更新安装包内容清单与本地 OpenSSL 补齐方式。
+
+### G 直播页对齐 OBS（采集引擎 + 画布交互 + 合成推流）
+
+- [x] 窗口采集换 **PrintWindow + PW_RENDERFULLCONTENT**（`src/media/capture/WindowPrintCapture`）：修复 Chrome/Electron 等硬件加速窗口采集黑屏（gdigrab 遗留问题）。
+- [x] 屏幕采集换 **DXGI 桌面复制**（`src/media/capture/DesktopDuplicationCapture`）：多屏逐显示器选择（+ 菜单按显示器列出）、捕获线程独立 DPI 上下文、模式切换自动重初始化、手动绘制鼠标指针；offscreen 探针验证真实桌面帧。
+- [x] 预览画布重构：固定 16:9（=推流分辨率）合成画布，OBS 式交互——点击选中（列表联动）、拖拽移动、右下角手柄缩放，首次出帧自动按源宽高比修正；选择框只画在预览层、不进推流画面。
+- [x] 推流架构改为 **OBS 式合成推流**：ScenePreview 以推流分辨率合成画布，`canvasReady` 通过 stdin 以 rawvideo/bgra 喂给 ffmpeg.exe（背压丢帧保护），`buildStreamPipeArgs` 重写参数构建；**预览与推流同源所见即所得，可边推流边改场景**，dshow 设备不再被双开占用。
+- [x] 控制 dock 新增"音轨"区：麦克风音频开关（持久化 stream.audio_enabled）；设置对话框已有麦克风设备选择。
+- [x] `POSTLIVE_SMOKE_CAPTURE=desktop|window:<标题>` 无头采集探针；已知限制：文件源音频暂不进推流、桌面光标为简化箭头绘制、rawvideo 起播音视频对齐误差 ~1s。
 
 ### F 直播页推倒重做（提案 B：OBS 式源管理 + 多源合成）
 

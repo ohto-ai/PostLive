@@ -95,9 +95,10 @@ sequenceDiagram
 
 预览与推流是两条独立链路，同一时刻只开一条（推流前强制停预览，避免 dshow 设备被双开占用）：
 
-- **场景**：主界面维护一个有序源列表（`StreamSource`，持久化于 `scene.sources`）；首层为主画面，其余自下而上叠加。
-- **预览**：进程内 libav 合成（`ScenePreview` 为每个源开一个 `FFmpegVideo` 解码线程，画布内主层居中 + PiP 右下角绘制），采集源抽象为 `{input_format, url, options}`：摄像头（dshow）、整个桌面与按标题的窗口（gdigrab）、本地文件（拖入预览区即添加）。
-- **推流**：`ffmpeg.exe` 子进程，参数由纯函数 `buildSceneArgs()` 按场景构建——多视频输入 + `filter_complex` 画中画叠加、水印作为顶层自动加入、麦克风作为全局推流音频（设置中配置）。
+- **场景**：主界面维护一个有序源列表（`StreamSource`，持久化于 `scene.sources`）；首层为主画面，其余自下而上叠加；每个源带画布矩形，可在预览画布上拖拽/缩放（OBS 式）。
+- **采集引擎**：摄像头/文件走 libav（`FFmpegVideo`）；**窗口走 PrintWindow + PW_RENDERFULLCONTENT**（修复加速窗口黑屏）；**屏幕走 DXGI 桌面复制**（多屏逐显示器、模式切换自动重初始化、手动绘制光标），见 `src/media/capture/`。
+- **预览与推流同源（OBS 式 WYSIWYG）**：`ScenePreview` 把整个场景合成为固定尺寸画布（=推流分辨率，16:9），画布通过 `canvasReady` 以 rawvideo/bgra 经 stdin 喂给 `ffmpeg.exe`（背压丢帧保护）；推流时预览继续运行，场景修改即时生效，dshow 设备不再双开。水印在合成阶段绘制。
+- **音频**：麦克风为全局推流音轨（设置选设备、控制 dock 开关）；文件源音频暂未接入。
 - 窗口选择器枚举可见顶层窗口（`src/platform/WindowList`，过滤最小化 / 工具窗口 / cloaked UWP）；gdigrab 只认窗口标题，同标题窗口无法区分。
 
 UI 使用全局主题 `src/resources/postlive.qss`（源自 PostLive.Re 的设计）：深炭色 + 蓝色 accent，`main.cpp` 启动时整体应用；登录窗口为 760x480 左图右表单布局（`ImageLabel` 做 cover 裁剪）。

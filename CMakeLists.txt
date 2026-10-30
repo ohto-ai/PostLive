@@ -46,6 +46,8 @@ set(POSTLIVE_SOURCES
     src/media/ScenePreview.cpp
     src/media/StreamArgs.cpp
     src/media/StreamSource.cpp
+    src/media/capture/DesktopDuplicationCapture.cpp
+    src/media/capture/WindowPrintCapture.cpp
 
     src/platform/WindowList.cpp
 
@@ -78,6 +80,8 @@ set(POSTLIVE_HEADERS
     src/media/ScenePreview.h
     src/media/StreamArgs.h
     src/media/StreamSource.h
+    src/media/capture/DesktopDuplicationCapture.h
+    src/media/capture/WindowPrintCapture.h
 
     src/platform/WindowList.h
 
@@ -141,7 +145,9 @@ target_link_libraries(PostLive PRIVATE
     avdevice
     avformat
     avutil
-    swscale)
+    swscale
+    d3d11
+    dxgi)
 
 target_compile_definitions(PostLive PRIVATE
     POSTLIVE_VERSION="${PROJECT_VERSION}"

@@ -43,7 +43,6 @@ protected:
 
 	const QString ffmpegPath{ R"(ffmpeg.exe)" };
 
-	QString logoImage{ "assets/pilipili-logo.png" };
 	ScenePreview previewWidget{ this };
 	QList<StreamSource> m_scene;
 	bool m_sceneSeeded{ false };

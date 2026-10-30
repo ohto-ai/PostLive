@@ -466,6 +466,44 @@ QToolTip
         </widget>
        </item>
        <item>
+        <widget class="QWidget" name="audioSection" native="true">
+         <layout class="QVBoxLayout" name="audioSectionLayout">
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="audioHeader">
+            <property name="text">
+             <string>音轨</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="audioMicCheckBox">
+            <property name="text">
+             <string>麦克风音频</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
         <spacer name="controlDockSpacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

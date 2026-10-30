@@ -5,6 +5,7 @@
 #include "LivePlatform.h"
 #include "FFmpegInputDevice.h"
 #include "LiveLoginSettingDialog.h"
+#include "capture/DesktopDuplicationCapture.h"
 #include "../core/Logging.h"
 #include "../platform/WindowList.h"
 
@@ -63,6 +64,8 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 	m_scene = loadScene(thatboy::storage::config);
 	m_sceneSeeded = thatboy::storage::config.contains("scene");
+	ui.audioMicCheckBox->setChecked(
+		thatboy::storage::config["stream"].value("audio_enabled", true));
 
 	refreshDevices();
 	syncSourceList();
@@ -128,6 +131,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 	connect(this, &BaseMainWindow::closed, [&]
 		{
 			thatboy::storage::config["widget_info"]["platform"] = thatboy::WidgetConfigInfo(*this);
+			thatboy::storage::config["stream"]["audio_enabled"] = ui.audioMicCheckBox->isChecked();
 		});
 	setAttribute(Qt::WA_TranslucentBackground);
 	connect(ui.closeToolButton, &QToolButton::clicked, this, &LivePlatform::hideToTray);
@@ -221,6 +225,34 @@ LivePlatform::LivePlatform(QWidget* parent)
 	connect(ui.startPushButton, &QPushButton::clicked, this, &LivePlatform::startStreaming);
 	connect(ui.stopPushButton, &QPushButton::clicked, this, &LivePlatform::stopStreaming);
 
+	// OBS-style: the composited preview canvas is the stream input, so the
+	// preview keeps running while live and edits apply immediately.
+	connect(&previewWidget, &ScenePreview::canvasReady, this, [this](const QImage& canvas)
+		{
+			if (ffmpegProcess.state() != QProcess::Running)
+				return;
+			// Backpressure: skip frames while the pipe is still draining.
+			if (ffmpegProcess.bytesToWrite() > qint64(canvas.sizeInBytes()) * 2)
+				return;
+			ffmpegProcess.write(reinterpret_cast<const char*>(canvas.constBits()),
+				qint64(canvas.sizeInBytes()));
+		});
+	connect(&previewWidget, &ScenePreview::sceneChanged, this, [this](QList<StreamSource> sources)
+		{
+			m_scene = sources;
+			persistScene();
+			syncSourceList();
+		});
+	connect(&previewWidget, &ScenePreview::sourceSelected, this, [this](int index)
+		{
+			const QSignalBlocker blocker(ui.sourceListWidget);
+			ui.sourceListWidget->setCurrentRow(index);
+		});
+	connect(ui.sourceListWidget, &QListWidget::currentRowChanged, this, [this](int row)
+		{
+			previewWidget.setSelectedIndex(row);
+		});
+
 	// Source dock toolbar.
 	auto* addMenu = new QMenu(this);
 	addMenu->addAction(QIcon(), tr("摄像头"), this, [this]
@@ -236,12 +268,22 @@ LivePlatform::LivePlatform(QWidget* parent)
 			}
 			addSource(source);
 		});
-	addMenu->addAction(tr("整个屏幕"), this, [this]
-		{
-			StreamSource source;
-			source.kind = StreamSource::Kind::Desktop;
-			addSource(source);
-		});
+	const auto monitors = DesktopDuplicationCapture::availableMonitors();
+	for (int i = 0; i < monitors.size(); ++i)
+	{
+		const DesktopDuplicationCapture::MonitorInfo monitor = monitors[i];
+		addMenu->addAction(tr("屏幕 %1 (%2x%3)").arg(i + 1)
+				.arg(monitor.geometry.width()).arg(monitor.geometry.height()),
+			this, [this, monitor]
+			{
+				StreamSource source;
+				source.kind = StreamSource::Kind::Desktop;
+				source.name = monitor.deviceName;
+				source.title = QString("%1x%2").arg(monitor.geometry.width())
+					.arg(monitor.geometry.height());
+				addSource(source);
+			});
+	}
 	addMenu->addAction(tr("窗口…"), this, [this]
 		{
 			const QString title = pickWindowTitle();
@@ -277,6 +319,32 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 	connect(&deviceRefreshTimer, &QTimer::timeout, this, &LivePlatform::refreshDevices);
 	deviceRefreshTimer.start(3000);
+
+	// Headless capture test hook (CI / diagnostics): POSTLIVE_SMOKE_CAPTURE
+	// = "desktop" or "window:<exact title>" adds that source on startup.
+	const QString smokeCapture = qEnvironmentVariable("POSTLIVE_SMOKE_CAPTURE");
+	if (!smokeCapture.isEmpty())
+	{
+		StreamSource source;
+		if (smokeCapture == QLatin1String("desktop"))
+		{
+			const auto monitors = DesktopDuplicationCapture::availableMonitors();
+			if (!monitors.isEmpty())
+			{
+				source.kind = StreamSource::Kind::Desktop;
+				source.name = monitors.front().deviceName;
+				source.title = QString("%1x%2").arg(monitors.front().geometry.width())
+					.arg(monitors.front().geometry.height());
+			}
+		}
+		else if (smokeCapture.startsWith(QLatin1String("window:")))
+		{
+			source.kind = StreamSource::Kind::Window;
+			source.name = smokeCapture.mid(QStringLiteral("window:").size());
+		}
+		if (!source.name.isEmpty())
+			addSource(source);
+	}
 }
 
 LivePlatform::~LivePlatform()
@@ -292,6 +360,12 @@ void LivePlatform::openSettings()
 {
 	auto* dialog = new LiveLoginSettingDialog(this);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
+	connect(dialog, &QDialog::accepted, this, [this]
+		{
+			const QString size = streamSetting("size", "1280x720");
+			previewWidget.setCanvasSize(QSize(size.section('x', 0, 0).toInt(),
+				size.section('x', 1, 1).toInt()));
+		});
 	dialog->show();
 	dialog->raise();
 	dialog->activateWindow();
@@ -301,10 +375,14 @@ void LivePlatform::changeEvent(QEvent* event)
 {
 	if (event->type() == QEvent::WindowStateChange)
 	{
-		if (isMinimized())
-			previewWidget.stopAll();
-		else if (isVisible())
-			syncPreview();
+		// While streaming the preview feeds the stream: keep it alive.
+		if (ffmpegProcess.state() != QProcess::Running)
+		{
+			if (isMinimized())
+				previewWidget.stopAll();
+			else if (isVisible())
+				syncPreview();
+		}
 	}
 	DragableMainWindow::changeEvent(event);
 }
@@ -322,7 +400,8 @@ void LivePlatform::showFromTray()
 void LivePlatform::hideToTray()
 {
 	hide();
-	previewWidget.stopAll();
+	if (ffmpegProcess.state() != QProcess::Running)
+		previewWidget.stopAll();
 }
 
 QString LivePlatform::cameraDeviceName() const
@@ -365,6 +444,7 @@ void LivePlatform::addSource(const StreamSource& source)
 	m_scene.append(source);
 	persistScene();
 	syncSourceList();
+	ui.sourceListWidget->setCurrentRow(m_scene.size() - 1);
 	syncPreview();
 }
 
@@ -410,8 +490,6 @@ void LivePlatform::syncSourceList()
 
 void LivePlatform::syncPreview()
 {
-	if (ffmpegProcess.state() == QProcess::Running)
-		return;
 	previewWidget.setSources(m_scene);
 }
 
@@ -419,6 +497,11 @@ void LivePlatform::startStreaming()
 {
 	if (ffmpegProcess.state() != QProcess::NotRunning)
 		return;
+	if (m_scene.isEmpty())
+	{
+		appendStatus(tr("请先添加采集源"));
+		return;
+	}
 
 	StreamSettings settings;
 	settings.server = streamSetting("server", "rtmp://rtmp.ohtoai.top");
@@ -427,24 +510,18 @@ void LivePlatform::startStreaming()
 	settings.encoder = streamSetting("encoder", "Auto");
 	settings.bitrate = streamSetting("bitrate", "Auto");
 	settings.fps = streamSetting("fps", "Auto");
-	settings.watermark = thatboy::storage::config["stream"].value("watermark", true);
-	settings.watermarkFile = logoImage;
 
 	QString error;
-	const QStringList arguments = buildSceneArgs(m_scene, settings, &error);
+	const QStringList arguments = buildStreamPipeArgs(previewWidget.canvasSize(),
+		settings, ui.audioMicCheckBox->isChecked(), &error);
 	if (arguments.isEmpty())
 	{
 		appendStatus(tr("无法开始推流：%1").arg(error));
 		qCWarning(lcStream) << "stream start aborted:" << error;
 		return;
 	}
-	if (settings.watermark && !QFileInfo::exists(settings.watermarkFile))
-	{
-		appendStatus(tr("找不到水印文件，本次推流不叠加水印"));
-		qCInfo(lcStream) << "watermark file missing, streaming without it:" << settings.watermarkFile;
-	}
 
-	previewWidget.stopAll(); // dshow devices cannot be opened twice
+	// The preview keeps running: its composited canvas is the stream input.
 	stopRequested = false;
 	errorNotified = false;
 	lastErrorOutput.clear();
@@ -480,12 +557,8 @@ void LivePlatform::stopStreaming()
 
 void LivePlatform::updateStreamControls(bool streaming)
 {
-	ui.sourceListWidget->setEnabled(!streaming);
-	ui.addSourceToolButton->setEnabled(!streaming);
-	ui.removeSourceToolButton->setEnabled(!streaming);
-	ui.moveUpToolButton->setEnabled(!streaming);
-	ui.moveDownToolButton->setEnabled(!streaming);
-	ui.cameraComboBox->setEnabled(!streaming);
+	// Source editing stays enabled while live: the canvas is the stream
+	// input, so changes apply immediately (OBS-style).
 	ui.startPushButton->setVisible(!streaming);
 	ui.stopPushButton->setVisible(streaming);
 }
@@ -520,20 +593,39 @@ void LivePlatform::refreshDevices()
 				QString::fromStdString(camera->device_name));
 	}
 
-	// Seed a default camera scene exactly once, for fresh installs.
+	// Seed a default scene exactly once, for fresh installs.
 	if (!m_sceneSeeded)
 	{
 		m_sceneSeeded = true;
-		if (m_scene.isEmpty() && ui.cameraComboBox->count() > 0)
+		if (m_scene.isEmpty() && !thatboy::storage::config.contains("scene"))
 		{
-			StreamSource source;
-			source.kind = StreamSource::Kind::Camera;
-			source.name = ui.cameraComboBox->itemData(0).toString();
-			source.title = ui.cameraComboBox->itemText(0);
-			m_scene.append(source);
-			persistScene();
-			syncSourceList();
-			syncPreview();
+			if (ui.cameraComboBox->count() > 0)
+			{
+				StreamSource source;
+				source.kind = StreamSource::Kind::Camera;
+				source.name = ui.cameraComboBox->itemData(0).toString();
+				source.title = ui.cameraComboBox->itemText(0);
+				m_scene.append(source);
+			}
+			else
+			{
+				const auto monitors = DesktopDuplicationCapture::availableMonitors();
+				if (!monitors.isEmpty())
+				{
+					StreamSource source;
+					source.kind = StreamSource::Kind::Desktop;
+					source.name = monitors.front().deviceName;
+					source.title = QString("%1x%2").arg(monitors.front().geometry.width())
+						.arg(monitors.front().geometry.height());
+					m_scene.append(source);
+				}
+			}
+			if (!m_scene.isEmpty())
+			{
+				persistScene();
+				syncSourceList();
+				syncPreview();
+			}
 		}
 	}
 }

@@ -34,9 +34,9 @@ add_test(NAME core COMMAND PostLiveTests)
 set_tests_properties(core PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-# Scene argument-builder contract tests (pure Qt + StreamSource/StreamArgs).
+# Streaming argument-builder contract tests (pure Qt).
 add_executable(PostLiveStreamArgsTests
-    test_scene_args.cpp
+    test_stream_pipe_args.cpp
     ../src/media/StreamArgs.cpp
     ../src/media/StreamSource.cpp)
 
