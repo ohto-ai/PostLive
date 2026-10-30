@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <QButtonGroup>
 #include <QEvent>
 #include <QProcess>
 #include <QSystemTrayIcon>
@@ -34,6 +35,7 @@ protected:
 	void applySourceMode();
 	CaptureSource currentSource() const;
 	QString cameraDeviceName() const;
+	void openSettings();
 
 	const QString ffmpegPath{ R"(ffmpeg.exe)" };
 
@@ -45,6 +47,7 @@ protected:
 	QString localFilePath;
 	QProcess ffmpegProcess{ this };
 	QTimer deviceRefreshTimer{ this };
+	QButtonGroup sourceGroup{ this };
 
 	bool stopRequested{ false };
 	bool errorNotified{ false };

@@ -25,6 +25,25 @@ LiveLoginSettingDialog::LiveLoginSettingDialog(QWidget* parent)
 		config.value("website", std::string("https://ohtoai.top"))));
 	ui.watermarkCheckBox->setChecked(config["stream"].value("watermark", true));
 
+	ui.streamSizeComboBox->addItems({
+		"640x480", "800x600", "1024x768", "1280x720", "1280x800", "1400x1050", "1440x900", "1600x1200", "1920x1080", "1920x1200"
+		});
+	ui.streamBitrateComboBox->addItems({ "Auto", "1000", "2500", "4000", "6000" });
+	ui.streamFpsComboBox->addItems({ "Auto", "15", "24", "30", "60" });
+	ui.streamEncoderComboBox->addItems({ "Auto", "libx264", "h264_nvenc", "h264_amf", "h264_qsv", "libopenh264" });
+
+	auto restoreStreamCombo = [&](QComboBox* combo, const char* key, const char* fallback)
+	{
+		combo->setCurrentText(QString::fromStdString(
+			config["stream"].value(key, std::string(fallback))));
+	};
+	restoreStreamCombo(ui.streamSizeComboBox, "size", "1280x720");
+	restoreStreamCombo(ui.streamBitrateComboBox, "bitrate", "Auto");
+	restoreStreamCombo(ui.streamFpsComboBox, "fps", "Auto");
+	restoreStreamCombo(ui.streamEncoderComboBox, "encoder", "Auto");
+	ui.streamServerLineEdit->setText(QString::fromStdString(
+		config["stream"].value("server", std::string("rtmp://rtmp.ohtoai.top"))));
+
 	connect(ui.savePushButton, &QPushButton::clicked, this, &LiveLoginSettingDialog::save);
 	connect(ui.closeToolButton, &QToolButton::clicked, this, &LiveLoginSettingDialog::close);
 	connect(ui.minimizeToolButton, &QToolButton::clicked, this, &LiveLoginSettingDialog::showMinimized);
@@ -35,6 +54,10 @@ LiveLoginSettingDialog::LiveLoginSettingDialog(QWidget* parent)
 			showFieldError(nullptr, QString());
 		});
 	connect(ui.websiteLineEdit, &QLineEdit::textEdited, this, [this]
+		{
+			showFieldError(nullptr, QString());
+		});
+	connect(ui.streamServerLineEdit, &QLineEdit::textEdited, this, [this]
 		{
 			showFieldError(nullptr, QString());
 		});
@@ -89,11 +112,28 @@ void LiveLoginSettingDialog::save()
 		}
 	}
 
+	const QString streamServer = ui.streamServerLineEdit->text().trimmed();
+	const QUrl streamUrl(streamServer);
+	const QString streamScheme = streamUrl.scheme().toLower();
+	if (streamServer.isEmpty() || !streamUrl.isValid() || streamUrl.host().isEmpty()
+		|| (streamScheme != "rtmp" && streamScheme != "rtmps"))
+	{
+		qCWarning(lcCore) << "settings rejected: invalid stream server URL" << streamServer;
+		showFieldError(ui.streamServerLineEdit, "推流服务器地址无效，示例：rtmp://server:1935");
+		return;
+	}
+
 	auto& config = thatboy::storage::config;
 	config["auth_server"] = server.toStdString();
 	config["website"] = website.toStdString();
 	config["stream"]["watermark"] = ui.watermarkCheckBox->isChecked();
+	config["stream"]["server"] = streamServer.toStdString();
+	config["stream"]["size"] = ui.streamSizeComboBox->currentText().toStdString();
+	config["stream"]["bitrate"] = ui.streamBitrateComboBox->currentText().toStdString();
+	config["stream"]["fps"] = ui.streamFpsComboBox->currentText().toStdString();
+	config["stream"]["encoder"] = ui.streamEncoderComboBox->currentText().toStdString();
 	thatboy::storage::websiteUrl = website;
-	qCInfo(lcCore) << "settings saved: auth_server" << server << "website" << website;
+	qCInfo(lcCore) << "settings saved: auth_server" << server << "website" << website
+		<< "stream server" << streamServer << "size" << QString::fromStdString(config["stream"]["size"].get<std::string>());
 	close();
 }

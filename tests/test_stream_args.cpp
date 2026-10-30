@@ -34,6 +34,7 @@ private slots:
 		QVERIFY(joined.contains("-pix_fmt yuv420p"));
 		QVERIFY(joined.contains("-s 1280x720"));
 		QVERIFY(joined.contains("-f flv"));
+		QVERIFY(joined.contains("-progress pipe:1"));
 		QVERIFY(joined.contains("rtmp://rtmp.example.com/livehime"));
 		QVERIFY(!joined.contains("gdigrab"));
 	}

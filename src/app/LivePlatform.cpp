@@ -20,31 +20,25 @@
 #include <QStandardPaths>
 #include <QUrl>
 
+namespace
+{
+	QString streamSetting(const char* key, const char* fallback)
+	{
+		return QString::fromStdString(
+			thatboy::storage::config["stream"].value(key, std::string(fallback)));
+	}
+}
+
 LivePlatform::LivePlatform(QWidget* parent)
 	: DragableMainWindow(parent)
 {
 	ui.setupUi(this);
 
-	ui.sourceComboBox->addItem("摄像头");
-	ui.sourceComboBox->addItem("整个屏幕");
-	ui.sourceComboBox->addItem("窗口");
-	ui.sourceComboBox->addItem("本地文件");
-
-	ui.bitrateComboBox->addItems({ "Auto", "1000", "2500", "4000", "6000" });
-	ui.frameRateComboBox->addItems({ "Auto", "15", "24", "30", "60" });
-	ui.encoderComboBox->addItems({ "Auto", "libx264", "h264_nvenc", "h264_amf", "h264_qsv", "libopenh264" });
-
-	const auto& streamConfig = thatboy::storage::config["stream"];
-	auto restoreCombo = [&](QComboBox* combo, const char* key)
-	{
-		if (streamConfig.contains(key) && streamConfig[key].is_string())
-			combo->setCurrentText(QString::fromStdString(streamConfig[key].get<std::string>()));
-	};
-	restoreCombo(ui.bitrateComboBox, "bitrate");
-	restoreCombo(ui.frameRateComboBox, "fps");
-	restoreCombo(ui.encoderComboBox, "encoder");
-	if (streamConfig.contains("preview") && streamConfig["preview"].is_boolean())
-		ui.previewCheckBox->setChecked(streamConfig["preview"].get<bool>());
+	sourceGroup.addButton(ui.sourceCardCamera, 0);
+	sourceGroup.addButton(ui.sourceCardDesktop, 1);
+	sourceGroup.addButton(ui.sourceCardWindow, 2);
+	sourceGroup.addButton(ui.sourceCardFile, 3);
+	sourceGroup.setExclusive(true);
 
 	thatboy::storage::config["widget_info"]["platform"].get<thatboy::WidgetConfigInfo>().config(*this);
 
@@ -70,14 +64,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 	m_menu->addAction(actionExit);
 
 	connect(actionShowMainWindow, &QAction::triggered, this, &LivePlatform::showFromTray);
-	connect(actionSettings, &QAction::triggered, this, [this]
-		{
-			auto* dialog = new LiveLoginSettingDialog(this);
-			dialog->setAttribute(Qt::WA_DeleteOnClose);
-			dialog->show();
-			dialog->raise();
-			dialog->activateWindow();
-		});
+	connect(actionSettings, &QAction::triggered, this, &LivePlatform::openSettings);
 	connect(actionViewWebsite, &QAction::triggered, this, [this]
 		{
 			if (!thatboy::storage::websiteUrl.isEmpty())
@@ -117,27 +104,12 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 	connect(this, &BaseMainWindow::closed, [&]
 		{
-			auto& config = thatboy::storage::config;
-			config["widget_info"]["platform"] = thatboy::WidgetConfigInfo(*this);
-			auto& stream = config["stream"];
-			stream["bitrate"] = ui.bitrateComboBox->currentText().toStdString();
-			stream["fps"] = ui.frameRateComboBox->currentText().toStdString();
-			stream["encoder"] = ui.encoderComboBox->currentText().toStdString();
-			stream["preview"] = ui.previewCheckBox->isChecked();
+			thatboy::storage::config["widget_info"]["platform"] = thatboy::WidgetConfigInfo(*this);
 		});
 	setAttribute(Qt::WA_TranslucentBackground);
 	connect(ui.closeToolButton, &QToolButton::clicked, this, &LivePlatform::hideToTray);
 	connect(ui.minimizeToolButton, &QToolButton::clicked, this, &LivePlatform::showMinimized);
-
-	connect(ui.previewCheckBox, &QCheckBox::toggled, this, [this](bool checked)
-		{
-			if (ffmpegProcess.state() == QProcess::Running)
-				return;
-			if (checked)
-				startPreview();
-			else
-				stopPreview();
-		});
+	connect(ui.settingsPushButton, &QPushButton::clicked, this, &LivePlatform::openSettings);
 
 	connect(&ffmpegProcess, &QProcess::started, [this]
 		{
@@ -149,6 +121,37 @@ LivePlatform::LivePlatform(QWidget* parent)
 			lastErrorOutput += QString::fromLocal8Bit(ffmpegProcess.readAllStandardError());
 			if (lastErrorOutput.size() > 4096)
 				lastErrorOutput = lastErrorOutput.right(4096);
+		});
+	connect(&ffmpegProcess, &QProcess::readyReadStandardOutput, [this]
+		{
+			// -progress pipe:1 emits key=value lines; surface duration,
+			// bitrate and fps in the control bar while streaming.
+			const QList<QByteArray> lines = ffmpegProcess.readAllStandardOutput().split('\n');
+			QString outTime, bitrate, fps;
+			for (const QByteArray& raw : lines)
+			{
+				const QString line = QString::fromLatin1(raw).trimmed();
+				const int eq = line.indexOf('=');
+				if (eq <= 0)
+					continue;
+				const QString key = line.left(eq);
+				const QString value = line.mid(eq + 1).trimmed();
+				if (key == QLatin1String("out_time"))
+					outTime = value;
+				else if (key == QLatin1String("bitrate") && value.endsWith(QLatin1String("bits/s")))
+					bitrate = value.left(value.size() - 6).trimmed();
+				else if (key == QLatin1String("fps"))
+					fps = value;
+			}
+			if (!outTime.isEmpty() || !bitrate.isEmpty() || !fps.isEmpty())
+			{
+				QString text = QStringLiteral("直播 %1").arg(outTime);
+				if (!bitrate.isEmpty())
+					text += QStringLiteral(" · %1kbps").arg(bitrate);
+				if (!fps.isEmpty())
+					text += QStringLiteral(" · %1fps").arg(fps);
+				ui.progressLabel->setText(text);
+			}
 		});
 	connect(&ffmpegProcess, &QProcess::errorOccurred, [this](QProcess::ProcessError error)
 		{
@@ -162,8 +165,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 				qCCritical(lcStream) << "FFmpeg failed to start; expected at"
 					<< ffmpegPath << "or on PATH";
 			}
-			if (ui.previewCheckBox->isChecked())
-				startPreview();
+			startPreview();
 		});
 	connect(&ffmpegProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
 		[this](int code, QProcess::ExitStatus status)
@@ -174,6 +176,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 			const QString errorText = lastErrorOutput.trimmed();
 			lastErrorOutput.clear();
+			ui.progressLabel->clear();
 
 			if (!wasStopRequested && (code != 0 || status != QProcess::NormalExit))
 			{
@@ -190,25 +193,26 @@ LivePlatform::LivePlatform(QWidget* parent)
 				appendStatus(tr("推流已停止"));
 			}
 
-			if (ui.previewCheckBox->isChecked())
-				startPreview();
+			startPreview();
 		});
 
 	connect(ui.startPushButton, &QPushButton::clicked, this, &LivePlatform::startStreaming);
 	connect(ui.stopPushButton, &QPushButton::clicked, this, &LivePlatform::stopStreaming);
 
-	// Source switching: show the matching controls and restart the preview.
-	connect(ui.sourceComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int)
+	// Source cards: switch source, show the matching controls, restart preview.
+	connect(&sourceGroup, QOverload<int>::of(&QButtonGroup::idClicked), this, [this](int)
 		{
 			applySourceMode();
-			if (ui.previewCheckBox->isChecked() && ffmpegProcess.state() != QProcess::Running)
-				startPreview();
+			startPreview();
 		});
 	connect(ui.windowComboBox, &WindowComboBox::aboutToShowPopup, this, &LivePlatform::refreshWindowList);
 	connect(ui.windowComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int)
 		{
-			if (ui.previewCheckBox->isChecked() && ffmpegProcess.state() != QProcess::Running)
-				startPreview();
+			startPreview();
+		});
+	connect(ui.cameraComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this](int)
+		{
+			startPreview();
 		});
 	connect(ui.selectFilePushButton, &QPushButton::clicked, this, [this]
 		{
@@ -217,13 +221,15 @@ LivePlatform::LivePlatform(QWidget* parent)
 			if (file.isEmpty())
 				return;
 			localFilePath = file;
-			appendStatus(tr("已选择文件：%1").arg(file));
-			if (ui.previewCheckBox->isChecked() && ffmpegProcess.state() != QProcess::Running)
-				startPreview();
+			ui.fileLabel->setText(QFileInfo(file).fileName());
+			ui.fileLabel->setToolTip(file);
+			startPreview();
 		});
 
 	connect(&deviceRefreshTimer, &QTimer::timeout, this, &LivePlatform::refreshDevices);
 	deviceRefreshTimer.start(3000);
+
+	startPreview();
 }
 
 LivePlatform::~LivePlatform()
@@ -235,20 +241,23 @@ LivePlatform::~LivePlatform()
 	}
 }
 
+void LivePlatform::openSettings()
+{
+	auto* dialog = new LiveLoginSettingDialog(this);
+	dialog->setAttribute(Qt::WA_DeleteOnClose);
+	dialog->show();
+	dialog->raise();
+	dialog->activateWindow();
+}
+
 void LivePlatform::changeEvent(QEvent* event)
 {
 	if (event->type() == QEvent::WindowStateChange)
 	{
 		if (isMinimized())
-		{
-			if (ffmpegProcess.state() != QProcess::Running)
-				stopPreview();
-		}
+			stopPreview();
 		else if (isVisible())
-		{
-			if (ffmpegProcess.state() != QProcess::Running)
-				startPreview();
-		}
+			startPreview();
 	}
 	DragableMainWindow::changeEvent(event);
 }
@@ -260,20 +269,18 @@ void LivePlatform::showFromTray()
 	show();
 	raise();
 	activateWindow();
-	if (ffmpegProcess.state() != QProcess::Running)
-		startPreview();
+	startPreview();
 }
 
 void LivePlatform::hideToTray()
 {
 	hide();
-	if (ffmpegProcess.state() != QProcess::Running)
-		stopPreview();
+	stopPreview();
 }
 
 CaptureSource LivePlatform::currentSource() const
 {
-	switch (ui.sourceComboBox->currentIndex())
+	switch (sourceGroup.checkedId())
 	{
 	case 1: return CaptureSource::Desktop;
 	case 2: return CaptureSource::Window;
@@ -297,11 +304,12 @@ void LivePlatform::applySourceMode()
 	ui.microphoneComboBox->setVisible(source != CaptureSource::LocalFile);
 	ui.windowComboBox->setVisible(source == CaptureSource::Window);
 	ui.selectFilePushButton->setVisible(source == CaptureSource::LocalFile);
+	ui.fileLabel->setVisible(source == CaptureSource::LocalFile);
 }
 
 void LivePlatform::startPreview()
 {
-	if (ffmpegProcess.state() == QProcess::Running || !ui.previewCheckBox->isChecked())
+	if (ffmpegProcess.state() == QProcess::Running)
 		return;
 
 	switch (currentSource())
@@ -360,15 +368,15 @@ void LivePlatform::startStreaming()
 
 	StreamSettings settings;
 	settings.source = currentSource();
-	settings.server = ui.streamServerLineEdit->text().trimmed();
+	settings.server = streamSetting("server", "rtmp://rtmp.ohtoai.top");
 	settings.cameraName = cameraDeviceName();
 	settings.microphoneName = ui.microphoneComboBox->currentText();
 	settings.windowTitle = ui.windowComboBox->currentText();
 	settings.filePath = localFilePath;
-	settings.size = ui.sizeComboBox->currentText();
-	settings.encoder = ui.encoderComboBox->currentText();
-	settings.bitrate = ui.bitrateComboBox->currentText();
-	settings.fps = ui.frameRateComboBox->currentText();
+	settings.size = streamSetting("size", "1280x720");
+	settings.encoder = streamSetting("encoder", "Auto");
+	settings.bitrate = streamSetting("bitrate", "Auto");
+	settings.fps = streamSetting("fps", "Auto");
 	settings.watermark = thatboy::storage::config["stream"].value("watermark", true);
 	settings.watermarkFile = logoImage;
 
@@ -390,6 +398,7 @@ void LivePlatform::startStreaming()
 	stopRequested = false;
 	errorNotified = false;
 	lastErrorOutput.clear();
+	ui.progressLabel->clear();
 	ffmpegProcess.readAllStandardError();
 	appendStatus(tr("正在启动 FFmpeg..."));
 	qCInfo(lcStream) << "starting FFmpeg:" << ffmpegPath << arguments.join(QLatin1Char(' '));
@@ -421,19 +430,16 @@ void LivePlatform::stopStreaming()
 
 void LivePlatform::updateStreamControls(bool streaming)
 {
-	ui.sourceComboBox->setEnabled(!streaming);
-	ui.windowComboBox->setEnabled(!streaming);
-	ui.selectFilePushButton->setEnabled(!streaming);
+	ui.sourceCardCamera->setEnabled(!streaming);
+	ui.sourceCardDesktop->setEnabled(!streaming);
+	ui.sourceCardWindow->setEnabled(!streaming);
+	ui.sourceCardFile->setEnabled(!streaming);
 	ui.cameraComboBox->setEnabled(!streaming);
 	ui.microphoneComboBox->setEnabled(!streaming);
-	ui.streamServerLineEdit->setEnabled(!streaming);
-	ui.sizeComboBox->setEnabled(!streaming);
-	ui.bitrateComboBox->setEnabled(!streaming);
-	ui.frameRateComboBox->setEnabled(!streaming);
-	ui.encoderComboBox->setEnabled(!streaming);
-	ui.previewCheckBox->setEnabled(!streaming);
-	ui.startPushButton->setEnabled(!streaming);
-	ui.stopPushButton->setEnabled(streaming);
+	ui.windowComboBox->setEnabled(!streaming);
+	ui.selectFilePushButton->setEnabled(!streaming);
+	ui.startPushButton->setVisible(!streaming);
+	ui.stopPushButton->setVisible(streaming);
 }
 
 void LivePlatform::appendStatus(const QString& text)
@@ -474,8 +480,7 @@ void LivePlatform::refreshDevices()
 			if (index < ui.cameraComboBox->count())
 				ui.cameraComboBox->setCurrentIndex(index);
 		}
-		if (ui.previewCheckBox->isChecked() && ffmpegProcess.state() != QProcess::Running
-			&& isVisible() && !isMinimized() && currentSource() == CaptureSource::Camera)
+		if (isVisible() && !isMinimized() && currentSource() == CaptureSource::Camera)
 			startPreview();
 	}
 

@@ -495,3 +495,24 @@ QToolButton#closeToolButton:hover {
 QToolButton#closeToolButton:pressed {
     background: rgb(200, 48, 36);
 }
+
+/**********采集源卡片********* */
+QPushButton[card="true"] {
+    background: rgb(59, 59, 59);
+    border: 2px solid rgb(85, 85, 85);
+    border-radius: 8px;
+    padding: 10px 18px;
+}
+
+QPushButton[card="true"]:hover {
+    border-color: rgb(130, 130, 130);
+}
+
+QPushButton[card="true"]:checked {
+    background: rgb(0, 105, 155);
+    border-color: rgb(0, 160, 230);
+}
+
+QPushButton[card="true"]:disabled {
+    color: rgb(155, 155, 155);
+}

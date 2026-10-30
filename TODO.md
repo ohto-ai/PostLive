@@ -22,9 +22,9 @@
 
 ## 下次优先做
 
-1. **主控制页重做**：方案与截图调研见 [docs/broadcast-ui-research.md](docs/broadcast-ui-research.md)（提案 A 直播姬式极简 / 提案 B OBS 式面板，含 6 个待拍板问题）
+1. **主控制页实机复测**：提案 A 已实现（源卡片 + 大画布 + 控制条，参数收进设置，`-progress` 实时状态），需实机过目文字渲染 / DPI / 布局比例
 2. **用 Cloudflare 账号部署 Worker**（约 15 分钟，步骤见 [worker/README.md](worker/README.md)），然后用真实 HTTPS 服务端跑一次完整登录
-3. **实机验证**：遮罩窗口、设置窗口、新登录界面、内嵌错误提示、`log/PostLive.log`、CI 安装包安装流程
+3. **实机验证**：遮罩窗口、设置窗口（新增直播设置区）、新登录界面、CI 安装包安装流程
 
 ## P1 需要决策 / 外部依赖
 
@@ -98,6 +98,13 @@
 - [x] CI 用 GitHub 预装的 Inno Setup 6 编译 `packaging/PostLive.iss`（版本号从 CMakeLists 解析传入），安装包与 zip 一起上传为 Actions 产物；升级不覆盖用户 `application.json` / `users.json`。
 - [x] CI 打包前自动获取 OpenSSL 1.1.1w（slproweb Light 安装包静默安装），把两枚 DLL 复制进构建目录；zip 与安装包因此都支持 HTTPS 认证。
 - [x] `packaging/README.md` 更新安装包内容清单与本地 OpenSSL 补齐方式。
+
+### E 主控制页重做（提案 A：直播姬式极简单屏）
+
+- [x] `LivePlatform.ui` 重排：标题栏（PostLive 文字品牌，替换 pilipili 图）→ 采集源卡片行（摄像头/整个屏幕/窗口/本地文件，QButtonGroup 互斥）→ 上下文行（按源显示摄像头+麦克风 / 窗口列表 / 文件选择）→ 大预览画布 → 控制条（开始/停止互斥显示 + 状态 + 实时进度 + 设置按钮）。
+- [x] 推流参数（服务器/分辨率/码率/帧率/编码器）全部迁入 `LiveLoginSettingDialog` 新增的"直播设置"区（rtmp(s) 校验 + 持久化 stream.* 配置）。
+- [x] 实时状态：ffmpeg 参数加 `-progress pipe:1`，控制条解析 stdout 显示 直播时长 / 码率 / FPS；`buildStreamArgs` 测试同步更新。
+- [x] offscreen 快照验证：源卡片选中态、摄像头实时预览渲染、控制条布局均正常。
 
 ### D 合并 PostLive.Re（进程内 FFmpeg 采集 + UI 主题）
 

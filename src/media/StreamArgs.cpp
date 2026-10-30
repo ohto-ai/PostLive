@@ -120,6 +120,8 @@ QStringList buildStreamArgs(const StreamSettings& settings, QString* error)
 	while (url.endsWith(QLatin1Char('/')))
 		url.chop(1);
 	url += QStringLiteral("/livehime");
-	arguments << url;
+	// Real-time stats (duration/bitrate/fps) for the control bar come from
+	// the progress key=value lines written to stdout.
+	arguments << QStringLiteral("-progress") << QStringLiteral("pipe:1") << url;
 	return arguments;
 }
