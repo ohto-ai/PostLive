@@ -1,13 +1,12 @@
 ﻿#pragma once
 
-#include <QButtonGroup>
 #include <QEvent>
 #include <QProcess>
 #include <QSystemTrayIcon>
 #include <QTimer>
-#include "FFmpegWidget.h"
-#include "FFmpegInputDevice.h"
+#include "ScenePreview.h"
 #include "StreamArgs.h"
+#include "StreamSource.h"
 #include "utils.h"
 #include "DragableMainWindow.h"
 #include "ui_LivePlatform.h"
@@ -24,30 +23,32 @@ protected:
 	void changeEvent(QEvent* event) override;
 	void showFromTray();
 	void hideToTray();
-	void startPreview();
-	void stopPreview();
 	void startStreaming();
 	void stopStreaming();
 	void updateStreamControls(bool streaming);
 	void appendStatus(const QString& text);
 	void refreshDevices();
-	void refreshWindowList();
-	void applySourceMode();
-	CaptureSource currentSource() const;
-	QString cameraDeviceName() const;
 	void openSettings();
+
+	// Scene management: the list order is the layer order (first = base).
+	void addSource(const StreamSource& source);
+	void removeSource();
+	void moveSource(int delta);
+	void syncSourceList();
+	void syncPreview();
+	void persistScene();
+
+	QString pickWindowTitle();
+	QString cameraDeviceName() const;
 
 	const QString ffmpegPath{ R"(ffmpeg.exe)" };
 
 	QString logoImage{ "assets/pilipili-logo.png" };
-	FFmpegWidget previewWidget{ this };
-	// Backing store whose address is handed to the decoder; the decoder only
-	// keeps the pointer, so the device must outlive the preview session.
-	FFmpegInputDevice currentDevice;
-	QString localFilePath;
+	ScenePreview previewWidget{ this };
+	QList<StreamSource> m_scene;
+	bool m_sceneSeeded{ false };
 	QProcess ffmpegProcess{ this };
 	QTimer deviceRefreshTimer{ this };
-	QButtonGroup sourceGroup{ this };
 
 	bool stopRequested{ false };
 	bool errorNotified{ false };

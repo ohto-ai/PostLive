@@ -539,7 +539,28 @@ QToolTip
             </item>
            </layout>
           </item>
-          <item row="7" column="0" colspan="2">
+                    <item row="7" column="0" colspan="2">
+           <layout class="QHBoxLayout" name="streamMicLayout">
+            <item>
+             <widget class="QLabel" name="streamMicLabel">
+              <property name="text">
+               <string>麦克风</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="streamMicComboBox">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>32</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="9" column="0" colspan="2">
            <widget class="QLabel" name="messageLabel">
             <property name="minimumSize">
              <size>
@@ -558,7 +579,7 @@ QToolTip
             </property>
            </widget>
           </item>
-          <item row="8" column="0" colspan="2">
+          <item row="10" column="0" colspan="2">
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
              <spacer name="horizontalSpacer_3">

@@ -22,7 +22,7 @@
 
 ## 下次优先做
 
-1. **主控制页实机复测**：提案 A 已实现（源卡片 + 大画布 + 控制条，参数收进设置，`-progress` 实时状态），需实机过目文字渲染 / DPI / 布局比例
+1. **直播页实机复测**：OBS 式三栏布局已实现（源列表 + 多源叠加 + 控制 dock + 状态条），需实机过目文字渲染 / DPI / 布局，并真机推流验证 filter_complex 链（桌面+摄像头画中画）
 2. **用 Cloudflare 账号部署 Worker**（约 15 分钟，步骤见 [worker/README.md](worker/README.md)），然后用真实 HTTPS 服务端跑一次完整登录
 3. **实机验证**：遮罩窗口、设置窗口（新增直播设置区）、新登录界面、CI 安装包安装流程
 
@@ -98,6 +98,14 @@
 - [x] CI 用 GitHub 预装的 Inno Setup 6 编译 `packaging/PostLive.iss`（版本号从 CMakeLists 解析传入），安装包与 zip 一起上传为 Actions 产物；升级不覆盖用户 `application.json` / `users.json`。
 - [x] CI 打包前自动获取 OpenSSL 1.1.1w（slproweb Light 安装包静默安装），把两枚 DLL 复制进构建目录；zip 与安装包因此都支持 HTTPS 认证。
 - [x] `packaging/README.md` 更新安装包内容清单与本地 OpenSSL 补齐方式。
+
+### F 直播页推倒重做（提案 B：OBS 式源管理 + 多源合成）
+
+- [x] `StreamSource` 场景源模型（kind/name/title，JSON 持久化到 `scene.sources`，kind 越界钳制）；场景 = 有序列表，首层为主画面、其余自下而上叠加。
+- [x] `buildSceneArgs` 多源推流参数构建器：多视频输入 + `filter_complex` 画中画链（PPI 缩放叠加右下角）、水印作为顶层自动加入、麦克风/文件音频映射规则、错误场景拒绝；`tests/test_scene_args.cpp` 9 个契约用例。
+- [x] `ScenePreview` 合成预览控件：每源一个 FFmpegVideo 解码线程、按 id 路由帧、画布内合成绘制（主层居中 + PiP 右下角堆叠）、拖入媒体文件即添加为源；替代并删除 FFmpegWidget。
+- [x] `LivePlatform` 重写为 OBS 式三栏：左侧源列表 dock（＋菜单添加 摄像头/屏幕/窗口/文件、移除、上移/下移、添加用设备栏）、中央画布、右侧控制 dock（开始/停止、状态、进度、设置）、底部状态条；场景持久化 + 首启自动种入摄像头源。
+- [x] 设置对话框新增"麦克风"（推流音频）下拉；offscreen 快照验证三栏布局与实时摄像头预览。
 
 ### E 主控制页重做（提案 A：直播姬式极简单屏）
 

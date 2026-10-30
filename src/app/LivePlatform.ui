@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>880</width>
-    <height>620</height>
+    <width>1000</width>
+    <height>640</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>720</width>
-    <height>520</height>
+    <width>860</width>
+    <height>540</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -56,13 +56,36 @@ QLabel#titleLabel
 	font-size: 18px;
 	font-weight: 700;
 }
-QLabel#progressLabel
+QLabel#dockHeader
 {
-	color: rgb(175,175,175);
+	color: rgb(227,234,242);
+	font-weight: 600;
 }
-QLabel#fileLabel
+QLabel#statusLabel
 {
-	color: rgb(175,175,175);
+	color: rgb(200,200,200);
+}
+QToolButton#dockToolButton
+{
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	min-width: 28px;
+	max-width: 28px;
+	min-height: 28px;
+	max-height: 28px;
+}
+QToolButton#dockToolButton:hover
+{
+	background: rgba(255,255,255,0.18);
+}
+QToolButton#dockToolButton:pressed
+{
+	background: rgba(255,255,255,0.30);
+}
+QToolButton#dockToolButton:disabled
+{
+	color: rgb(120,120,120);
 }
 
 /* tooltip */
@@ -208,162 +231,130 @@ QToolTip
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="sourceCardLayout">
-      <property name="spacing">
-       <number>10</number>
-      </property>
-      <property name="leftMargin">
-       <number>14</number>
-      </property>
-      <property name="topMargin">
-       <number>10</number>
-      </property>
-      <property name="rightMargin">
-       <number>14</number>
-      </property>
-      <property name="bottomMargin">
-       <number>4</number>
-      </property>
-      <item>
-       <widget class="QPushButton" name="sourceCardCamera">
-        <property name="minimumSize">
-         <size>
-          <width>110</width>
-          <height>44</height>
-         </size>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
-        </property>
-        <property name="text">
-         <string>摄像头</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-        <property name="card" stdset="0">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="sourceCardDesktop">
-        <property name="minimumSize">
-         <size>
-          <width>110</width>
-          <height>44</height>
-         </size>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
-        </property>
-        <property name="text">
-         <string>整个屏幕</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="card" stdset="0">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="sourceCardWindow">
-        <property name="minimumSize">
-         <size>
-          <width>110</width>
-          <height>44</height>
-         </size>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
-        </property>
-        <property name="text">
-         <string>窗口</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="card" stdset="0">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="sourceCardFile">
-        <property name="minimumSize">
-         <size>
-          <width>110</width>
-          <height>44</height>
-         </size>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
-        </property>
-        <property name="text">
-         <string>本地文件</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="card" stdset="0">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="sourceCardSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </item>
+     <layout class="QHBoxLayout" name="centralLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
-     <widget class="QWidget" name="sourceConfigWidget" native="true">
+     <widget class="QWidget" name="sourceDock" native="true">
       <property name="minimumSize">
        <size>
-        <width>0</width>
-        <height>44</height>
+        <width>250</width>
+        <height>0</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>16777215</width>
-        <height>44</height>
+        <width>280</width>
+        <height>16777215</height>
        </size>
       </property>
-      <layout class="QHBoxLayout" name="sourceConfigLayout">
+      <layout class="QVBoxLayout" name="sourceDockLayout">
        <property name="spacing">
-        <number>10</number>
+        <number>8</number>
        </property>
        <property name="leftMargin">
-        <number>14</number>
+        <number>12</number>
        </property>
        <property name="topMargin">
-        <number>2</number>
+        <number>10</number>
        </property>
        <property name="rightMargin">
-        <number>14</number>
+        <number>12</number>
        </property>
        <property name="bottomMargin">
-        <number>2</number>
+        <number>10</number>
        </property>
        <item>
-        <widget class="QLabel" name="cameraLabel">
+        <widget class="QLabel" name="dockHeader">
          <property name="text">
-          <string>摄像头</string>
+          <string>采集源（自下而上叠加）</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="sourceToolbarLayout">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <item>
+          <widget class="QToolButton" name="addSourceToolButton">
+           <property name="toolTip">
+            <string>添加采集源</string>
+           </property>
+           <property name="text">
+            <string>＋</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="removeSourceToolButton">
+           <property name="toolTip">
+            <string>移除选中源</string>
+           </property>
+           <property name="text">
+            <string>－</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="moveUpToolButton">
+           <property name="toolTip">
+            <string>上移（更上层）</string>
+           </property>
+           <property name="text">
+            <string>↑</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="moveDownToolButton">
+           <property name="toolTip">
+            <string>下移（更下层）</string>
+           </property>
+           <property name="text">
+            <string>↓</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="sourceToolbarSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QListWidget" name="sourceListWidget">
+         <property name="focusPolicy">
+          <enum>Qt::ClickFocus</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="cameraDeviceLabel">
+         <property name="text">
+          <string>添加摄像头时使用的设备</string>
          </property>
         </widget>
        </item>
@@ -371,131 +362,63 @@ QToolTip
         <widget class="QComboBox" name="cameraComboBox">
          <property name="minimumSize">
           <size>
-           <width>200</width>
+           <width>0</width>
            <height>30</height>
           </size>
          </property>
         </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="microphoneLabel">
-         <property name="text">
-          <string>麦克风</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QComboBox" name="microphoneComboBox">
-         <property name="minimumSize">
-          <size>
-           <width>200</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="WindowComboBox" name="windowComboBox">
-         <property name="visible">
-          <bool>false</bool>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>420</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="selectFilePushButton">
-         <property name="visible">
-          <bool>false</bool>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>110</width>
-           <height>30</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>选择文件...</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="fileLabel">
-         <property name="visible">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>未选择文件</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="sourceConfigSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
       </layout>
      </widget>
     </item>
     <item>
      <widget class="QWidget" name="previewArea" native="true">
-      <layout class="QGridLayout" name="cameraViewLayout"/>
+      <layout class="QGridLayout" name="previewLayout"/>
      </widget>
     </item>
     <item>
-     <widget class="QWidget" name="controlBar" native="true">
+     <widget class="QWidget" name="controlDock" native="true">
       <property name="minimumSize">
        <size>
-        <width>0</width>
-        <height>64</height>
+        <width>230</width>
+        <height>0</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
-        <width>16777215</width>
-        <height>64</height>
+        <width>260</width>
+        <height>16777215</height>
        </size>
       </property>
-      <layout class="QHBoxLayout" name="controlBarLayout">
+      <layout class="QVBoxLayout" name="controlDockLayout">
        <property name="spacing">
-        <number>14</number>
+        <number>12</number>
        </property>
        <property name="leftMargin">
         <number>14</number>
        </property>
        <property name="topMargin">
-        <number>8</number>
+        <number>10</number>
        </property>
        <property name="rightMargin">
         <number>14</number>
        </property>
        <property name="bottomMargin">
-        <number>8</number>
+        <number>10</number>
        </property>
+       <item>
+        <widget class="QLabel" name="controlHeader">
+         <property name="text">
+          <string>控制</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QPushButton" name="startPushButton">
          <property name="minimumSize">
           <size>
-           <width>150</width>
-           <height>42</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>150</width>
-           <height>42</height>
+           <width>0</width>
+           <height>46</height>
           </size>
          </property>
          <property name="focusPolicy">
@@ -508,22 +431,13 @@ QToolTip
        </item>
        <item>
         <widget class="QPushButton" name="stopPushButton">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
          <property name="visible">
           <bool>false</bool>
          </property>
          <property name="minimumSize">
           <size>
-           <width>150</width>
-           <height>42</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>150</width>
-           <height>42</height>
+           <width>0</width>
+           <height>46</height>
           </size>
          </property>
          <property name="focusPolicy">
@@ -539,20 +453,10 @@ QToolTip
          <property name="text">
           <string>推流已停止</string>
          </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
         </widget>
-       </item>
-       <item>
-        <spacer name="controlBarSpacer">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
        </item>
        <item>
         <widget class="QLabel" name="progressLabel">
@@ -562,11 +466,24 @@ QToolTip
         </widget>
        </item>
        <item>
+        <spacer name="controlDockSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
         <widget class="QPushButton" name="settingsPushButton">
          <property name="minimumSize">
           <size>
-           <width>96</width>
-           <height>32</height>
+           <width>0</width>
+           <height>34</height>
           </size>
          </property>
          <property name="focusPolicy">
@@ -581,16 +498,12 @@ QToolTip
      </widget>
     </item>
    </layout>
+    </item>
+   </layout>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>WindowComboBox</class>
-   <extends>QComboBox</extends>
-   <header>WindowComboBox.h</header>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="../resources/LiveLoginDialog.qrc"/>
  </resources>

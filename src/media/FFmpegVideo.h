@@ -8,7 +8,6 @@
 class FFmpegVideo : public QThread
 {
 	Q_OBJECT
-	friend class FFmpegWidget; // reads inputDevice for the status line
 public:
 	FFmpegVideo(QObject* parent = nullptr);
 	~FFmpegVideo() override;

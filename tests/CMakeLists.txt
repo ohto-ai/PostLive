@@ -34,13 +34,15 @@ add_test(NAME core COMMAND PostLiveTests)
 set_tests_properties(core PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-# Argument-builder contract tests (pure Qt, no app dependencies beyond StreamArgs).
+# Scene argument-builder contract tests (pure Qt + StreamSource/StreamArgs).
 add_executable(PostLiveStreamArgsTests
-    test_stream_args.cpp
-    ../src/media/StreamArgs.cpp)
+    test_scene_args.cpp
+    ../src/media/StreamArgs.cpp
+    ../src/media/StreamSource.cpp)
 
 target_include_directories(PostLiveStreamArgsTests PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/../src/media")
+    "${CMAKE_CURRENT_SOURCE_DIR}/../src/media"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../third_party")
 
 target_compile_definitions(PostLiveStreamArgsTests PRIVATE
     UNICODE

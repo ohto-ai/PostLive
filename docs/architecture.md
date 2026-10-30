@@ -49,8 +49,9 @@ flowchart LR
 | `FileDropZone` | `src/widgets` | 文件拖放接收（FFmpegWidget 基类，拖入即切源） |
 | `FFmpegInputDevice` | `src/media` | 采集源统一抽象：dshow 摄像头/麦克风、gdigrab 桌面/窗口、本地文件 |
 | `FFmpegVideo` | `src/media` | 解码线程，`frameReady(QImage)` 供预览 |
-| `FFmpegWidget` | `src/media` | 统一预览控件：绘制、加载动画、错误内嵌、拖放切源 |
-| `buildStreamArgs` | `src/media/StreamArgs` | 纯函数：按采集源构建 ffmpeg.exe 推流参数（有单测） |
+| `StreamSource` | `src/media` | 场景源模型（kind/name/title，JSON 持久化） |
+| `ScenePreview` | `src/media` | 合成预览：每源一个解码线程，画布内按 z 序叠加绘制 |
+| `buildSceneArgs` | `src/media/StreamArgs` | 纯函数：按场景（有序源列表）构建 ffmpeg.exe 多输入 + filter_complex 推流参数（有单测） |
 
 ## 启动流程
 
@@ -94,8 +95,9 @@ sequenceDiagram
 
 预览与推流是两条独立链路，同一时刻只开一条（推流前强制停预览，避免 dshow 设备被双开占用）：
 
-- **预览**：进程内 libav（`FFmpegVideo` 解码线程 → `FFmpegWidget` 绘制），采集源统一抽象为 `{input_format, url, options}`，支持摄像头（dshow）、整个桌面与按标题的单窗口（gdigrab）、本地文件（自动探测，拖入预览区即切换）。
-- **推流**：`ffmpeg.exe` 子进程，参数由纯函数 `buildStreamArgs()` 按源构建（摄像头 dshow、桌面/窗口 gdigrab + 麦克风、文件 `-re` 实时推 + 文件自带音轨）。
+- **场景**：主界面维护一个有序源列表（`StreamSource`，持久化于 `scene.sources`）；首层为主画面，其余自下而上叠加。
+- **预览**：进程内 libav 合成（`ScenePreview` 为每个源开一个 `FFmpegVideo` 解码线程，画布内主层居中 + PiP 右下角绘制），采集源抽象为 `{input_format, url, options}`：摄像头（dshow）、整个桌面与按标题的窗口（gdigrab）、本地文件（拖入预览区即添加）。
+- **推流**：`ffmpeg.exe` 子进程，参数由纯函数 `buildSceneArgs()` 按场景构建——多视频输入 + `filter_complex` 画中画叠加、水印作为顶层自动加入、麦克风作为全局推流音频（设置中配置）。
 - 窗口选择器枚举可见顶层窗口（`src/platform/WindowList`，过滤最小化 / 工具窗口 / cloaked UWP）；gdigrab 只认窗口标题，同标题窗口无法区分。
 
 UI 使用全局主题 `src/resources/postlive.qss`（源自 PostLive.Re 的设计）：深炭色 + 蓝色 accent，`main.cpp` 启动时整体应用；登录窗口为 760x480 左图右表单布局（`ImageLabel` 做 cover 裁剪）。

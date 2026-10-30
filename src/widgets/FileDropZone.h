@@ -2,8 +2,8 @@
 
 #include <QWidget>
 
-// Accepts file drops and reports the local paths. Base class of FFmpegWidget:
-// dropping a media file onto the preview switches the capture source.
+// Accepts file drops and reports the local paths. Base class of ScenePreview:
+// dropping a media file onto the preview adds it as a source.
 class FileDropZone : public QWidget
 {
 	Q_OBJECT

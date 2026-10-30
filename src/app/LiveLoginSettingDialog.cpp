@@ -1,6 +1,7 @@
 #include "LiveLoginSettingDialog.h"
 
 #include "../core/Logging.h"
+#include "../media/FFmpegInputDevice.h"
 
 #include <QCheckBox>
 #include <QLineEdit>
@@ -43,6 +44,18 @@ LiveLoginSettingDialog::LiveLoginSettingDialog(QWidget* parent)
 	restoreStreamCombo(ui.streamEncoderComboBox, "encoder", "Auto");
 	ui.streamServerLineEdit->setText(QString::fromStdString(
 		config["stream"].value("server", std::string("rtmp://rtmp.ohtoai.top"))));
+
+	FFmpegInputDevice::updateInputDeviceList();
+	ui.streamMicComboBox->addItem("virtual-audio-capturer");
+	for (const FFmpegInputDevice* microphone : FFmpegInputDevice::filterAudioDevices())
+		ui.streamMicComboBox->addItem(QString::fromStdString(microphone->device_name));
+	{
+		const QString saved = QString::fromStdString(
+			config["stream"].value("microphone", std::string("virtual-audio-capturer")));
+		const int index = ui.streamMicComboBox->findText(saved);
+		if (index >= 0)
+			ui.streamMicComboBox->setCurrentIndex(index);
+	}
 
 	connect(ui.savePushButton, &QPushButton::clicked, this, &LiveLoginSettingDialog::save);
 	connect(ui.closeToolButton, &QToolButton::clicked, this, &LiveLoginSettingDialog::close);
@@ -132,6 +145,7 @@ void LiveLoginSettingDialog::save()
 	config["stream"]["bitrate"] = ui.streamBitrateComboBox->currentText().toStdString();
 	config["stream"]["fps"] = ui.streamFpsComboBox->currentText().toStdString();
 	config["stream"]["encoder"] = ui.streamEncoderComboBox->currentText().toStdString();
+	config["stream"]["microphone"] = ui.streamMicComboBox->currentText().toStdString();
 	thatboy::storage::websiteUrl = website;
 	qCInfo(lcCore) << "settings saved: auth_server" << server << "website" << website
 		<< "stream server" << streamServer << "size" << QString::fromStdString(config["stream"]["size"].get<std::string>());
