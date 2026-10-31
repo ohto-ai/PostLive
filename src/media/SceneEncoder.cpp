@@ -53,6 +53,8 @@ void SceneEncoder::startStream(OutputMode mode, const QString& target, const QSi
 		m_micCapture = new MicrophoneCapture(m_microphoneName, this);
 		connect(m_micCapture, &MicrophoneCapture::audioReady,
 			this, &SceneEncoder::onAudioReady);
+		connect(m_micCapture, &MicrophoneCapture::audioLevel,
+			this, &SceneEncoder::onAudioLevel);
 		m_micCapture->start(QThread::HighPriority);
 	}
 	start(QThread::HighPriority);
@@ -78,12 +80,18 @@ void SceneEncoder::onCanvasReady(const QImage& canvas)
 		m_latestCanvas = canvas;
 }
 
+void SceneEncoder::onAudioLevel(float level)
+{
+	emit audioLevel(level);
+}
+
 void SceneEncoder::onAudioReady(const QByteArray& samplesFltp, int sampleCount)
 {
 	QMutexLocker lock(&m_audioMutex);
 	m_hasAudio = true;
 	if (m_audioFifo == nullptr)
 		return;
+
 	// The capture delivers one contiguous planar buffer (left samples, then
 	// right samples) which matches the fltp layout.
 	void* planes[2] = {
@@ -91,6 +99,12 @@ void SceneEncoder::onAudioReady(const QByteArray& samplesFltp, int sampleCount)
 		reinterpret_cast<uint8_t*>(const_cast<char*>(samplesFltp.constData()))
 			+ sampleCount * sizeof(float)
 	};
+	if (m_muted.load())
+	{
+		// Mute = encode silence, keeping the fifo and the muxer flowing.
+		memset(planes[0], 0, size_t(sampleCount) * sizeof(float));
+		memset(planes[1], 0, size_t(sampleCount) * sizeof(float));
+	}
 	if (av_audio_fifo_write(m_audioFifo, planes, sampleCount) < sampleCount)
 		qCWarning(lcStream) << "audio fifo overflow, samples dropped";
 }
@@ -422,6 +436,7 @@ void SceneEncoder::run()
 				while (avcodec_receive_packet(m_videoCodecContext, packet) >= 0)
 				{
 					packet->stream_index = m_videoStreamIndex;
+					m_encodedBytes += qint64(packet->size);
 					av_packet_rescale_ts(packet,
 						AVRational{ 1, m_fps },
 						m_formatContext->streams[m_videoStreamIndex]->time_base);
@@ -433,7 +448,11 @@ void SceneEncoder::run()
 			drainAudioFifo();
 
 			if (m_frameIndex % m_fps == 0)
-				emit streamStats(int(m_frameIndex / m_fps));
+			{
+				emit streamStats(int(m_frameIndex / m_fps),
+					int(m_encodedBytes * 8 / 1000));
+				m_encodedBytes = 0;
+			}
 		}
 
 		const qint64 elapsed = QDateTime::currentMSecsSinceEpoch() - tick;

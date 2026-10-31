@@ -8,14 +8,19 @@
 #include "../core/Logging.h"
 #include "../core/utils.h"
 
+#include <QContextMenuEvent>
 #include <QFileInfo>
+#include <QKeyEvent>
+#include <QMenu>
 #include <QMouseEvent>
 #include <QPainter>
 
 namespace
 {
 	constexpr int MinSourceSize = 40;
-	constexpr qreal HandleSize = 10.0; // resize handle, canvas px
+	constexpr qreal HandleSize = 10.0;      // corner resize handle, canvas px
+	constexpr qreal SnapDistance = 10.0;    // canvas px, center/edge snapping
+	constexpr qreal GuidePenWidth = 1.0;
 
 	quint64 nextSlotId()
 	{
@@ -38,6 +43,7 @@ ScenePreview::ScenePreview(QWidget* parent)
 	setAutoFillBackground(true);
 	setPalette(pal);
 	setMouseTracking(true);
+	setFocusPolicy(Qt::ClickFocus);
 
 	if (m_movie.isValid())
 	{
@@ -49,7 +55,7 @@ ScenePreview::ScenePreview(QWidget* parent)
 	}
 
 	// Compose the canvas at ~30 fps; this is both the preview content and
-	// (while streaming) the frame feed for the ffmpeg rawvideo pipe.
+	// (while streaming) the frame feed for the in-process encoder.
 	connect(&m_composeTimer, &QTimer::timeout, this, &ScenePreview::composeCanvas);
 	m_composeTimer.start(33);
 
@@ -69,13 +75,6 @@ ScenePreview::ScenePreview(QWidget* parent)
 		});
 }
 
-ScenePreview::~ScenePreview()
-{
-	stopAll();
-	qDeleteAll(m_slots);
-	m_slots.clear();
-}
-
 void ScenePreview::setCanvasSize(const QSize& size)
 {
 	if (size.width() <= 0 || size.height() <= 0 || size == m_canvasSize)
@@ -83,6 +82,13 @@ void ScenePreview::setCanvasSize(const QSize& size)
 	m_canvasSize = size;
 	ensureDefaultRects();
 	composeCanvas();
+}
+
+ScenePreview::~ScenePreview()
+{
+	stopAll();
+	qDeleteAll(m_slots);
+	m_slots.clear();
 }
 
 ScenePreview::RenderSlot* ScenePreview::findSlot(quint64 id)
@@ -373,10 +379,6 @@ void ScenePreview::composeCanvas()
 		// paint layer show the loading animation instead.
 		m_canvas = QImage();
 	}
-	else if (m_canvas.isNull())
-	{
-		qCInfo(lcStream) << "scene canvas produced its first frame";
-	}
 	emit canvasReady(m_canvas);
 	update();
 }
@@ -414,11 +416,25 @@ void ScenePreview::paintEvent(QPaintEvent* event)
 		painter.setBrush(Qt::NoBrush);
 		painter.drawRect(source);
 
-		QRectF handle(source.right() - HandleSize / 2, source.bottom() - HandleSize / 2,
-			HandleSize, HandleSize);
+		// Corner resize handles.
 		painter.setPen(Qt::NoPen);
 		painter.setBrush(QColor(0, 160, 230));
-		painter.drawRect(handle);
+		for (const QPointF& corner : { source.topLeft(), source.topRight(),
+			source.bottomLeft(), source.bottomRight() })
+			painter.drawRect(QRectF(corner.x() - HandleSize / 2, corner.y() - HandleSize / 2,
+				HandleSize, HandleSize));
+
+		// Snapping guides (move mode only).
+		if (m_dragMode == DragMode::Move)
+		{
+			painter.setPen(QPen(QColor(0, 160, 230), GuidePenWidth, Qt::DashLine));
+			if (m_snapH)
+				painter.drawLine(QPointF(canvas.left(), canvas.center().y()),
+					QPointF(canvas.right(), canvas.center().y()));
+			if (m_snapV)
+				painter.drawLine(QPointF(canvas.center().x(), canvas.top()),
+					QPointF(canvas.center().x(), canvas.bottom()));
+		}
 	}
 }
 
@@ -459,37 +475,59 @@ int ScenePreview::hitTest(const QPointF& canvasPos) const
 	return -1;
 }
 
+int ScenePreview::resizeCornerHitTest(const QRect& rect, const QPointF& canvasPos) const
+{
+	// Corner handles live in widget space so they keep a constant screen size.
+	const QRectF widgetRect = sourceRectInWidget(rect);
+	const QPointF corners[4] = {
+		widgetRect.topLeft(), widgetRect.topRight(),
+		widgetRect.bottomLeft(), widgetRect.bottomRight()
+	};
+	for (int i = 0; i < 4; ++i)
+	{
+		if (QRectF(corners[i].x() - HandleSize / 2, corners[i].y() - HandleSize / 2,
+			HandleSize, HandleSize).contains(canvasPos))
+			return i; // matches ResizeCorner TopLeft/TopRight/BottomLeft/BottomRight
+	}
+	return -1;
+}
+
 void ScenePreview::mousePressEvent(QMouseEvent* event)
 {
-	if (event->button() != Qt::LeftButton)
-		return FileDropZone::mousePressEvent(event);
-
-	const QPointF canvasPos = toCanvasCoords(event->pos());
-	const int hit = hitTest(canvasPos);
-	m_selectedIndex = hit;
-	emit sourceSelected(m_selectedIndex);
-
-	if (m_selectedIndex < 0)
+	if (event->button() == Qt::LeftButton)
 	{
-		m_dragMode = DragMode::None;
+		const QPointF canvasPos = toCanvasCoords(event->pos());
+		const int hit = hitTest(canvasPos);
+		m_selectedIndex = hit;
+		emit sourceSelected(m_selectedIndex);
+
+		if (m_selectedIndex < 0)
+		{
+			m_dragMode = DragMode::None;
+			update();
+			return FileDropZone::mousePressEvent(event);
+		}
+
+		const QRect rect = m_slots[m_selectedIndex]->source.rect;
+		const int corner = resizeCornerHitTest(rect, event->pos());
+		if (corner >= 0)
+		{
+			m_dragMode = DragMode::Resize;
+			m_resizeCorner = ResizeCorner(corner);
+			m_dragStartRect = rect;
+			setCursor((corner == 0 || corner == 3) ? Qt::SizeFDiagCursor : Qt::SizeBDiagCursor);
+		}
+		else
+		{
+			m_dragMode = DragMode::Move;
+			m_dragGrabOffset = canvasPos - QPointF(rect.topLeft());
+			setCursor(Qt::SizeAllCursor);
+		}
+		setFocus(Qt::MouseFocusReason);
 		update();
-		return FileDropZone::mousePressEvent(event);
+		return;
 	}
-
-	const QRect rect = m_slots[m_selectedIndex]->source.rect;
-	const QPointF handleTopLeft(rect.right() - HandleSize, rect.bottom() - HandleSize);
-	if (QRectF(handleTopLeft, QSizeF(HandleSize, HandleSize)).contains(canvasPos))
-	{
-		m_dragMode = DragMode::Resize;
-		m_dragStartRect = rect;
-	}
-	else
-	{
-		m_dragMode = DragMode::Move;
-		m_dragGrabOffset = canvasPos - QPointF(rect.topLeft());
-	}
-	setCursor(m_dragMode == DragMode::Resize ? Qt::SizeFDiagCursor : Qt::SizeAllCursor);
-	update();
+	FileDropZone::mousePressEvent(event);
 }
 
 void ScenePreview::mouseMoveEvent(QMouseEvent* event)
@@ -504,10 +542,13 @@ void ScenePreview::mouseMoveEvent(QMouseEvent* event)
 			setCursor(Qt::ArrowCursor);
 		else
 		{
-			const QRect rect = m_slots[hit]->source.rect;
-			const QPointF handleTopLeft(rect.right() - HandleSize, rect.bottom() - HandleSize);
-			setCursor(QRectF(handleTopLeft, QSizeF(HandleSize, HandleSize)).contains(canvasPos)
-				? Qt::SizeFDiagCursor : Qt::SizeAllCursor);
+			const int corner = resizeCornerHitTest(m_slots[hit]->source.rect, event->pos());
+			if (corner == 0 || corner == 3)
+				setCursor(Qt::SizeFDiagCursor);
+			else if (corner == 1 || corner == 2)
+				setCursor(Qt::SizeBDiagCursor);
+			else
+				setCursor(Qt::SizeAllCursor);
 		}
 		return FileDropZone::mouseMoveEvent(event);
 	}
@@ -518,34 +559,96 @@ void ScenePreview::mouseMoveEvent(QMouseEvent* event)
 		return;
 
 	QRect rect = slot->source.rect;
+	m_snapH = m_snapV = false;
 	if (m_dragMode == DragMode::Move)
 	{
 		const QPointF topLeft = canvasPos - m_dragGrabOffset;
 		rect.moveTo(int(topLeft.x()), int(topLeft.y()));
+
+		// Center snapping with guides, OBS-style.
+		const int canvasCenterX = m_canvasSize.width() / 2;
+		const int canvasCenterY = m_canvasSize.height() / 2;
+		if (qAbs(rect.center().x() - canvasCenterX) <= SnapDistance)
+		{
+			rect.moveLeft(canvasCenterX - rect.width() / 2);
+			m_snapH = true;
+		}
+		if (qAbs(rect.center().y() - canvasCenterY) <= SnapDistance)
+		{
+			rect.moveTop(canvasCenterY - rect.height() / 2);
+			m_snapV = true;
+		}
 	}
 	else
 	{
-		// Aspect-locked resize anchored at the top-left corner: overshooting
-		// the canvas edge clamps cleanly instead of shrinking or skewing.
+		// Aspect-locked corner resize: the opposite corner stays anchored and
+		// overshooting the canvas edge clamps cleanly instead of shrinking.
 		const qreal aspect = qMax(0.01, qreal(m_dragStartRect.width())
 			/ qMax(1, m_dragStartRect.height()));
-		int newWidth = qBound(MinSourceSize, int(canvasPos.x()) - rect.x(),
-			m_canvasSize.width() - rect.x());
-		int newHeight = int(newWidth / aspect);
-		if (rect.y() + newHeight > m_canvasSize.height())
+		QPointF anchor;
+		bool growRight = false;
+		bool growDown = false;
+		switch (m_resizeCorner)
 		{
-			newHeight = m_canvasSize.height() - rect.y();
+		case ResizeCorner::TopLeft:
+			anchor = QPointF(rect.right(), rect.bottom());
+			growRight = canvasPos.x() < anchor.x();
+			growDown = canvasPos.y() < anchor.y();
+			break;
+		case ResizeCorner::TopRight:
+			anchor = QPointF(rect.left(), rect.bottom());
+			growRight = canvasPos.x() >= anchor.x();
+			growDown = canvasPos.y() < anchor.y();
+			break;
+		case ResizeCorner::BottomLeft:
+			anchor = QPointF(rect.right(), rect.top());
+			growRight = canvasPos.x() < anchor.x();
+			growDown = canvasPos.y() >= anchor.y();
+			break;
+		default:
+			anchor = QPointF(rect.left(), rect.top());
+			growRight = canvasPos.x() >= anchor.x();
+			growDown = canvasPos.y() >= anchor.y();
+			break;
+		}
+
+		const qreal dx = canvasPos.x() - anchor.x();
+		const qreal dy = canvasPos.y() - anchor.y();
+		int newWidth;
+		int newHeight;
+		if (qAbs(dx) / aspect >= qAbs(dy))
+		{
+			newWidth = qBound(MinSourceSize, int(qAbs(dx)), m_canvasSize.width());
+			newHeight = int(newWidth / aspect);
+		}
+		else
+		{
+			newHeight = qBound(MinSourceSize, int(qAbs(dy)), m_canvasSize.height());
 			newWidth = int(newHeight * aspect);
 		}
+		newWidth = qMin(newWidth, growRight
+			? m_canvasSize.width() - int(anchor.x())
+			: int(anchor.x()));
+		newHeight = qMin(newHeight, growDown
+			? m_canvasSize.height() - int(anchor.y())
+			: int(anchor.y()));
 		newWidth = qMax(MinSourceSize, newWidth);
 		newHeight = qMax(MinSourceSize, newHeight);
-		rect.setSize(QSize(newWidth, newHeight));
+
+		const int x = growRight ? int(anchor.x()) : int(anchor.x()) - newWidth;
+		const int y = growDown ? int(anchor.y()) : int(anchor.y()) - newHeight;
+		rect = QRect(qBound(0, x, m_canvasSize.width()),
+			qBound(0, y, m_canvasSize.height()), newWidth, newHeight);
 	}
-	// Keep the source fully inside the canvas without ever touching its
-	// size here: the old width/height-forcing clamp shrank sources that were
-	// dragged across the right/bottom edge.
-	rect.moveLeft(qBound(0, rect.x(), qMax(0, m_canvasSize.width() - rect.width())));
-	rect.moveTop(qBound(0, rect.y(), qMax(0, m_canvasSize.height() - rect.height())));
+
+	if (m_dragMode == DragMode::Move)
+	{
+		// Keep the source fully inside the canvas without ever touching its
+		// size here: the old width/height-forcing clamp shrank sources that
+		// were dragged across the right/bottom edge.
+		rect.moveLeft(qBound(0, rect.x(), qMax(0, m_canvasSize.width() - rect.width())));
+		rect.moveTop(qBound(0, rect.y(), qMax(0, m_canvasSize.height() - rect.height())));
+	}
 	slot->source.rect = rect;
 	// Live preview of the transform; persistence happens on mouse release.
 	composeCanvas();
@@ -556,6 +659,7 @@ void ScenePreview::mouseReleaseEvent(QMouseEvent* event)
 	if (m_dragMode != DragMode::None)
 	{
 		m_dragMode = DragMode::None;
+		m_snapH = m_snapV = false;
 		setCursor(Qt::ArrowCursor);
 		QList<StreamSource> sources;
 		for (const RenderSlot* slot : m_slots)
@@ -563,6 +667,132 @@ void ScenePreview::mouseReleaseEvent(QMouseEvent* event)
 		emit sceneChanged(sources);
 	}
 	FileDropZone::mouseReleaseEvent(event);
+}
+
+void ScenePreview::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	if (event->button() == Qt::LeftButton)
+	{
+		const int hit = hitTest(toCanvasCoords(event->pos()));
+		if (hit >= 0)
+		{
+			centerSourceHorizontally(hit);
+			return;
+		}
+	}
+	FileDropZone::mouseDoubleClickEvent(event);
+}
+
+void ScenePreview::contextMenuEvent(QContextMenuEvent* event)
+{
+	const int hit = hitTest(toCanvasCoords(event->pos()));
+	if (hit < 0)
+		return FileDropZone::contextMenuEvent(event);
+
+	m_selectedIndex = hit;
+	emit sourceSelected(m_selectedIndex);
+	update();
+
+	QMenu menu(this);
+	menu.addAction(tr("适配画布"), this, [this, hit]
+		{
+			fitSource(hit);
+		});
+	menu.addAction(tr("水平居中"), this, [this, hit]
+		{
+			centerSourceHorizontally(hit);
+		});
+	menu.addSeparator();
+	menu.addAction(tr("上移一层"), this, [this, hit]
+		{
+			if (hit + 1 < m_slots.size())
+			{
+				m_slots.swapItemsAt(hit, hit + 1);
+				QList<StreamSource> sources;
+				for (const RenderSlot* slot : m_slots)
+					sources.append(slot->source);
+				composeCanvas();
+				emit sceneChanged(sources);
+			}
+		});
+	menu.addAction(tr("下移一层"), this, [this, hit]
+		{
+			if (hit - 1 >= 0)
+			{
+				m_slots.swapItemsAt(hit, hit - 1);
+				QList<StreamSource> sources;
+				for (const RenderSlot* slot : m_slots)
+					sources.append(slot->source);
+				composeCanvas();
+				emit sceneChanged(sources);
+			}
+		});
+	menu.addSeparator();
+	menu.addAction(tr("移除源"), this, [this, hit]
+		{
+			emit removeSourceRequested(hit);
+		});
+	menu.exec(event->globalPos());
+}
+
+void ScenePreview::keyPressEvent(QKeyEvent* event)
+{
+	if (m_selectedIndex < 0 || m_selectedIndex >= m_slots.size())
+		return FileDropZone::keyPressEvent(event);
+
+	RenderSlot* slot = m_slots[m_selectedIndex];
+	const int step = (event->modifiers() & Qt::ShiftModifier) ? 10 : 1;
+	QRect rect = slot->source.rect;
+	switch (event->key())
+	{
+	case Qt::Key_Left:
+		rect.translate(-step, 0);
+		break;
+	case Qt::Key_Right:
+		rect.translate(step, 0);
+		break;
+	case Qt::Key_Up:
+		rect.translate(0, -step);
+		break;
+	case Qt::Key_Down:
+		rect.translate(0, step);
+		break;
+	case Qt::Key_Delete:
+	case Qt::Key_Backspace:
+		emit removeSourceRequested(m_selectedIndex);
+		return;
+	default:
+		return FileDropZone::keyPressEvent(event);
+	}
+	rect.moveLeft(qBound(0, rect.x(), qMax(0, m_canvasSize.width() - rect.width())));
+	rect.moveTop(qBound(0, rect.y(), qMax(0, m_canvasSize.height() - rect.height())));
+	slot->source.rect = rect;
+	composeCanvas();
+}
+
+void ScenePreview::fitSource(int index)
+{
+	if (index < 0 || index >= m_slots.size())
+		return;
+	m_slots[index]->source.rect = QRect(QPoint(0, 0), m_canvasSize);
+	composeCanvas();
+	QList<StreamSource> sources;
+	for (const RenderSlot* slot : m_slots)
+		sources.append(slot->source);
+	emit sceneChanged(sources);
+}
+
+void ScenePreview::centerSourceHorizontally(int index)
+{
+	if (index < 0 || index >= m_slots.size())
+		return;
+	QRect& rect = m_slots[index]->source.rect;
+	rect.moveLeft((m_canvasSize.width() - rect.width()) / 2);
+	composeCanvas();
+	QList<StreamSource> sources;
+	for (const RenderSlot* slot : m_slots)
+		sources.append(slot->source);
+	emit sceneChanged(sources);
 }
 
 void ScenePreview::resizeEvent(QResizeEvent* event)

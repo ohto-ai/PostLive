@@ -21,6 +21,7 @@ public:
 signals:
 	// Interleaved fltp samples (48 kHz stereo), sampleCount = frames.
 	void audioReady(const QByteArray& samplesFltp, int sampleCount);
+	void audioLevel(float level); // 0..1 peak of the emitted chunk
 
 private:
 	QString m_deviceName;

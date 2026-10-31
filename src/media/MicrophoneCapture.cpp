@@ -126,6 +126,20 @@ void MicrophoneCapture::run()
 		if (resampled <= 0)
 			continue;
 
+		// Peak level over the emitted chunk (pre-resample s16 is fine for a meter).
+		float peak = 0.0f;
+		{
+			const auto* pcm = reinterpret_cast<const int16_t*>(packet->data);
+			const int count = packet->size / int(sizeof(int16_t));
+			for (int i = 0; i < count; ++i)
+			{
+				const float v = qAbs(float(pcm[i])) / 32768.0f;
+				if (v > peak)
+					peak = v;
+			}
+		}
+		emit audioLevel(peak);
+
 		// De-interleave into the planar fltp layout the AAC encoder wants.
 		QByteArray planar(int(resampled) * OutChannels * sizeof(float), Qt::Uninitialized);
 		auto* left = reinterpret_cast<float*>(planar.data());

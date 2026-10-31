@@ -501,14 +501,56 @@ QToolTip
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="audioMicCheckBox">
-            <property name="text">
-             <string>麦克风音频</string>
+           <widget class="AudioLevelBar" name="audioLevelBar">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>16</height>
+             </size>
             </property>
-            <property name="checked">
-             <bool>true</bool>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>18</height>
+             </size>
             </property>
            </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="audioControlsLayout">
+            <property name="spacing">
+             <number>8</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="mutePushButton">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text">
+               <string>静音</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="audioMicCheckBox">
+              <property name="text">
+               <string>麦克风</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
@@ -552,6 +594,14 @@ QToolTip
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>AudioLevelBar</class>
+   <extends>QWidget</extends>
+   <header>AudioLevelBar.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../resources/LiveLoginDialog.qrc"/>
  </resources>

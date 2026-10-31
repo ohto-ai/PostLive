@@ -162,6 +162,15 @@ LivePlatform::LivePlatform(QWidget* parent)
 			updateStreamControls(false);
 			appendStatus(message);
 		});
+	// Audio meter + mute.
+	connect(&sceneEncoder, &SceneEncoder::audioLevel, ui.audioLevelBar,
+		&AudioLevelBar::setLevel);
+	connect(ui.mutePushButton, &QPushButton::toggled, &sceneEncoder,
+		&SceneEncoder::setMuted);
+	connect(ui.mutePushButton, &QPushButton::toggled, this, [this](bool muted)
+		{
+			ui.mutePushButton->setText(muted ? tr("取消静音") : tr("静音"));
+		});
 
 	connect(ui.startPushButton, &QPushButton::clicked, this, &LivePlatform::startStreaming);
 	connect(ui.stopPushButton, &QPushButton::clicked, this, &LivePlatform::stopStreaming);

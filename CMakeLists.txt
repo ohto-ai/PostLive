@@ -53,6 +53,7 @@ set(POSTLIVE_SOURCES
 
     src/platform/WindowList.cpp
 
+    src/widgets/AudioLevelBar.cpp
     src/widgets/BaseDialog.cpp
     src/widgets/BaseMainWindow.cpp
     src/widgets/BaseWidget.cpp
@@ -89,6 +90,7 @@ set(POSTLIVE_HEADERS
 
     src/platform/WindowList.h
 
+    src/widgets/AudioLevelBar.h
     src/widgets/BaseDialog.h
     src/widgets/BaseMainWindow.h
     src/widgets/BaseWidget.h
