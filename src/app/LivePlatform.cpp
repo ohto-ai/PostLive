@@ -101,6 +101,7 @@ LivePlatform::LivePlatform(QWidget* parent)
 		{
 			if (sceneEncoder.isRunning())
 				sceneEncoder.stop();
+			m_appQuitting = true;
 			if (m_streaming)
 				stopStreaming();
 			close();
@@ -147,14 +148,17 @@ LivePlatform::LivePlatform(QWidget* parent)
 		});
 	connect(&sceneEncoder, &SceneEncoder::streamStopped, this, [this]
 		{
-			if (m_streaming)
-			{
-				m_streaming = false;
-				updateStreamControls(false);
-				ui.progressLabel->clear();
+			const bool wasLive = m_streaming;
+			m_streaming = false;
+			updateStreamControls(false);
+			ui.progressLabel->clear();
+			if (wasLive)
 				appendStatus(tr("推流已停止"));
-				syncPreview(); // bring the preview back
-			}
+			// Restart the preview only when the window is actually shown and
+			// the app is not tearing down (restarting providers during exit
+			// races their destruction).
+			if (!m_appQuitting && isVisible() && !isMinimized())
+				syncPreview();
 		});
 	connect(&sceneEncoder, &SceneEncoder::errorOccurred, this, [this](const QString& message)
 		{
@@ -347,11 +351,13 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 LivePlatform::~LivePlatform()
 {
+	m_appQuitting = true;
 	if (m_streaming)
 	{
 		sceneEncoder.stop();
 		m_streaming = false;
 	}
+	previewWidget.stopAll();
 }
 
 void LivePlatform::openSettings()
@@ -462,6 +468,13 @@ void LivePlatform::persistScene()
 
 void LivePlatform::addSource(const StreamSource& source)
 {
+	// The scene is matched by (kind, name): a second identical source would
+	// open the same device twice (camera hangs) and confuse the reconcile.
+	if (m_scene.contains(source))
+	{
+		appendStatus(tr("该源已在场景中：") + source.displayTitle());
+		return;
+	}
 	m_scene.append(source);
 	persistScene();
 	syncSourceList();

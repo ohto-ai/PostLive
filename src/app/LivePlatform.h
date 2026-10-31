@@ -49,6 +49,7 @@ protected:
 	QTimer deviceRefreshTimer{ this };
 
 	bool m_smokeStream{ false }; // POSTLIVE_SMOKE_STREAM: auto-start for e2e tests
+	bool m_appQuitting{ false }; // suppresses preview restarts during teardown
 private:
 	Ui::LivePlatformClass ui;
 };

@@ -25,6 +25,7 @@ private:
 	void clean();
 	bool open();
 	void postFFmpegError(int error);
+	static int readInterruptCallback(void* opaque);
 
 	const struct FFmpegInputDevice* inputDevice = nullptr;
 	struct AVFormatContext* inputFormatContext = nullptr;

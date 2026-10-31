@@ -91,6 +91,9 @@ private:
 	ResizeCorner m_resizeCorner = ResizeCorner::None;
 	QPointF m_dragGrabOffset;
 	QRect m_dragStartRect;
+	QPointF m_resizeAnchor;      // fixed opposite corner during corner resize
+	bool m_growRight = false;
+	bool m_growDown = false;
 	bool m_snapH = false; // snapped to the vertical center guide
 	bool m_snapV = false; // snapped to the horizontal center guide
 };

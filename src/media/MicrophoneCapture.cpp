@@ -57,6 +57,13 @@ void MicrophoneCapture::run()
 		return;
 	}
 
+	// Abort blocking reads on stop(): dshow never signals EOF on its own.
+	context->interrupt_callback.callback = [](void* opaque) -> int
+	{
+		return static_cast<MicrophoneCapture*>(opaque)->isInterruptionRequested() ? 1 : 0;
+	};
+	context->interrupt_callback.opaque = this;
+
 	int streamIndex = av_find_best_stream(context, AVMEDIA_TYPE_AUDIO, -1, -1, nullptr, 0);
 	if (streamIndex < 0)
 	{

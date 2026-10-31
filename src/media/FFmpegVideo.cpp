@@ -71,6 +71,13 @@ void FFmpegVideo::clean()
 	img_ctx = nullptr;
 }
 
+int FFmpegVideo::readInterruptCallback(void* opaque)
+{
+	// Aborts any blocking avformat call when the thread is asked to stop —
+	// otherwise a device held by another instance hangs stop() forever.
+	return static_cast<FFmpegVideo*>(opaque)->isInterruptionRequested() ? 1 : 0;
+}
+
 bool FFmpegVideo::open()
 {
 	do
@@ -80,6 +87,8 @@ bool FFmpegVideo::open()
 
 		int ec = 0;
 		inputFormatContext = avformat_alloc_context();
+		inputFormatContext->interrupt_callback.callback = &FFmpegVideo::readInterruptCallback;
+		inputFormatContext->interrupt_callback.opaque = this;
 		ec = avformat_open_input(&inputFormatContext,
 			inputDevice->streamUrls[AVMEDIA_TYPE_VIDEO].c_str(), inputDevice->input_format, &inputOptions);
 		if (ec < 0)
@@ -125,6 +134,15 @@ bool FFmpegVideo::open()
 		if (ec < 0)
 		{
 			postFFmpegError(ec);
+			break;
+		}
+
+		// Streams without known dimensions (still images, broken files) have
+		// no sws-capable geometry: reject them instead of tripping swscale's
+		// assertions.
+		if (inputVideoCodecContext->width <= 0 || inputVideoCodecContext->height <= 0)
+		{
+			emit postError(-1, QStringLiteral("source has no video dimensions"));
 			break;
 		}
 

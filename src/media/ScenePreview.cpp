@@ -515,6 +515,13 @@ void ScenePreview::mousePressEvent(QMouseEvent* event)
 			m_dragMode = DragMode::Resize;
 			m_resizeCorner = ResizeCorner(corner);
 			m_dragStartRect = rect;
+			// The opposite corner is the fixed anchor for the whole drag.
+			m_resizeAnchor = (corner == 0) ? QPointF(rect.right(), rect.bottom())
+				: (corner == 1) ? QPointF(rect.left(), rect.bottom())
+				: (corner == 2) ? QPointF(rect.right(), rect.top())
+				: QPointF(rect.left(), rect.top());
+			m_growRight = (corner == 1 || corner == 3);
+			m_growDown = (corner == 2 || corner == 3);
 			setCursor((corner == 0 || corner == 3) ? Qt::SizeFDiagCursor : Qt::SizeBDiagCursor);
 		}
 		else
@@ -579,75 +586,60 @@ void ScenePreview::mouseMoveEvent(QMouseEvent* event)
 			m_snapV = true;
 		}
 	}
-	else
-	{
-		// Aspect-locked corner resize: the opposite corner stays anchored and
-		// overshooting the canvas edge clamps cleanly instead of shrinking.
-		const qreal aspect = qMax(0.01, qreal(m_dragStartRect.width())
-			/ qMax(1, m_dragStartRect.height()));
-		QPointF anchor;
-		bool growRight = false;
-		bool growDown = false;
-		switch (m_resizeCorner)
-		{
-		case ResizeCorner::TopLeft:
-			anchor = QPointF(rect.right(), rect.bottom());
-			growRight = canvasPos.x() < anchor.x();
-			growDown = canvasPos.y() < anchor.y();
-			break;
-		case ResizeCorner::TopRight:
-			anchor = QPointF(rect.left(), rect.bottom());
-			growRight = canvasPos.x() >= anchor.x();
-			growDown = canvasPos.y() < anchor.y();
-			break;
-		case ResizeCorner::BottomLeft:
-			anchor = QPointF(rect.right(), rect.top());
-			growRight = canvasPos.x() < anchor.x();
-			growDown = canvasPos.y() >= anchor.y();
-			break;
-		default:
-			anchor = QPointF(rect.left(), rect.top());
-			growRight = canvasPos.x() >= anchor.x();
-			growDown = canvasPos.y() >= anchor.y();
-			break;
-		}
-
-		const qreal dx = canvasPos.x() - anchor.x();
-		const qreal dy = canvasPos.y() - anchor.y();
-		int newWidth;
-		int newHeight;
-		if (qAbs(dx) / aspect >= qAbs(dy))
-		{
-			newWidth = qBound(MinSourceSize, int(qAbs(dx)), m_canvasSize.width());
-			newHeight = int(newWidth / aspect);
-		}
-		else
-		{
-			newHeight = qBound(MinSourceSize, int(qAbs(dy)), m_canvasSize.height());
-			newWidth = int(newHeight * aspect);
-		}
-		newWidth = qMin(newWidth, growRight
-			? m_canvasSize.width() - int(anchor.x())
-			: int(anchor.x()));
-		newHeight = qMin(newHeight, growDown
-			? m_canvasSize.height() - int(anchor.y())
-			: int(anchor.y()));
-		newWidth = qMax(MinSourceSize, newWidth);
-		newHeight = qMax(MinSourceSize, newHeight);
-
-		const int x = growRight ? int(anchor.x()) : int(anchor.x()) - newWidth;
-		const int y = growDown ? int(anchor.y()) : int(anchor.y()) - newHeight;
-		rect = QRect(qBound(0, x, m_canvasSize.width()),
-			qBound(0, y, m_canvasSize.height()), newWidth, newHeight);
-	}
-
 	if (m_dragMode == DragMode::Move)
 	{
+		const QPointF topLeft = canvasPos - m_dragGrabOffset;
+		rect.moveTo(int(topLeft.x()), int(topLeft.y()));
 		// Keep the source fully inside the canvas without ever touching its
 		// size here: the old width/height-forcing clamp shrank sources that
 		// were dragged across the right/bottom edge.
 		rect.moveLeft(qBound(0, rect.x(), qMax(0, m_canvasSize.width() - rect.width())));
 		rect.moveTop(qBound(0, rect.y(), qMax(0, m_canvasSize.height() - rect.height())));
+	}
+	else
+	{
+		// Aspect-locked corner resize. The anchor (opposite corner) is fixed
+		// at drag start and the cursor is clamped so it can never cross it —
+		// crossing would flip the grow direction and made the source jump to
+		// a huge size.
+		const qreal aspect = qMax(0.01, qreal(m_dragStartRect.width())
+			/ qMax(1, m_dragStartRect.height()));
+		const qreal cursorX = m_growRight
+			? qMax(canvasPos.x(), m_resizeAnchor.x())
+			: qMin(canvasPos.x(), m_resizeAnchor.x());
+		const qreal cursorY = m_growDown
+			? qMax(canvasPos.y(), m_resizeAnchor.y())
+			: qMin(canvasPos.y(), m_resizeAnchor.y());
+		const qreal dx = qAbs(cursorX - m_resizeAnchor.x());
+		const qreal dy = qAbs(cursorY - m_resizeAnchor.y());
+
+		int newWidth;
+		int newHeight;
+		const int maxWidth = m_growRight
+			? m_canvasSize.width() - int(m_resizeAnchor.x())
+			: int(m_resizeAnchor.x());
+		const int maxHeight = m_growDown
+			? m_canvasSize.height() - int(m_resizeAnchor.y())
+			: int(m_resizeAnchor.y());
+		if (dx / aspect >= dy)
+		{
+			newWidth = qBound(MinSourceSize, int(dx), qMax(MinSourceSize, maxWidth));
+			newHeight = int(newWidth / aspect);
+			newHeight = qBound(MinSourceSize, newHeight, qMax(MinSourceSize, maxHeight));
+			newWidth = qMax(MinSourceSize, int(newHeight * aspect));
+		}
+		else
+		{
+			newHeight = qBound(MinSourceSize, int(dy), qMax(MinSourceSize, maxHeight));
+			newWidth = int(newHeight * aspect);
+			newWidth = qBound(MinSourceSize, newWidth, qMax(MinSourceSize, maxWidth));
+			newHeight = qMax(MinSourceSize, int(newWidth / aspect));
+		}
+
+		const int x = m_growRight ? int(m_resizeAnchor.x()) : int(m_resizeAnchor.x()) - newWidth;
+		const int y = m_growDown ? int(m_resizeAnchor.y()) : int(m_resizeAnchor.y()) - newHeight;
+		rect = QRect(qBound(0, x, qMax(0, m_canvasSize.width() - newWidth)),
+			qBound(0, y, qMax(0, m_canvasSize.height() - newHeight)), newWidth, newHeight);
 	}
 	slot->source.rect = rect;
 	// Live preview of the transform; persistence happens on mouse release.
