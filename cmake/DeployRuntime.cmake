@@ -12,7 +12,15 @@ endif()
 
 file(MAKE_DIRECTORY
     "${RUNTIME_DIR}/assets"
+    "${RUNTIME_DIR}/hls"
     "${RUNTIME_DIR}/user/avatar")
+
+# Local-viewing player page (served by any static web server, see
+# tools/nginx/); kept out of hls/ so segment cleanup never removes it.
+if(DEFINED PLAYER_HTML AND EXISTS "${PLAYER_HTML}")
+    file(COPY_FILE "${PLAYER_HTML}" "${RUNTIME_DIR}/player.html"
+        ONLY_IF_DIFFERENT)
+endif()
 
 if(EXISTS "${ASSETS_DIR}/pilipili-logo.png")
     file(COPY_FILE

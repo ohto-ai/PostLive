@@ -17,7 +17,7 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 	const video = document.getElementById("video");
-	const source = "/livehime.m3u8";
+	const source = "/hls/livehime.m3u8";
 	if (window.Hls && Hls.isSupported()) {
 		const hls = new Hls({ liveSyncDurationCount: 3 });
 		hls.loadSource(source);

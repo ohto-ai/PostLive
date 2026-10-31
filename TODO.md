@@ -119,7 +119,7 @@ ginx-1.30.6，模板见 [tools/nginx/](tools/nginx/)）；以及用 Cloudflare W
 - [x] 推流架构改为 **OBS 式合成推流**：ScenePreview 以推流分辨率合成画布，`canvasReady` 通过 stdin 以 rawvideo/bgra 喂给 ffmpeg.exe（背压丢帧保护），`buildStreamPipeArgs` 重写参数构建；**预览与推流同源所见即所得，可边推流边改场景**，dshow 设备不再被双开占用。
 - [x] 控制 dock 新增"音轨"区：麦克风音频开关（持久化 stream.audio_enabled）；设置对话框已有麦克风设备选择。
 - [x] `POSTLIVE_SMOKE_CAPTURE=desktop|window:<标题>` 无头采集探针；WGC 的 Win10/Win11 双路径（Win11 TryCreateFromWindowId、Win10 IGraphicsCaptureItemInterop）。
-- [x] 本地观看：设置勾选"本地 HLS 输出"后，合成画布直接写 HLS（2s 分片环形缓冲）到 exe 目录 hls/，官方 nginx 静态分发 + hls.js 播放页（[tools/nginx/](tools/nginx/)，本机已配置 http://localhost:18080/player.html）；已知限制：文件源音频暂不进推流、桌面光标为简化箭头绘制、HLS 起播延迟 4–10s。
+- [x] 本地观看：设置勾选"本地 HLS 输出"后，合成画布直接写 HLS（2s 分片环形缓冲）到 exe 目录 hls/，官方 nginx 静态分发 + hls.js 播放页（[tools/nginx/](tools/nginx/)，本机已配置 http://localhost:18080/player.html；构建自动复制播放页到运行目录根，nginx root 指向运行目录，分片在 /hls/ 子路径）；已知限制：文件源音频暂不进推流、桌面光标为简化箭头绘制、HLS 起播延迟 4–10s。
 
 ### F 直播页推倒重做（提案 B：OBS 式源管理 + 多源合成）
 

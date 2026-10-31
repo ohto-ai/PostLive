@@ -243,6 +243,7 @@ add_custom_command(TARGET PostLive POST_BUILD
         "-DCONFIG_DIR=${CMAKE_CURRENT_SOURCE_DIR}/config"
         "-DFFMPEG_BIN_DIR=${POSTLIVE_FFMPEG_BIN_DIR}"
         "-DOPENSSL_DIR=${POSTLIVE_OPENSSL_DIR}"
+        "-DPLAYER_HTML=${CMAKE_CURRENT_SOURCE_DIR}/tools/nginx/player.html"
         -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/DeployRuntime.cmake"
     COMMENT "Deploying runtime files next to PostLive.exe"
     VERBATIM)
@@ -291,6 +292,7 @@ install(TARGETS PostLive RUNTIME DESTINATION .)
 install(DIRECTORY assets/ DESTINATION assets)
 install(FILES config/application.default.json
     DESTINATION . RENAME application.json)
+install(FILES tools/nginx/player.html DESTINATION .)
 install(FILES config/users.default.json
     DESTINATION . RENAME users.json)
 
