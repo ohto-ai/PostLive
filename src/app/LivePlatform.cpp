@@ -531,9 +531,9 @@ void LivePlatform::startStreaming()
 
 	if (localHls)
 	{
-		QDir().mkpath(QCoreApplication::applicationDirPath() + QStringLiteral("/hls"));
-		sceneEncoder.startStream(SceneEncoder::OutputMode::LocalHls,
-			QCoreApplication::applicationDirPath() + QStringLiteral("/hls"),
+		const QString hlsDir = thatboy::storage::resolveDataPath(QStringLiteral("hls"));
+		QDir().mkpath(hlsDir);
+		sceneEncoder.startStream(SceneEncoder::OutputMode::LocalHls, hlsDir,
 			previewWidget.canvasSize(), fpsValue, encoder, bitrateKbps,
 			withAudio, microphone);
 		appendStatus(tr("本地观看：http://localhost:18080/player.html"));

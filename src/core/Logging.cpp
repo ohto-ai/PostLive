@@ -28,10 +28,11 @@ namespace thatboy
 			qint64 g_written{ 0 };
 			bool g_installed{ false };
 
+			QString g_logDirectory; // set by initLogging
+
 			QString logFilePath()
 			{
-				return QCoreApplication::applicationDirPath()
-					+ QStringLiteral("/log/PostLive.log");
+				return g_logDirectory + QStringLiteral("/PostLive.log");
 			}
 
 			const char* typeName(QtMsgType type)
@@ -128,9 +129,11 @@ namespace thatboy
 			}
 		}
 
-		void initLogging()
+		void initLogging(const QString& directory)
 		{
 			QMutexLocker locker(&g_mutex);
+			g_logDirectory = directory;
+			QDir().mkpath(directory);
 			openLocked();
 			g_installed = true;
 			qInstallMessageHandler(messageHandler);

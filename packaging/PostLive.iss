@@ -8,7 +8,7 @@
 #define MyAppName "PostLive"
 ; CI passes /DMyAppVersion=... parsed from CMakeLists; keep a fallback for local builds.
 #ifndef MyAppVersion
-#define MyAppVersion "1.0.0.2"
+#define MyAppVersion "1.1.0.0"
 #endif
 #define MyAppPublisher "ohto-ai"
 #define MyAppURL "https://github.com/ohto-ai/PostLive"

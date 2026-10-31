@@ -4,6 +4,7 @@
 #include "Logging.h"
 #include <QtWidgets/QApplication>
 #include <QDir>
+#include <QStandardPaths>
 #include <QFile>
 #include <QMovie>
 #include <QNetworkProxyFactory>
@@ -61,7 +62,15 @@ int main(int argc, char* argv[])
 	// relative to the executable, regardless of how the process was started.
 	QDir::setCurrent(QCoreApplication::applicationDirPath());
 
-	thatboy::log::initLogging();
+	// Writable data (config, users, avatars, HLS, logs) lives in AppData so
+	// installed builds work without write access to Program Files. Legacy
+	// exe-relative files migrate on first run.
+	thatboy::storage::dataDir =
+		QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+	QDir().mkpath(thatboy::storage::dataDir);
+	qCInfo(lcApp) << "data dir:" << thatboy::storage::dataDir;
+	thatboy::storage::migrateLegacyFiles();
+	thatboy::log::initLogging(thatboy::storage::resolveDataPath(QStringLiteral("log")));
 	qCInfo(lcApp) << "PostLive" << POSTLIVE_VERSION << "starting";
 
 	// Global theme extracted from the PostLive.Re UI design.

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(PostLive
-    VERSION 1.0.0.2
+    VERSION 1.1.0.0
     DESCRIPTION "A learning-focused live streaming desktop client"
     HOMEPAGE_URL "https://github.com/ohto-ai/PostLive"
     LANGUAGES CXX)

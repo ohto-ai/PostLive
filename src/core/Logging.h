@@ -15,8 +15,8 @@ namespace thatboy
 	namespace log
 	{
 		// Installs a message handler that appends every Qt message to
-		// log/PostLive.log next to the executable (rotated at kMaxLogBytes)
-		// and mirrors it to stderr. Call once after QApplication is created.
-		void initLogging();
+		// <directory>/PostLive.log (rotated at kMaxLogBytes) and mirrors it
+		// to stderr. Call once after QApplication is created.
+		void initLogging(const QString& directory = QStringLiteral("log"));
 	}
 }

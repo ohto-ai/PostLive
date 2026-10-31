@@ -1,8 +1,11 @@
 ﻿#include "utils.h"
 
 #include "Logging.h"
+#include <QCoreApplication>
 #include <QDebug>
+#include <QDir>
 #include <QFile>
+#include <QStringList>
 #include <QUrl>
 #include <string>
 
@@ -29,6 +32,44 @@ namespace
 		if (ok)
 			*ok = !json.is_discarded() && json.is_object();
 		return json;
+	}
+}
+
+QString thatboy::storage::dataDir;
+
+QString thatboy::storage::resolveDataPath(const QString& relative)
+{
+	return dataDir.isEmpty() ? relative : dataDir + QStringLiteral("/") + relative;
+}
+
+// One-time migration from the exe-relative layout: config, user data and the
+// avatar cache move into the writable data directory (AppData) so installed
+// builds work without write access to Program Files.
+void thatboy::storage::migrateLegacyFiles()
+{
+	const QString exeDir = QCoreApplication::applicationDirPath();
+	for (const QString& name : { QStringLiteral("application.json"), QStringLiteral("users.json") })
+	{
+		const QString legacy = exeDir + QStringLiteral("/") + name;
+		const QString target = resolveDataPath(name);
+		if (QFileInfo::exists(legacy) && !QFileInfo::exists(target))
+		{
+			QDir().mkpath(dataDir);
+			if (!QFile::rename(legacy, target))
+				QFile::copy(legacy, target);
+		}
+	}
+
+	const QString legacyAvatars = exeDir + QStringLiteral("/user/avatar");
+	const QString targetAvatars = resolveDataPath(QStringLiteral("user/avatar"));
+	QDir sourceDir(legacyAvatars);
+	if (sourceDir.exists() && !QDir(targetAvatars).exists())
+	{
+		QDir().mkpath(targetAvatars);
+		for (const QFileInfo& entry :
+			sourceDir.entryInfoList(QStringList{ QStringLiteral("*.avatar") }, QDir::Files))
+			QFile::rename(entry.absoluteFilePath(),
+				targetAvatars + QStringLiteral("/") + entry.fileName());
 	}
 }
 
@@ -77,9 +118,10 @@ void thatboy::utils::to_json(nlohmann::json& j, const QStringList& stringList)
 
 void thatboy::utils::loadUserData()
 {
-	const std::string userListPath = storage::config.value("user_list", std::string("users.json"));
+	const std::string userListName = storage::config.value("user_list", std::string("users.json"));
+	const QString userListPath = storage::resolveDataPath(QString::fromStdString(userListName));
 	bool ok = false;
-	auto users = readJsonFile(QString::fromStdString(userListPath), &ok);
+	auto users = readJsonFile(userListPath, &ok);
 	if (!ok)
 	{
 		qCWarning(lcCore) << "users.json is missing or invalid; using built-in defaults";
@@ -142,22 +184,26 @@ void thatboy::utils::loadUserData()
 			user["avatar_file"] = "";
 
 		auto& avatar = storage::userAvatarCache[userName];
-		avatar = QPixmap{ user["avatar_file"] };
+		avatar = QPixmap{ storage::resolveDataPath(
+			QString::fromStdString(user["avatar_file"].get<std::string>())) };
 		if (avatar.isNull())
 		{
 			user["avatar_file"] = QString::asprintf("user/avatar/%s.avatar", userName.c_str());
-			storage::avatarDownloader.download(user["avatar"], user["avatar_file"]);
+			storage::avatarDownloader.download(user["avatar"],
+				storage::resolveDataPath(QString::fromStdString(
+					user["avatar_file"].get<std::string>())));
 		}
 	}
 }
 
 bool thatboy::utils::saveUserData()
 {
-	const std::string userListPath = storage::config.value("user_list", std::string("users.json"));
-	std::ofstream ofs(userListPath);
+	const std::string userListName = storage::config.value("user_list", std::string("users.json"));
+	const QString userListPath = storage::resolveDataPath(QString::fromStdString(userListName));
+	std::ofstream ofs(userListPath.toStdString());
 	if (!ofs)
 	{
-		qCWarning(lcCore) << "failed to save user data to" << QString::fromStdString(userListPath);
+		qCWarning(lcCore) << "failed to save user data to" << userListPath;
 		return false;
 	}
 
@@ -254,7 +300,7 @@ void thatboy::utils::loadConfig()
 {
 	const auto defaults = readJsonFile(QStringLiteral(":/LiveLoginDialog/config/application.default.json"));
 	bool ok = false;
-	const auto userConfig = readJsonFile(QString::fromUtf8(storage::ConfigFilePath), &ok);
+	const auto userConfig = readJsonFile(storage::resolveDataPath(QStringLiteral("application.json")), &ok);
 
 	if (ok)
 	{
@@ -340,10 +386,11 @@ void thatboy::utils::loadConfig()
 
 bool thatboy::utils::saveConfig()
 {
-	std::ofstream ofs(storage::ConfigFilePath);
+	const QString configPath = storage::resolveDataPath(QStringLiteral("application.json"));
+	std::ofstream ofs(configPath.toStdString());
 	if (!ofs)
 	{
-		qCWarning(lcCore) << "failed to save application config to" << storage::ConfigFilePath;
+		qCWarning(lcCore) << "failed to save application config to" << configPath;
 		return false;
 	}
 	ofs << storage::config.dump(4);
