@@ -23,7 +23,7 @@
 ## 下次优先做
 
 1. **直播页实测**：进程内编码已打通（WGC 采集 → 画布合成 → libav 编码 → HLS 实时落盘 → nginx/浏览器播放），待实机确认画质/流畅度与浏览器播放体验
-2. **推流音频**：WASAPI 麦克风采音 → 进程内 AAC 编码 → HLS 双轨（本期未做，控制 dock 的音轨开关暂只作用于 RTMP 路径）
+2. **音频实测**：麦克风已进推流（进程内 dshow 采集 → swr 重采样 48k/stereo → AAC → HLS 双轨，时间戳应用内生成），待实测听感与音画同步；长时推流的 fifo 漂移校正（mic 48k vs 视频 30fps 节拍）列为后续
 3. **RTMP 推流同样迁到进程内编码**（flv over avio）——stdin 管道方案因 ffmpeg 7 调度问题（实时喂入被积压到 EOF）已废弃
 2. **本地观看链路实测**：设置勾选"本地 HLS 输出"→ 开播 → 浏览器打开 http://localhost:18080/player.html（nginx 已配置在 C:\Tools
 ginx-1.30.6，模板见 [tools/nginx/](tools/nginx/)）；以及用 Cloudflare Worker 跑一次真实 HTTPS 登录（[worker/README.md](worker/README.md)）
@@ -107,7 +107,9 @@ ginx-1.30.6，模板见 [tools/nginx/](tools/nginx/)）；以及用 Cloudflare W
 - [x] **发现并定位 stdin 管道致命缺陷**：ffmpeg 7 对管道输入的调度会把所有处理积压到 EOF（实时喂入零消费，TCP 输入同样；mpegts/hls 输出均零字节），minidump + 隔离复现确认。
 - [x] `SceneEncoder`：进程内 libav 编码——合成画布 BGRA→sws→YUV420P→libopenh264→libavformat hls muxer 直写 `hls/` 目录；时间戳由应用生成（从 0 单调），分片实时落盘（ffprobe 验证 h264 1280x720@30）。
 - [x] LivePlatform 本地 HLS 模式切换到 SceneEncoder；控制条显示播放页地址；FFmpeg stdin 管道代码移除（RTMP 进程内迁移列为待办）。
-- [x] e2e：无头自动开播 → 分片实时生成 → nginx 分发 → 播放页可播。
+- [x] **推流音频**：`MicrophoneCapture` 进程内 dshow 音频采集线程（libav，低延迟 50ms 缓冲）→ swresample 重采样 fltp/48k/stereo → AAC 编码 → HLS 双轨；时间戳应用内按采样数生成，dshow 墙钟偏移（开机时长基准，实测 +83 万秒）不进输出。
+- [x] **修复退出堆溢出**：shutdown 排空 fifo 时曾把 >frame_size 的采样写入固定容量帧缓冲（aac 编码器报 nb_samples 3136 > 1024 → 堆损坏 c0000374，约 20% 概率退出崩溃）——改为按 frame_size 分块排空；6/6 稳定退出，ffprobe 确认分片含 aac。
+- [x] e2e：无头自动开播 → 分片实时生成（含音轨）→ nginx 分发 → 播放页可播。
 
 ### G 直播页对齐 OBS（采集引擎 + 画布交互 + 合成推流）
 

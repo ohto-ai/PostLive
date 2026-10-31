@@ -43,6 +43,7 @@ set(POSTLIVE_SOURCES
 
     src/media/FFmpegInputDevice.cpp
     src/media/FFmpegVideo.cpp
+    src/media/MicrophoneCapture.cpp
     src/media/SceneEncoder.cpp
     src/media/ScenePreview.cpp
     src/media/StreamArgs.cpp
@@ -79,6 +80,7 @@ set(POSTLIVE_HEADERS
 
     src/media/FFmpegInputDevice.h
     src/media/FFmpegVideo.h
+    src/media/MicrophoneCapture.h
     src/media/SceneEncoder.h
     src/media/ScenePreview.h
     src/media/StreamArgs.h
@@ -152,6 +154,7 @@ target_link_libraries(PostLive PRIVATE
     swscale
     d3d11
     dxgi
+    swresample
     windowsapp)
 
 target_compile_definitions(PostLive PRIVATE

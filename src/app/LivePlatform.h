@@ -41,6 +41,7 @@ protected:
 
 	QString pickWindowTitle();
 	QString cameraDeviceName() const;
+	QString effectiveMicrophoneName() const;
 
 	const QString ffmpegPath{ R"(ffmpeg.exe)" };
 

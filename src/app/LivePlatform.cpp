@@ -462,6 +462,29 @@ QString LivePlatform::cameraDeviceName() const
 	return index >= 0 ? ui.cameraComboBox->itemData(index).toString() : QString();
 }
 
+// Configured microphone first; on machines without it (or the legacy
+// virtual-audio-capturer default) prefer a real capture device over the
+// wave-mapper pseudo device, which some setups deliver no packets on.
+QString LivePlatform::effectiveMicrophoneName() const
+{
+	QString configured = streamSetting("microphone", "virtual-audio-capturer");
+	FFmpegInputDevice::updateInputDeviceList();
+	QStringList realDevices;
+	QStringList allDevices;
+	for (const FFmpegInputDevice* microphone : FFmpegInputDevice::filterAudioDevices())
+	{
+		const QString name = QString::fromStdString(microphone->device_name);
+		allDevices << name;
+		if (!name.startsWith(QStringLiteral("@device_")))
+			realDevices << name;
+	}
+	if (allDevices.contains(configured))
+		return configured;
+	if (!realDevices.isEmpty())
+		return realDevices.first();
+	return allDevices.isEmpty() ? QString() : allDevices.first();
+}
+
 QString LivePlatform::pickWindowTitle()
 {
 	QDialog picker(this);
@@ -560,19 +583,7 @@ void LivePlatform::startStreaming()
 		|| thatboy::storage::config["stream"].value("local_hls", false);
 	settings.hlsDir = QCoreApplication::applicationDirPath() + QStringLiteral("/hls");
 	settings.server = streamSetting("server", "rtmp://rtmp.ohtoai.top");
-	settings.microphoneName = streamSetting("microphone", "virtual-audio-capturer");
-
-	// Degrade gracefully on machines without the configured (or virtual)
-	// audio device: fall back to the first real microphone, else video-only.
-	{
-		FFmpegInputDevice::updateInputDeviceList();
-		QStringList availableMics;
-		for (const FFmpegInputDevice* microphone : FFmpegInputDevice::filterAudioDevices())
-			availableMics << QString::fromStdString(microphone->device_name);
-		if (!availableMics.contains(settings.microphoneName))
-			settings.microphoneName = availableMics.isEmpty()
-				? QString() : availableMics.first();
-	}
+	settings.microphoneName = effectiveMicrophoneName();
 	const bool includeAudio = ui.audioMicCheckBox->isChecked()
 		&& !settings.microphoneName.isEmpty();
 	settings.size = streamSetting("size", "1280x720");
@@ -596,7 +607,8 @@ void LivePlatform::startStreaming()
 		errorNotified = false;
 		ui.progressLabel->clear();
 		sceneEncoder.startHls(settings.hlsDir, previewWidget.canvasSize(),
-			fpsValue, settings.encoder, bitrateKbps);
+			fpsValue, settings.encoder, bitrateKbps, includeAudio,
+			settings.microphoneName);
 		updateStreamControls(true);
 		appendStatus(tr("本地观看：http://localhost:18080/player.html"));
 		return;
