@@ -244,6 +244,7 @@ void SceneEncoder::drainAudioFifo()
 	// Encode full AAC frames (frame_size samples each) from the fifo.
 	while (m_withAudio && av_audio_fifo_size(m_audioFifo) >= m_audioFrame->nb_samples)
 	{
+		av_frame_make_writable(m_audioFrame);
 		if (av_audio_fifo_read(m_audioFifo,
 			reinterpret_cast<void**>(m_audioFrame->data), m_audioFrame->nb_samples)
 			< m_audioFrame->nb_samples)
@@ -374,7 +375,9 @@ void SceneEncoder::run()
 		}
 		if (!canvas.isNull())
 		{
-			// BGRA canvas -> YUV420P encoder frame.
+			// BGRA canvas -> YUV420P encoder frame. make_writable first: the
+			// encoder may still hold a reference to the previous frame.
+			av_frame_make_writable(m_videoFrame);
 			const uint8_t* source[] = { canvas.constBits() };
 			const int stride[] = { int(canvas.bytesPerLine()) };
 			sws_scale(m_swsContext, source, stride, 0, m_canvasSize.height(),

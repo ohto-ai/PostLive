@@ -25,7 +25,7 @@ LiveLoginSettingDialog::LiveLoginSettingDialog(QWidget* parent)
 	ui.websiteLineEdit->setText(QString::fromStdString(
 		config.value("website", std::string("https://ohtoai.top"))));
 	ui.watermarkCheckBox->setChecked(config["stream"].value("watermark", true));
-	ui.localHlsCheckBox->setChecked(config["stream"].value("local_hls", false));
+	ui.localHlsCheckBox->setChecked(config["stream"].value("local_hls", true));
 
 	ui.streamSizeComboBox->addItems({
 		"640x480", "800x600", "1024x768", "1280x720", "1280x800", "1400x1050", "1440x900", "1600x1200", "1920x1080", "1920x1200"

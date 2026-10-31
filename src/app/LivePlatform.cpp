@@ -579,8 +579,10 @@ void LivePlatform::startStreaming()
 	}
 
 	StreamSettings settings;
+	// Defaults to local HLS: the RTMP pipe path is obsolete until the RTMP
+	// output moves in-process; explicit opt-out via the settings toggle.
 	settings.localHls = m_smokeStream
-		|| thatboy::storage::config["stream"].value("local_hls", false);
+		|| thatboy::storage::config["stream"].value("local_hls", true);
 	settings.hlsDir = QCoreApplication::applicationDirPath() + QStringLiteral("/hls");
 	settings.server = streamSetting("server", "rtmp://rtmp.ohtoai.top");
 	settings.microphoneName = effectiveMicrophoneName();
