@@ -24,7 +24,7 @@
 
 1. **直播页实测**：进程内编码已打通（WGC 采集 → 画布合成 → libav 编码 → HLS 实时落盘 → nginx/浏览器播放），待实机确认画质/流畅度与浏览器播放体验
 2. **音频实测**：麦克风已进推流（进程内 dshow 采集 → swr 重采样 48k/stereo → AAC → HLS 双轨，时间戳应用内生成），待实测听感与音画同步；长时推流的 fifo 漂移校正（mic 48k vs 视频 30fps 节拍）列为后续
-3. **RTMP 推流同样迁到进程内编码**（flv over avio）——stdin 管道方案因 ffmpeg 7 调度问题（实时喂入被积压到 EOF）已废弃
+3. ~~RTMP 推流迁到进程内编码~~ 已完成（SceneEncoder 双模式：flv over avio，无子进程）
 2. **本地观看链路实测**：设置勾选"本地 HLS 输出"→ 开播 → 浏览器打开 http://localhost:18080/player.html（nginx 已配置在 C:\Tools
 ginx-1.30.6，模板见 [tools/nginx/](tools/nginx/)）；以及用 Cloudflare Worker 跑一次真实 HTTPS 登录（[worker/README.md](worker/README.md)）
 3. **实机验证**：遮罩窗口、设置窗口（新增直播设置区）、新登录界面、CI 安装包安装流程
@@ -110,6 +110,7 @@ ginx-1.30.6，模板见 [tools/nginx/](tools/nginx/)）；以及用 Cloudflare W
 - [x] **推流音频**：`MicrophoneCapture` 进程内 dshow 音频采集线程（libav，低延迟 50ms 缓冲）→ swresample 重采样 fltp/48k/stereo → AAC 编码 → HLS 双轨；时间戳应用内按采样数生成，dshow 墙钟偏移（开机时长基准，实测 +83 万秒）不进输出。
 - [x] **修复退出堆溢出**：shutdown 排空 fifo 时曾把 >frame_size 的采样写入固定容量帧缓冲（aac 编码器报 nb_samples 3136 > 1024 → 堆损坏 c0000374，约 20% 概率退出崩溃）——改为按 frame_size 分块排空；6/6 稳定退出，ffprobe 确认分片含 aac。
 - [x] e2e：无头自动开播 → 分片实时生成（含音轨）→ nginx 分发 → 播放页可播。
+- [x] **RTMP 迁移到进程内编码**：SceneEncoder 双模式（LocalHls / Rtmp——FLV over avio 直推，无子进程）；ffmpeg.exe 子进程与 stdin 管道（buildStreamPipeArgs）整体移除；编码失败经 errorOccurred 信号反馈到状态栏。
 
 ### G 直播页对齐 OBS（采集引擎 + 画布交互 + 合成推流）
 

@@ -11,12 +11,10 @@
 
 #include <QComboBox>
 #include <QCoreApplication>
-#include <QDir>
 #include <QDesktopServices>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFileDialog>
-#include <QFileInfo>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QListWidget>
@@ -103,16 +101,8 @@ LivePlatform::LivePlatform(QWidget* parent)
 		{
 			if (sceneEncoder.isRunning())
 				sceneEncoder.stop();
-			if (ffmpegProcess.state() != QProcess::NotRunning)
-			{
+			if (m_streaming)
 				stopStreaming();
-				if (!ffmpegProcess.waitForFinished(3000))
-				{
-					ffmpegProcess.terminate();
-					if (!ffmpegProcess.waitForFinished(2000))
-						ffmpegProcess.kill();
-				}
-			}
 			close();
 		});
 
@@ -142,88 +132,35 @@ LivePlatform::LivePlatform(QWidget* parent)
 	connect(ui.minimizeToolButton, &QToolButton::clicked, this, &LivePlatform::showMinimized);
 	connect(ui.settingsPushButton, &QPushButton::clicked, this, &LivePlatform::openSettings);
 
-	connect(&ffmpegProcess, &QProcess::started, [this]
+	// Encoder lifecycle → control dock.
+	connect(&sceneEncoder, &SceneEncoder::streamStarted, this, [this]
 		{
+			m_streaming = true;
 			updateStreamControls(true);
 			appendStatus(tr("推流中"));
 		});
-	connect(&ffmpegProcess, &QProcess::readyReadStandardError, [this]
+	connect(&sceneEncoder, &SceneEncoder::streamStats, this, [this](int seconds)
 		{
-			lastErrorOutput += QString::fromLocal8Bit(ffmpegProcess.readAllStandardError());
-			if (lastErrorOutput.size() > 4096)
-				lastErrorOutput = lastErrorOutput.right(4096);
+			ui.progressLabel->setText(tr("直播 %1:%2")
+				.arg(seconds / 60, 2, 10, QLatin1Char('0'))
+				.arg(seconds % 60, 2, 10, QLatin1Char('0')));
 		});
-	connect(&ffmpegProcess, &QProcess::readyReadStandardOutput, [this]
+	connect(&sceneEncoder, &SceneEncoder::streamStopped, this, [this]
 		{
-			// -progress pipe:1 emits key=value lines; surface duration,
-			// bitrate and fps while streaming.
-			const QList<QByteArray> lines = ffmpegProcess.readAllStandardOutput().split('\n');
-			QString outTime, bitrate, fps;
-			for (const QByteArray& raw : lines)
+			if (m_streaming)
 			{
-				const QString line = QString::fromLatin1(raw).trimmed();
-				const int eq = line.indexOf('=');
-				if (eq <= 0)
-					continue;
-				const QString key = line.left(eq);
-				const QString value = line.mid(eq + 1).trimmed();
-				if (key == QLatin1String("out_time"))
-					outTime = value;
-				else if (key == QLatin1String("bitrate") && value.endsWith(QLatin1String("bits/s")))
-					bitrate = value.left(value.size() - 6).trimmed();
-				else if (key == QLatin1String("fps"))
-					fps = value;
-			}
-			if (!outTime.isEmpty() || !bitrate.isEmpty() || !fps.isEmpty())
-			{
-				QString text = QStringLiteral("直播 %1").arg(outTime);
-				if (!bitrate.isEmpty())
-					text += QStringLiteral(" · %1kbps").arg(bitrate);
-				if (!fps.isEmpty())
-					text += QStringLiteral(" · %1fps").arg(fps);
-				ui.progressLabel->setText(text);
-			}
-		});
-	connect(&ffmpegProcess, &QProcess::errorOccurred, [this](QProcess::ProcessError error)
-		{
-			if (error != QProcess::FailedToStart)
-				return;
-			updateStreamControls(false);
-			appendStatus(tr("FFmpeg 启动失败"));
-			if (!errorNotified)
-			{
-				errorNotified = true;
-				qCCritical(lcStream) << "FFmpeg failed to start; expected at"
-					<< ffmpegPath << "or on PATH";
-			}
-		});
-	connect(&ffmpegProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this,
-		[this](int code, QProcess::ExitStatus status)
-		{
-			updateStreamControls(false);
-			const bool wasStopRequested = stopRequested;
-			stopRequested = false;
-
-			const QString errorText = lastErrorOutput.trimmed();
-			lastErrorOutput.clear();
-			ui.progressLabel->clear();
-
-			if (!wasStopRequested && (code != 0 || status != QProcess::NormalExit))
-			{
-				appendStatus(tr("推流异常结束"));
-				if (!errorNotified)
-				{
-					errorNotified = true;
-					qCWarning(lcStream) << "FFmpeg exited abnormally with code" << code
-						<< "stderr tail:" << errorText;
-				}
-			}
-			else
-			{
+				m_streaming = false;
+				updateStreamControls(false);
+				ui.progressLabel->clear();
 				appendStatus(tr("推流已停止"));
+				syncPreview(); // bring the preview back
 			}
-
-			syncPreview(); // bring the preview back
+		});
+	connect(&sceneEncoder, &SceneEncoder::errorOccurred, this, [this](const QString& message)
+		{
+			m_streaming = false;
+			updateStreamControls(false);
+			appendStatus(message);
 		});
 
 	connect(ui.startPushButton, &QPushButton::clicked, this, &LivePlatform::startStreaming);
@@ -401,10 +338,10 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 LivePlatform::~LivePlatform()
 {
-	if (ffmpegProcess.state() != QProcess::NotRunning)
+	if (m_streaming)
 	{
-		ffmpegProcess.kill();
-		ffmpegProcess.waitForFinished(1000);
+		sceneEncoder.stop();
+		m_streaming = false;
 	}
 }
 
@@ -428,7 +365,7 @@ void LivePlatform::changeEvent(QEvent* event)
 	if (event->type() == QEvent::WindowStateChange)
 	{
 		// While streaming the preview feeds the stream: keep it alive.
-		if (ffmpegProcess.state() != QProcess::Running)
+		if (!m_streaming)
 		{
 			if (isMinimized())
 				previewWidget.stopAll();
@@ -452,7 +389,7 @@ void LivePlatform::showFromTray()
 void LivePlatform::hideToTray()
 {
 	hide();
-	if (ffmpegProcess.state() != QProcess::Running)
+	if (!m_streaming)
 		previewWidget.stopAll();
 }
 
@@ -570,7 +507,7 @@ void LivePlatform::syncPreview()
 
 void LivePlatform::startStreaming()
 {
-	if (ffmpegProcess.state() != QProcess::NotRunning)
+	if (m_streaming)
 		return;
 	if (m_scene.isEmpty())
 	{
@@ -578,93 +515,52 @@ void LivePlatform::startStreaming()
 		return;
 	}
 
-	StreamSettings settings;
-	// Defaults to local HLS: the RTMP pipe path is obsolete until the RTMP
-	// output moves in-process; explicit opt-out via the settings toggle.
-	settings.localHls = m_smokeStream
+	// Both outputs are produced by the in-process encoder. Local HLS is the
+	// default; the RTMP output pushes FLV over avio (no child process).
+	const bool localHls = m_smokeStream
 		|| thatboy::storage::config["stream"].value("local_hls", true);
-	settings.hlsDir = QCoreApplication::applicationDirPath() + QStringLiteral("/hls");
-	settings.server = streamSetting("server", "rtmp://rtmp.ohtoai.top");
-	settings.microphoneName = effectiveMicrophoneName();
-	const bool includeAudio = ui.audioMicCheckBox->isChecked()
-		&& !settings.microphoneName.isEmpty();
-	settings.size = streamSetting("size", "1280x720");
-	settings.encoder = streamSetting("encoder", "Auto");
-	settings.bitrate = streamSetting("bitrate", "Auto");
-	settings.fps = streamSetting("fps", "Auto");
-	settings.localHls = thatboy::storage::config["stream"].value("local_hls", false);
-	settings.hlsDir = QCoreApplication::applicationDirPath() + QStringLiteral("/hls");
+	const QString fpsSetting = streamSetting("fps", "Auto");
+	const QString bitrateSetting = streamSetting("bitrate", "Auto");
+	const int fpsValue = fpsSetting == QStringLiteral("Auto")
+		? 30 : qBound(1, fpsSetting.toInt(), 120);
+	const int bitrateKbps = bitrateSetting == QStringLiteral("Auto")
+		? 2500 : qBound(100, bitrateSetting.toInt(), 20000);
+	const QString encoder = streamSetting("encoder", "Auto");
+	const QString microphone = effectiveMicrophoneName();
+	const bool withAudio = ui.audioMicCheckBox->isChecked() && !microphone.isEmpty();
 
-	const int fpsValue = settings.fps == QStringLiteral("Auto")
-		? 30 : qBound(1, settings.fps.toInt(), 120);
-	const int bitrateKbps = settings.bitrate == QStringLiteral("Auto")
-		? 2500 : qBound(100, settings.bitrate.toInt(), 20000);
-
-	if (settings.localHls)
+	if (localHls)
 	{
-		// In-process encoding: the canvas is encoded with libav and written
-		// as HLS directly (the stdin-pipe path stalls on ffmpeg 7).
-		QDir().mkpath(settings.hlsDir);
-		stopRequested = false;
-		errorNotified = false;
-		ui.progressLabel->clear();
-		sceneEncoder.startHls(settings.hlsDir, previewWidget.canvasSize(),
-			fpsValue, settings.encoder, bitrateKbps, includeAudio,
-			settings.microphoneName);
-		updateStreamControls(true);
+		QDir().mkpath(QCoreApplication::applicationDirPath() + QStringLiteral("/hls"));
+		sceneEncoder.startStream(SceneEncoder::OutputMode::LocalHls,
+			QCoreApplication::applicationDirPath() + QStringLiteral("/hls"),
+			previewWidget.canvasSize(), fpsValue, encoder, bitrateKbps,
+			withAudio, microphone);
 		appendStatus(tr("本地观看：http://localhost:18080/player.html"));
-		return;
 	}
-
-	QString error;
-	const QStringList arguments = buildStreamPipeArgs(previewWidget.canvasSize(),
-		settings, includeAudio, &error);
-	if (arguments.isEmpty())
+	else
 	{
-		appendStatus(tr("无法开始推流：%1").arg(error));
-		qCWarning(lcStream) << "stream start aborted:" << error;
-		return;
+		QString url = streamSetting("server", "rtmp://rtmp.ohtoai.top").trimmed();
+		while (url.endsWith(QLatin1Char('/')))
+			url.chop(1);
+		sceneEncoder.startStream(SceneEncoder::OutputMode::Rtmp, url,
+			previewWidget.canvasSize(), fpsValue, encoder, bitrateKbps,
+			withAudio, microphone);
+		appendStatus(tr("正在连接推流服务器..."));
 	}
-
-	stopRequested = false;
-	errorNotified = false;
-	lastErrorOutput.clear();
-	ui.progressLabel->clear();
-	ffmpegProcess.readAllStandardError();
-	appendStatus(tr("正在启动 FFmpeg..."));
-	qCInfo(lcStream) << "starting FFmpeg:" << ffmpegPath << arguments.join(QLatin1Char(' '));
-	ffmpegProcess.start(ffmpegPath, arguments);
 }
 
 void LivePlatform::stopStreaming()
 {
-	if (sceneEncoder.isRunning())
-	{
-		sceneEncoder.stop();
-		updateStreamControls(false);
-		ui.progressLabel->clear();
-		appendStatus(tr("推流已停止"));
+	if (!m_streaming)
 		return;
-	}
-	if (ffmpegProcess.state() == QProcess::NotRunning)
-		return;
-
-	stopRequested = true;
-	appendStatus(tr("正在停止..."));
-	ffmpegProcess.write("q");
-	ffmpegProcess.closeWriteChannel();
-
-	QTimer::singleShot(3000, this, [this]
-		{
-			if (ffmpegProcess.state() == QProcess::NotRunning)
-				return;
-			ffmpegProcess.terminate();
-			QTimer::singleShot(2000, this, [this]
-				{
-					if (ffmpegProcess.state() != QProcess::NotRunning)
-						ffmpegProcess.kill();
-				});
-		});
+	// Blocking stop: the encoder finishes its current frame, flushes both
+	// encoders and writes the trailer (no child process involved).
+	sceneEncoder.stop();
+	m_streaming = false;
+	updateStreamControls(false);
+	ui.progressLabel->clear();
+	appendStatus(tr("推流已停止"));
 }
 
 void LivePlatform::updateStreamControls(bool streaming)
@@ -682,7 +578,7 @@ void LivePlatform::appendStatus(const QString& text)
 
 void LivePlatform::refreshDevices()
 {
-	if (ffmpegProcess.state() == QProcess::Running)
+	if (m_streaming)
 		return;
 
 	FFmpegInputDevice::updateInputDeviceList();

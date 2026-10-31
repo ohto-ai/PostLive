@@ -35,11 +35,12 @@ SceneEncoder::~SceneEncoder()
 	stop();
 }
 
-void SceneEncoder::startHls(const QString& hlsDir, const QSize& canvasSize, int fps,
-	const QString& encoderName, int bitrateKbps, bool withAudio,
+void SceneEncoder::startStream(OutputMode mode, const QString& target, const QSize& canvasSize,
+	int fps, const QString& encoderName, int bitrateKbps, bool withAudio,
 	const QString& microphoneName)
 {
-	m_hlsDir = hlsDir;
+	m_mode = mode;
+	m_target = target;
 	m_canvasSize = canvasSize;
 	m_fps = fps > 0 ? fps : 30;
 	m_encoderName = encoderName;
@@ -158,13 +159,31 @@ bool SceneEncoder::openOutput()
 		return false;
 	}
 
-	const QString playlist = m_hlsDir + QStringLiteral("/livehime.m3u8");
-	const int formatError = avformat_alloc_output_context2(&m_formatContext,
-		nullptr, nullptr, playlist.toUtf8().constData());
-	if (formatError < 0 || m_formatContext == nullptr)
+	QString playlist;
+	if (m_mode == OutputMode::LocalHls)
 	{
-		logAvError("avformat_alloc_output_context2", formatError);
-		return false;
+		playlist = m_target + QStringLiteral("/livehime.m3u8");
+		const int formatError = avformat_alloc_output_context2(&m_formatContext,
+			nullptr, nullptr, playlist.toUtf8().constData());
+		if (formatError < 0 || m_formatContext == nullptr)
+		{
+			logAvError("avformat_alloc_output_context2", formatError);
+			return false;
+		}
+	}
+	else
+	{
+		QString url = m_target.trimmed();
+		while (url.endsWith(QLatin1Char('/')))
+			url.chop(1);
+		url += QStringLiteral("/livehime");
+		const int formatError = avformat_alloc_output_context2(&m_formatContext,
+			nullptr, "flv", url.toUtf8().constData());
+		if (formatError < 0 || m_formatContext == nullptr)
+		{
+			logAvError("avformat_alloc_output_context2", formatError);
+			return false;
+		}
 	}
 
 	AVStream* videoStream = avformat_new_stream(m_formatContext, nullptr);
@@ -182,14 +201,17 @@ bool SceneEncoder::openOutput()
 	}
 
 	AVDictionary* muxerOptions = nullptr;
-	av_dict_set(&muxerOptions, "hls_time", "2", 0);
-	av_dict_set(&muxerOptions, "hls_list_size", "6", 0);
-	av_dict_set(&muxerOptions, "hls_flags", "delete_segments+independent_segments+temp_file", 0);
+	if (m_mode == OutputMode::LocalHls)
+	{
+		av_dict_set(&muxerOptions, "hls_time", "2", 0);
+		av_dict_set(&muxerOptions, "hls_list_size", "6", 0);
+		av_dict_set(&muxerOptions, "hls_flags", "delete_segments+independent_segments+temp_file", 0);
+	}
 
 	if (!(m_formatContext->oformat->flags & AVFMT_NOFILE))
 	{
 		const int openError = avio_open(&m_formatContext->pb,
-			playlist.toUtf8().constData(), AVIO_FLAG_WRITE);
+			m_formatContext->url, AVIO_FLAG_WRITE);
 		if (openError < 0)
 		{
 			logAvError("avio_open", openError);
@@ -233,14 +255,22 @@ bool SceneEncoder::openOutput()
 		return false;
 	}
 
-	qCInfo(lcStream) << "scene encoder started:" << playlist << m_canvasSize
-		<< "@" << m_fps << "fps codec" << codec->name
+	qCInfo(lcStream) << "scene encoder started:" << m_formatContext->url
+		<< m_canvasSize << "@" << m_fps << "fps codec" << codec->name
 		<< "audio:" << (m_withAudio ? "aac" : "off");
 	return true;
 }
 
 void SceneEncoder::drainAudioFifo()
 {
+	// Drift gate: the microphone produces in real time; if video encoding
+	// stalls (game load), audio DTS races ahead of video DTS and the muxer
+	// would buffer forever. Drop the excess beyond a 200ms window, keeping
+	// 100ms, so audio stays glued to the video timeline.
+	const int buffered = av_audio_fifo_size(m_audioFifo);
+	if (buffered > 9600)
+		av_audio_fifo_drain(m_audioFifo, buffered - 4800);
+
 	// Encode full AAC frames (frame_size samples each) from the fifo.
 	while (m_withAudio && av_audio_fifo_size(m_audioFifo) >= m_audioFrame->nb_samples)
 	{
@@ -336,6 +366,7 @@ void SceneEncoder::shutdown()
 	m_frameIndex = 0;
 	m_audioSampleIndex = 0;
 	qCInfo(lcStream) << "scene encoder stopped";
+	emit streamStopped();
 }
 
 void SceneEncoder::run()
@@ -360,8 +391,10 @@ void SceneEncoder::run()
 	if (!openOutput())
 	{
 		shutdown();
+		emit errorOccurred(QStringLiteral("编码器启动失败，请检查推流地址"));
 		return;
 	}
+	emit streamStarted();
 
 	const qint64 frameInterval = 1000 / m_fps;
 	while (!isInterruptionRequested())
@@ -375,8 +408,7 @@ void SceneEncoder::run()
 		}
 		if (!canvas.isNull())
 		{
-			// BGRA canvas -> YUV420P encoder frame. make_writable first: the
-			// encoder may still hold a reference to the previous frame.
+			// BGRA canvas -> YUV420P encoder frame.
 			av_frame_make_writable(m_videoFrame);
 			const uint8_t* source[] = { canvas.constBits() };
 			const int stride[] = { int(canvas.bytesPerLine()) };
@@ -399,6 +431,9 @@ void SceneEncoder::run()
 			}
 
 			drainAudioFifo();
+
+			if (m_frameIndex % m_fps == 0)
+				emit streamStats(int(m_frameIndex / m_fps));
 		}
 
 		const qint64 elapsed = QDateTime::currentMSecsSinceEpoch() - tick;

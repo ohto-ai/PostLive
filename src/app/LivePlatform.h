@@ -1,12 +1,10 @@
 ﻿#pragma once
 
 #include <QEvent>
-#include <QProcess>
 #include <QSystemTrayIcon>
 #include <QTimer>
 #include "SceneEncoder.h"
 #include "ScenePreview.h"
-#include "StreamArgs.h"
 #include "StreamSource.h"
 #include "utils.h"
 #include "DragableMainWindow.h"
@@ -43,18 +41,13 @@ protected:
 	QString cameraDeviceName() const;
 	QString effectiveMicrophoneName() const;
 
-	const QString ffmpegPath{ R"(ffmpeg.exe)" };
-
 	ScenePreview previewWidget{ this };
 	SceneEncoder sceneEncoder{ this };
 	QList<StreamSource> m_scene;
 	bool m_sceneSeeded{ false };
-	QProcess ffmpegProcess{ this };
+	bool m_streaming{ false };
 	QTimer deviceRefreshTimer{ this };
 
-	bool stopRequested{ false };
-	bool errorNotified{ false };
-	QString lastErrorOutput;
 	bool m_smokeStream{ false }; // POSTLIVE_SMOKE_STREAM: auto-start for e2e tests
 private:
 	Ui::LivePlatformClass ui;

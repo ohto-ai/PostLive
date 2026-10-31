@@ -46,7 +46,6 @@ set(POSTLIVE_SOURCES
     src/media/MicrophoneCapture.cpp
     src/media/SceneEncoder.cpp
     src/media/ScenePreview.cpp
-    src/media/StreamArgs.cpp
     src/media/StreamSource.cpp
     src/media/capture/DesktopDuplicationCapture.cpp
     src/media/capture/GraphicsCapture.cpp
@@ -83,7 +82,6 @@ set(POSTLIVE_HEADERS
     src/media/MicrophoneCapture.h
     src/media/SceneEncoder.h
     src/media/ScenePreview.h
-    src/media/StreamArgs.h
     src/media/StreamSource.h
     src/media/capture/DesktopDuplicationCapture.h
     src/media/capture/GraphicsCapture.h

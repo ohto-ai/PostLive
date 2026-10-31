@@ -12,7 +12,6 @@ add_executable(PostLiveTests
 
 target_include_directories(PostLiveTests PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/../src/core"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../src/media"
     "${CMAKE_CURRENT_SOURCE_DIR}/../third_party")
 
 target_compile_definitions(PostLiveTests PRIVATE
@@ -34,34 +33,6 @@ add_test(NAME core COMMAND PostLiveTests)
 set_tests_properties(core PROPERTIES
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 
-# Streaming argument-builder contract tests (pure Qt).
-add_executable(PostLiveStreamArgsTests
-    test_stream_pipe_args.cpp
-    ../src/media/StreamArgs.cpp
-    ../src/media/StreamSource.cpp)
-
-target_include_directories(PostLiveStreamArgsTests PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/../src/media"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../third_party")
-
-target_compile_definitions(PostLiveStreamArgsTests PRIVATE
-    UNICODE
-    _UNICODE)
-
-if(MSVC)
-    target_compile_options(PostLiveStreamArgsTests PRIVATE
-        "$<$<COMPILE_LANGUAGE:CXX>:/utf-8>")
-endif()
-
-target_link_libraries(PostLiveStreamArgsTests PRIVATE
-    Qt5::Core
-    Qt5::Gui
-    Qt5::Test)
-
-add_test(NAME stream_args COMMAND PostLiveStreamArgsTests)
-set_tests_properties(stream_args PROPERTIES
-    ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
-
 # Make the Qt DLLs next to the Qt bin dir resolvable no matter how ctest is
 # invoked (ENVIRONMENT_MODIFICATION needs CMake >= 3.22; on older CMake and on
 # CI, Qt's bin dir is expected to be on PATH already).
@@ -75,9 +46,7 @@ endif()
 if(_qt_test_location)
     get_filename_component(_qt_bin_dir "${_qt_test_location}" DIRECTORY)
     if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.22)
-        foreach(_test_name core stream_args)
-            set_property(TEST ${_test_name} APPEND PROPERTY ENVIRONMENT_MODIFICATION
-                "PATH=path_list_prepend:${_qt_bin_dir}")
-        endforeach()
+        set_property(TEST core APPEND PROPERTY ENVIRONMENT_MODIFICATION
+            "PATH=path_list_prepend:${_qt_bin_dir}")
     endif()
 endif()

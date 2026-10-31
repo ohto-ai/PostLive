@@ -1,13 +1,16 @@
 ﻿#pragma once
-// In-process HLS encoder (the OBS architecture): the composited canvas is
+// In-process stream encoder (the OBS architecture): the composited canvas is
 // encoded with libavcodec (openh264 from the bundled FFmpeg runtime) and
-// written with libavformat's hls muxer directly into the hls directory.
-// Timestamps are generated here and start at zero, so segments land on disk
-// in real time — no stdin pipes, no external-scheduler stalls.
+// muxed with libavformat — either as an HLS playlist directory (local
+// browser viewing) or pushed as RTMP/FLV. Timestamps are generated here and
+// start at zero, so output lands in real time — no stdin pipes, no
+// external-scheduler stalls, and the preview keeps running while live.
 //
 // Audio: the microphone is captured in-process (MicrophoneCapture, raw PCM)
-// and encoded to AAC on a second stream. Because both streams are stamped
-// by us, the dshow wallclock offset never reaches the output.
+// and encoded to AAC on a second stream. Because both streams are stamped by
+// us, the dshow wallclock offset never reaches the output. If the microphone
+// races ahead of the video clock (encode stall under load), excess samples
+// are dropped to keep the muxer flowing.
 #include <QByteArray>
 #include <QImage>
 #include <QMutex>
@@ -28,10 +31,18 @@ class SceneEncoder : public QThread
 	Q_OBJECT
 
 public:
+	enum class OutputMode
+	{
+		LocalHls, // muxer writes an HLS playlist directory
+		Rtmp,     // muxer pushes FLV over rtmp://
+	};
+
 	SceneEncoder(QObject* parent = nullptr);
 	~SceneEncoder() override;
 
-	void startHls(const QString& hlsDir, const QSize& canvasSize, int fps,
+	// target = the HLS directory (LocalHls) or the rtmp:// base URL (Rtmp);
+	// "/livehime" is appended for RTMP.
+	void startStream(OutputMode mode, const QString& target, const QSize& canvasSize, int fps,
 		const QString& encoder, int bitrateKbps, bool withAudio,
 		const QString& microphoneName);
 	void run() override;
@@ -43,15 +54,22 @@ public slots:
 	// Interleaved fltp stereo samples from MicrophoneCapture.
 	void onAudioReady(const QByteArray& samplesFltp, int sampleCount);
 
+signals:
+	void errorOccurred(const QString& message);
+	void streamStarted();
+	void streamStopped();
+	void streamStats(int seconds);
+
 private:
+	struct RenderSlot; // ScenePreview owns the slots; keep forward decls local
 	void shutdown();
 	bool openOutput();
 	bool openAudioStream();
 	void drainAudioFifo();
 	void flushEncoders();
 
-	struct RenderSlot; // ScenePreview owns the slots; keep forward decls local
-	QString m_hlsDir;
+	OutputMode m_mode = OutputMode::LocalHls;
+	QString m_target;
 	QSize m_canvasSize;
 	int m_fps = 30;
 	QString m_encoderName;
