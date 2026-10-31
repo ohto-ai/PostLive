@@ -21,19 +21,19 @@
 
 | 模块 | 状态 | 说明 |
 | --- | --- | --- |
-| 登录窗口 | ✅ | 账号 / 密码校验、头像展示、记住密码（保存 token） |
-| 自动登录 | ✅ | 读取 `application.json` 中的 `auto_login`，启动时自动发起登录 |
+| 登录窗口 | ✅ | 账号 / 密码校验、头像展示、记住密码（保存 token）、连接超时 |
+| 自动登录 | ✅ | `application.json` 中的 `auto_login`；token 失效会清理，编辑账号 / 密码或取消勾选可中止 |
 | 用户资料 | ✅ | 登录后向 `/api` 请求头像与性别 |
-| 摄像头 | ✅ | 枚举设备、本地预览、设备切换 |
-| 麦克风 | ✅ | 枚举 DirectShow 音频设备，支持 `virtual-audio-capturer` |
+| 摄像头 | ✅ | 枚举设备、本地预览、设备切换、热插拔刷新 |
+| 麦克风 | ✅ | 枚举 DirectShow 音频设备，支持 `virtual-audio-capturer`、热插拔刷新 |
 | 分辨率 | ✅ | 通过下拉框选择输出分辨率 |
-| RTMP 推流 | ✅ | `QProcess` 调用 FFmpeg，叠加 logo 水印，可开播 / 停播 |
-| 系统托盘 | ✅ | 关闭主窗口后隐藏到托盘，双击显示 / 隐藏 |
-| 设置窗口 | 🚧 | 只有窗口外壳，服务器地址、官网、遮罩等选项尚未实现 |
-| 码率 / 编码参数 | ❌ | 需要 UI 与 FFmpeg 参数支持 |
-| 预览开关 | ❌ | 开播时预览会停止，尚不能在推流时切换 |
-| 遮罩窗口 | 🐞 | 最小化还原后遮罩层可能不再显示 |
-| 认证服务端 | ❌ | 客户端固定连接 `localhost:8877`，仓库不包含可用服务端 |
+| RTMP 推流 | ✅ | `QProcess` 调用 FFmpeg，可选 logo 水印；状态栏显示启动 / 停止 / 错误 |
+| 系统托盘 | ✅ | 关闭 / 最小化到托盘、双击显示、退出前停止推流、托盘菜单可打开设置 |
+| 设置窗口 | ✅ | 认证服务器、官网、水印开关，保存到 `application.json`；可从登录界面或托盘打开 |
+| 码率 / 帧率 / 编码器 | ✅ | 主窗口可选择，默认 `Auto`，随 `application.json` 持久化 |
+| 预览开关 | ✅ | 主窗口勾选 / 取消预览；推流时自动停止并禁用 |
+| 遮罩窗口 | 🟡 | 已用父窗口事件过滤修复，建议实机复测最小化 / 还原 |
+| 认证服务端 | ❌ | 客户端认证地址可配置，但仓库不包含可用服务端 |
 | Qt 6 | ❌ | 当前使用 Qt 5 的 `QCamera` / `QAudioDeviceInfo` API |
 
 完整清单见 [TODO.md](TODO.md)。
@@ -44,8 +44,9 @@
 | --- | --- | --- | --- |
 | Qt | 5.15.2 (MSVC 2019 64-bit) | Widgets / Network / Multimedia | Qt 官方安装器 |
 | FFmpeg | 7.x（运行时） | 摄像头采集、编码、RTMP 推流 | 外部安装或 `third_party/ffmpeg`（已忽略，不入库） |
-| cpp-httplib | 0.11.2 | 同步 HTTP 客户端 | 已内置于 `third_party/` |
+| cpp-httplib | 0.11.2 | mock 服务端 HTTP | 已内置于 `third_party/` |
 | nlohmann/json | 3.11.2 | 配置与用户数据 | 已内置于 `third_party/` |
+| OpenSSL | 1.1.x（仅 HTTPS 认证时需要） | QtNetwork TLS | 外部部署，见 [docs/building.md](docs/building.md) |
 | Windows SDK | 10 | DbgHelp、Win32 API | Visual Studio 安装器 |
 | Inno Setup | 6 | 安装包（可选） | 外部安装 |
 
@@ -87,7 +88,9 @@ CMake 会把 `ffmpeg.exe` 与 `av*.dll` / `sw*.dll` 复制到输出目录。没�
 
 ### 认证服务端
 
-客户端会向 `http://localhost:8877/api` 发送登录 / 资料请求。仓库目前**不包含**可用的认证服务端，协议见 [docs/api.md](docs/api.md)。没有服务端时，登录窗口会提示无法连接。
+客户端默认向 `http://localhost:8877/api` 发送登录 / 资料请求，可在设置窗口中修改认证服务器地址（写入 `application.json` 的 `auth_server`）。仓库包含一个开发用 mock 服务端，见 [tools/mock-server/README.md](tools/mock-server/README.md)；生产认证服务端仍不包含，协议见 [docs/api.md](docs/api.md)。
+
+认证请求使用 QtNetwork，支持 `http://` 与 `https://`。Qt 5.15 在 Windows 上使用 OpenSSL 1.1.x：连接 HTTPS 服务时，需要把 `libssl-1_1-x64.dll` / `libcrypto-1_1-x64.dll` 放到 `PostLive.exe` 旁边，或通过 `POSTLIVE_OPENSSL_DIR` 让 CMake 复制。
 
 ## 项目结构
 
@@ -106,6 +109,7 @@ PostLive/
 │   ├── resources/           # .qrc 与图片 / 图标
 │   ├── platform/            # Windows 版本资源模板
 │   └── main.cpp
+├── tools/mock-server/       # 本地 mock 认证服务端（开发用）
 ├── third_party/             # 内置头文件依赖；FFmpeg 本地目录被忽略
 ├── CMakeLists.txt
 ├── CMakePresets.json
@@ -119,8 +123,8 @@ PostLive/
 
 | 文件 / 目录 | 说明 |
 | --- | --- |
-| `application.json` | 窗口几何、自动登录、当前用户。首次构建时从 `config/application.default.json` 创建，之后不会被覆盖 |
-| `users.json` | 本地用户列表与 token。首次构建时从 `config/users.default.json` 创建 |
+| `application.json` | 窗口几何、自动登录、当前用户、认证服务器、官网、编码器 / 码率 / 帧率 / 预览 / 水印设置。首次构建时从 `config/application.default.json` 创建，之后不会被覆盖 |
+| `users.json` | 本地用户列表与 token（Windows DPAPI 加密）。首次构建时从 `config/users.default.json` 创建；换 Windows 用户或机器后 token 失效，需要重新登录 |
 | `assets/pilipili-logo.png` | 推流时叠加到画面左上角的 logo |
 | `user/avatar/*.avatar` | 登录后下载的头像缓存 |
 | `ffmpeg.exe`、`av*.dll`、`sw*.dll` | 推流运行时，由 CMake 复制 |
@@ -141,7 +145,9 @@ PostLive/
 | [docs/ffmpeg-commands.md](docs/ffmpeg-commands.md) | 常用 FFmpeg 命令 |
 | [docs/rtmp-server.md](docs/rtmp-server.md) | Nginx + nginx-rtmp-module 部署 |
 | [docs/cloudflare.md](docs/cloudflare.md) | Cloudflare 免费认证 / 推流方案评估 |
+| [docs/directui-evaluation.md](docs/directui-evaluation.md) | 去除 Qt、改用 DirectUI 的可行性调研 |
 | [docs/legacy.md](docs/legacy.md) | 已移除的旧子工程与找回方式 |
+| [tools/mock-server/README.md](tools/mock-server/README.md) | 本地 mock 认证服务端 |
 | [TODO.md](TODO.md) | 路线图 / 未完成事项 |
 | [CHANGELOG.md](CHANGELOG.md) | 变更记录 |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南 |

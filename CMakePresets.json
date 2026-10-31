@@ -31,5 +31,16 @@
             "configurePreset": "windows-x64",
             "configuration": "Release"
         }
+    ],
+    "testPresets": [
+        {
+            "name": "windows-x64",
+            "displayName": "Windows x64 tests",
+            "configurePreset": "windows-x64",
+            "configuration": "Release",
+            "output": {
+                "outputOnFailure": true
+            }
+        }
     ]
 }

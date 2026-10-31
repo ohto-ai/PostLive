@@ -12,7 +12,15 @@ endif()
 
 file(MAKE_DIRECTORY
     "${RUNTIME_DIR}/assets"
+    "${RUNTIME_DIR}/hls"
     "${RUNTIME_DIR}/user/avatar")
+
+# Local-viewing player page (served by any static web server, see
+# tools/nginx/); kept out of hls/ so segment cleanup never removes it.
+if(DEFINED PLAYER_HTML AND EXISTS "${PLAYER_HTML}")
+    file(COPY_FILE "${PLAYER_HTML}" "${RUNTIME_DIR}/player.html"
+        ONLY_IF_DIFFERENT)
+endif()
 
 if(EXISTS "${ASSETS_DIR}/pilipili-logo.png")
     file(COPY_FILE
@@ -37,6 +45,22 @@ if(DEFINED FFMPEG_BIN_DIR AND NOT FFMPEG_BIN_DIR STREQUAL "")
         "${FFMPEG_BIN_DIR}/sw*.dll")
 
     foreach(_file IN LISTS _ffmpeg_runtime)
+        get_filename_component(_name "${_file}" NAME)
+        file(COPY_FILE
+            "${_file}"
+            "${RUNTIME_DIR}/${_name}"
+            ONLY_IF_DIFFERENT)
+    endforeach()
+endif()
+
+# Qt 5.15 on Windows uses OpenSSL 1.1.x for HTTPS. Copy the DLLs when the
+# developer points POSTLIVE_OPENSSL_DIR at a directory containing them.
+if(DEFINED OPENSSL_DIR AND NOT OPENSSL_DIR STREQUAL "")
+    file(GLOB _openssl_runtime
+        "${OPENSSL_DIR}/libssl-1_1-x64.dll"
+        "${OPENSSL_DIR}/libcrypto-1_1-x64.dll")
+
+    foreach(_file IN LISTS _openssl_runtime)
         get_filename_component(_name "${_file}" NAME)
         file(COPY_FILE
             "${_file}"

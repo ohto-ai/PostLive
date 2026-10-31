@@ -1,0 +1,15 @@
+{
+    "user_list": [
+        "test"
+    ],
+    "users": {
+        "test": {
+            "token": "E10ADC3949BA59ABBE56E057F20F883E",
+            "password_salt": "301413d52bb246a9781399ad83dc3fce",
+            "password_hash": "44b40ed6b751afc756458b3f06bca93f8e960c76cde69a203855fddd2d845bb2",
+            "password_iterations": 1000,
+            "gender": "male",
+            "avatar": "https://example.com/avatar.png"
+        }
+    }
+}

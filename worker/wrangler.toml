@@ -1,0 +1,24 @@
+name = "postlive-auth"
+main = "src/worker.js"
+compatibility_date = "2026-10-01"
+
+# Deployment (see worker/README.md):
+#   1. npx wrangler d1 create postlive            -> paste the id below
+#   2. npx wrangler kv namespace create SESSIONS  -> paste the id below
+#   3. npx wrangler d1 execute postlive --remote --file=schema.sql
+#   4. npx wrangler secret put PEPPER
+#      npx wrangler secret put REGISTER_SECRET
+#   5. npx wrangler deploy
+
+[[d1_databases]]
+binding = "DB"
+database_name = "postlive"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Secrets (never in the repo):
+#   PEPPER          server-side pepper mixed into every PBKDF2 salt
+#   REGISTER_SECRET admin token required by the register endpoint

@@ -80,3 +80,4 @@
 
 - 接口协议：[api.md](api.md)
 - 客户端配置：[architecture.md](architecture.md)
+- 真实服务端的 D1 表结构：[worker/schema.sql](../worker/schema.sql)

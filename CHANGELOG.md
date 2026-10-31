@@ -6,6 +6,22 @@
 
 ### Added
 
+- 认证改用 QtNetwork 异步请求，支持 `http://` / `https://`；Qt 5.15 的 HTTPS 通过 OpenSSL 1.1.x 提供。
+- QtNetwork 使用 Windows 系统代理设置。
+- token 使用 Windows DPAPI 加密存储，旧的明文 token 会在下次保存时迁移。
+- 新增 `POSTLIVE_SMOKE_TEST=1` 冒烟退出入口。
+- 本地 mock 认证服务端 `tools/mock-server`（`PostLiveMockServer`），支持 login / profile / query / heartbeat。
+- 设置窗口：认证服务器、官网、水印开关，保存到 `application.json`。
+- 认证地址可配置；`createAuthClient()` 每次登录读取 `auth_server`，连接 / 读取超时 3 s / 5 s。
+- 自动登录可靠性：token 失效清理、编辑账号 / 密码或取消勾选可中止。
+- 摄像头 / 麦克风热插拔刷新（3 秒轮询，推流期间暂停）。
+- 托盘显示 / 隐藏；退出前优雅停止 FFmpeg。
+- 遮罩窗口最小化 / 还原事件过滤修复。
+- 主窗口推流参数：编码器 / 码率 / 帧率下拉框，并持久化到 `application.json`。
+- 主窗口预览开关；推流时自动停止预览，结束后恢复。
+- 推流状态栏、FFmpeg stderr / `errorOccurred` 错误提示。
+- `application.json` / `users.json` 缺失或损坏时回退到内置默认值（qrc）。
+- 保存配置 / 用户数据失败时提示。
 - 完整的 CMake 构建：`CMakeLists.txt`、`CMakePresets.json`、`cmake/DeployRuntime.cmake`。
 - GitHub Actions Windows 构建与 `windeployqt` 打包产物。
 - Issue / Pull Request 模板与 Dependabot 配置。
@@ -15,6 +31,11 @@
 
 ### Changed
 
+- 登录客户端改为异步 QtNetwork 请求，支持运行时切换认证服务器。
+- 水印可关闭；关闭时不再传入 logo 输入与 overlay 滤镜。
+- 停播改为 `q` → 3 秒后 terminate → 2 秒后 kill 的优雅退出。
+- 分辨率统一为 FFmpeg 的 `WxH` 格式（`×` → `x`）。
+- 推流命令显式设置 `-pix_fmt yuv420p`，并按选择追加编码器 / 码率 / 帧率参数。
 - 源码重组为 `src/app`、`src/core`、`src/widgets`、`src/resources`、`src/platform`。
 - 第三方头文件移动到 `third_party/`。
 - 可执行文件与安装包名称统一为 `PostLive`。

@@ -1,6 +1,8 @@
 # Cloudflare 免费方案评估
 
 > 评估日期：2026-10-29。Cloudflare 的免费额度、条款和产品状态会变化，部署前请以官方文档为准。
+>
+> **2026-10-29 更新**：认证部分（Workers + D1 + KV）已实现为 [worker/](../worker/README.md)，采用下文“密码哈希”中的做法 1（PBKDF2 50 000 次 + 服务端 pepper）；待 Cloudflare 账号部署。推流部分维持本文结论：保留自建 RTMP，不使用 Tunnel 公网分发。
 
 ## 结论
 
@@ -80,21 +82,24 @@ Workers 免费层 100,000 请求/天：
 
 ### 客户端改造
 
-当前 `src/core/utils.cpp` 使用：
+当前客户端通过 `utils::authServerUrl()` 读取 `application.json` 的 `auth_server`（默认 `http://localhost:8877`），使用 QtNetwork 的 `QNetworkAccessManager` 异步请求，支持 http / https。
 
-```cpp
-httplib::Client accountVerifyClient{ "localhost", 8877 };
-```
+已具备：
 
-问题是：
+- 异步请求，不阻塞 UI；
+- 5 s transfer timeout；
+- 设置窗口可修改地址；
+- token 使用 Windows DPAPI 加密存储。
 
-- 只支持明文 HTTP，Cloudflare 需要 HTTPS；
-- 同步请求在 UI 线程执行，网络慢时会卡登录窗口。
+仍需注意：
+
+- Qt 5.15 在 Windows 上的 HTTPS 依赖 OpenSSL 1.1.x（`libssl-1_1-x64.dll` / `libcrypto-1_1-x64.dll`），需要随程序部署；
+- Qt 6 可以使用 Schannel，不再需要 OpenSSL 1.1.x。
 
 两种改法：
 
-1. **改用 QtNetwork（推荐）**：项目已经链接 `Qt5::Network`，`QNetworkAccessManager` 在 Windows 上走 Schannel/TLS，不需要额外 OpenSSL；把登录流程改成 signal/slot 异步。
-2. **给 cpp-httplib 开启 OpenSSL**：定义 `CPPHTTPLIB_OPENSSL_SUPPORT` 并链接 OpenSSL；构建和分发都更重。
+1. **QtNetwork（已采用）**：`QNetworkAccessManager` 异步请求；Qt 5.15 在 Windows 上通过 OpenSSL 1.1.x 提供 TLS，需要部署 `libssl-1_1-x64.dll` / `libcrypto-1_1-x64.dll`；Qt 6 可改用 Schannel。
+2. **cpp-httplib + OpenSSL**：定义 `CPPHTTPLIB_OPENSSL_SUPPORT` 并链接 OpenSSL；构建和分发都更重，保留了 mock 服务端使用。
 
 同时需要：
 

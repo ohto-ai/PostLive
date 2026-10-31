@@ -6,20 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>556</height>
+    <width>1280</width>
+    <height>800</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
-    <width>800</width>
-    <height>0</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>800</width>
-    <height>16777215</height>
+    <width>1000</width>
+    <height>640</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -29,134 +23,71 @@
    <iconset resource="LiveLoginDialog.qrc">
     <normaloff>:/LiveLoginDialog/res/live.ico</normaloff>:/LiveLoginDialog/res/live.ico</iconset>
   </property>
-  <widget class="QWidget" name="centralWidget">
-   <property name="styleSheet">
-    <string notr="true">/* font */
-*
+  <property name="styleSheet">
+   <string notr="true">QPushButton#startPushButton
 {
-	font-family: &quot;Arial&quot;, &quot;Segoe UI&quot;, &quot;黑体&quot;, &quot;等线&quot;;
-	font-size: 14px;
-	font-weight: 400;
-	line-height: 20px;
+	background: rgb(0,160,230);
+	border: none;
+	border-radius: 6px;
+	font-weight: 600;
 }
-/* background */
-QWidget#centralWidget
+QPushButton#startPushButton:hover
 {
-	background: rgba(36,41,46,0.9);
-	background-position: top;
-	background-image: url(:/LiveLoginDialog/res/login-background-800x240.png);
-	background-repeat: no-repeat;
+	background: rgb(0,180,255);
 }
-
-QLabel#streamServerLabel,#cameraLabel,#microphoneLabel, QComboBox
+QPushButton#startPushButton:pressed
 {
-	color:white;
-	border: 2px solid rgba(27,128,255,0.5);
-	background: rgba(45,64,72,0.8);
+	background: rgb(0,140,200);
 }
-
-QLabel#applicationIconLabel
+QPushButton#stopPushButton
 {
-	border-image: url(:/LiveLoginDialog/res/pilipili-title-210x50.png);
+	background: rgb(192,57,43);
+	border: none;
+	border-radius: 6px;
+	font-weight: 600;
 }
-/* avatar */
-QLabel#avatarLabel
+QPushButton#stopPushButton:hover
 {
-	border-image: url(:/LiveLoginDialog/res/avatar-mask.png);
-	border-radius:60px;
-	min-width:  120px;
-    max-width:  120px;
-    min-height: 120px;
-    max-height: 120px;
-    border-width: 0 0 0 0;
+	background: rgb(220,80,60);
 }
-
-/* button */
-.QPushButton, .QCheckBox, .QToolButton
+QLabel#titleLabel
 {
 	color: white;
-	background-color: transparent;
+	font-size: 18px;
+	font-weight: 700;
 }
-/*RadioButton CheckButton*/
-QRadioButton::indicator::unchecked {
-	image: url(:/LiveLoginDialog/res/radiobutton-unchecked.png);
+QLabel#dockHeader
+{
+	color: rgb(227,234,242);
+	font-weight: 600;
 }
-QRadioButton::indicator::checked { 
-	image: url(:/LiveLoginDialog/res/radiobutton-checked.png);
+QLabel#statusLabel
+{
+	color: rgb(200,200,200);
 }
-QCheckBox::indicator { 
-	width: 15px;
-	height: 30px;
+QToolButton#dockToolButton
+{
+	border: none;
+	border-radius: 4px;
+	background: transparent;
+	min-width: 28px;
+	max-width: 28px;
+	min-height: 28px;
+	max-height: 28px;
 }
-QCheckBox::indicator::unchecked {	
-	image: url(:/LiveLoginDialog/res/checkbox_unchecked.png);
+QToolButton#dockToolButton:hover
+{
+	background: rgba(255,255,255,0.18);
 }
-QCheckBox::indicator::checked { 
-	image: url(:/LiveLoginDialog/res/checkbox_checked.png);
+QToolButton#dockToolButton:pressed
+{
+	background: rgba(255,255,255,0.30);
+}
+QToolButton#dockToolButton:disabled
+{
+	color: rgb(120,120,120);
 }
 
-.QCheckBox::indicator { 
-	width: 15px;
-	height: 15px;
-}
-.QCheckBox::indicator::unchecked {	
-	image: url(:/LiveLoginDialog/res/radiobutton-unchecked.png);
-}
-.QCheckBox::indicator::checked { 
-	image: url(:/LiveLoginDialog/res/radiobutton-checked.png);
-}
-.QPushButton:hover, .QCheckBox:hover
-{
-	color: yellow;
-}
-.QPushButton:pressed, .QCheckBox:pressed
-{
-	color: #FFCC66;
-}
-.QPushButton:focus, .QCheckBox:focus
-{
-	outline: none
-}
-/* start stop button */
-QPushButton#startPushButton {
-  background: #0078d7;
-  border: 2px solid rgba(0,0,0,0.4)
-}
-QPushButton#startPushButton:hover {
-  background: #1CA8FA;
-}
-QPushButton#startPushButton:pressed {
-  background: #2A67FF;
-}
-QPushButton#startPushButton:disabled {
-  background: #666;
-}
-QPushButton#stopPushButton {
-  background: #d77800;
-  border: 2px solid rgba(0,0,0,0.4)
-}
-QPushButton#stopPushButton:hover {
-  background: #FAA81C;
-}
-QPushButton#stopPushButton:pressed {
-  background: #FF672A;
-}
-QPushButton#stopPushButton:disabled {
-  background: #666;
-}
-
-/* account password */
-QLineEdit
-{
-	border: 2px solid rgba(27,128,255,0.5);
-	background: rgba(45,64,72,0.8);
-	color: white;
-    selection-background-color:green;
-}
-QLineEdit:focus
-{
-	background: rgba(80,100,110,0.8);
-}
 /* tooltip */
 QToolTip
 {
@@ -164,7 +95,8 @@ QToolTip
 	border: 2px solid #333;
 	background-color: black;
 }</string>
-   </property>
+  </property>
+  <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
      <number>0</number>
@@ -185,81 +117,369 @@ QToolTip
      <widget class="QWidget" name="titlebarWidget" native="true">
       <property name="minimumSize">
        <size>
-        <width>500</width>
-        <height>50</height>
+        <width>0</width>
+        <height>48</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>50</height>
+        <height>48</height>
        </size>
       </property>
-      <layout class="QHBoxLayout" name="horizontalLayout">
+      <layout class="QHBoxLayout" name="titlebarLayout">
        <property name="spacing">
-        <number>0</number>
+        <number>6</number>
        </property>
        <property name="leftMargin">
-        <number>0</number>
+        <number>16</number>
        </property>
        <property name="topMargin">
-        <number>0</number>
+        <number>6</number>
        </property>
        <property name="rightMargin">
-        <number>0</number>
+        <number>10</number>
        </property>
        <property name="bottomMargin">
-        <number>0</number>
+        <number>6</number>
        </property>
        <item>
-        <widget class="QLabel" name="applicationIconLabel">
-         <property name="minimumSize">
-          <size>
-           <width>210</width>
-           <height>50</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>210</width>
-           <height>50</height>
-          </size>
-         </property>
-         <property name="scaledContents">
-          <bool>false</bool>
+        <widget class="QLabel" name="titleLabel">
+         <property name="text">
+          <string>PostLive</string>
          </property>
         </widget>
        </item>
        <item>
-        <spacer name="titlebarHorizontalSpacer">
+        <spacer name="titlebarSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>303</width>
-           <height>17</height>
+           <width>40</width>
+           <height>20</height>
           </size>
          </property>
         </spacer>
        </item>
        <item>
-        <widget class="QWidget" name="titleMenuVerticalLayoutWidget" native="true">
+        <widget class="QToolButton" name="minimizeToolButton">
          <property name="minimumSize">
           <size>
-           <width>0</width>
-           <height>50</height>
+           <width>26</width>
+           <height>26</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>60</width>
-           <height>50</height>
+           <width>26</width>
+           <height>26</height>
           </size>
          </property>
-         <layout class="QVBoxLayout" name="titleMenuVerticalLayout">
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>最小化</string>
+         </property>
+         <property name="icon">
+          <iconset resource="LiveLoginDialog.qrc">
+           <normaloff>:/LiveLoginDialog/res/minus-square.png</normaloff>:/LiveLoginDialog/res/minus-square.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="closeToolButton">
+         <property name="minimumSize">
+          <size>
+           <width>26</width>
+           <height>26</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>26</width>
+           <height>26</height>
+          </size>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="toolTip">
+          <string>关闭</string>
+         </property>
+         <property name="icon">
+          <iconset resource="LiveLoginDialog.qrc">
+           <normaloff>:/LiveLoginDialog/res/close-square.png</normaloff>:/LiveLoginDialog/res/close-square.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>24</width>
+           <height>24</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="centralLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="sourceDock" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>250</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>280</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="sourceDockLayout">
+       <property name="spacing">
+        <number>8</number>
+       </property>
+       <property name="leftMargin">
+        <number>12</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>12</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="dockHeader">
+         <property name="text">
+          <string>采集源（自下而上叠加）</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="sourceToolbarLayout">
+         <property name="spacing">
+          <number>4</number>
+         </property>
+         <item>
+          <widget class="QToolButton" name="addSourceToolButton">
+           <property name="toolTip">
+            <string>添加采集源</string>
+           </property>
+           <property name="text">
+            <string>＋</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="removeSourceToolButton">
+           <property name="toolTip">
+            <string>移除选中源</string>
+           </property>
+           <property name="text">
+            <string>－</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="moveUpToolButton">
+           <property name="toolTip">
+            <string>上移（更上层）</string>
+           </property>
+           <property name="text">
+            <string>↑</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="moveDownToolButton">
+           <property name="toolTip">
+            <string>下移（更下层）</string>
+           </property>
+           <property name="text">
+            <string>↓</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="fitSourceToolButton">
+           <property name="toolTip">
+            <string>选中源适配画布</string>
+           </property>
+           <property name="text">
+            <string>⛶</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="sourceToolbarSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QListWidget" name="sourceListWidget">
+         <property name="focusPolicy">
+          <enum>Qt::ClickFocus</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="cameraDeviceLabel">
+         <property name="text">
+          <string>添加摄像头时使用的设备</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="cameraComboBox">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="previewArea" native="true">
+      <layout class="QGridLayout" name="previewLayout"/>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="controlDock" native="true">
+      <property name="minimumSize">
+       <size>
+        <width>230</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>260</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="controlDockLayout">
+       <property name="spacing">
+        <number>12</number>
+       </property>
+       <property name="leftMargin">
+        <number>14</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>14</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="controlHeader">
+         <property name="text">
+          <string>控制</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="startPushButton">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>46</height>
+          </size>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string>开始推流</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="stopPushButton">
+         <property name="visible">
+          <bool>false</bool>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>46</height>
+          </size>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string>停止推流</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="statusLabel">
+         <property name="text">
+          <string>推流已停止</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="progressLabel">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="audioSection" native="true">
+         <layout class="QVBoxLayout" name="audioSectionLayout">
           <property name="spacing">
-           <number>0</number>
+           <number>4</number>
           </property>
           <property name="leftMargin">
            <number>0</number>
@@ -268,398 +488,122 @@ QToolTip
            <number>0</number>
           </property>
           <property name="rightMargin">
-           <number>7</number>
+           <number>0</number>
           </property>
           <property name="bottomMargin">
            <number>0</number>
           </property>
           <item>
-           <widget class="QWidget" name="titleMenuWidget" native="true">
-            <property name="minimumSize">
-             <size>
-              <width>60</width>
-              <height>32</height>
-             </size>
+           <widget class="QLabel" name="audioHeader">
+            <property name="text">
+             <string>音轨</string>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>60</width>
-              <height>32</height>
-             </size>
-            </property>
-            <layout class="QHBoxLayout" name="titleMenuHorizontalLayout">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QToolButton" name="minimizeToolButton">
-               <property name="minimumSize">
-                <size>
-                 <width>26</width>
-                 <height>26</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>26</width>
-                 <height>26</height>
-                </size>
-               </property>
-               <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
-               </property>
-               <property name="toolTip">
-                <string>最小化</string>
-               </property>
-               <property name="icon">
-                <iconset resource="LiveLoginDialog.qrc">
-                 <normaloff>:/LiveLoginDialog/res/minus-square.png</normaloff>:/LiveLoginDialog/res/minus-square.png</iconset>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>24</width>
-                 <height>24</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QToolButton" name="closeToolButton">
-               <property name="minimumSize">
-                <size>
-                 <width>26</width>
-                 <height>26</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>26</width>
-                 <height>26</height>
-                </size>
-               </property>
-               <property name="focusPolicy">
-                <enum>Qt::NoFocus</enum>
-               </property>
-               <property name="toolTip">
-                <string>关闭</string>
-               </property>
-               <property name="icon">
-                <iconset resource="LiveLoginDialog.qrc">
-                 <normaloff>:/LiveLoginDialog/res/close-square.png</normaloff>:/LiveLoginDialog/res/close-square.png</iconset>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>24</width>
-                 <height>24</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-            </layout>
            </widget>
           </item>
           <item>
-           <spacer name="verticalSpacer">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QWidget" name="customWidget" native="true">
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QWidget" name="controlWidget" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>691</width>
-           <height>91</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>91</height>
-          </size>
-         </property>
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="1">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QLabel" name="microphoneLabel">
-              <property name="minimumSize">
-               <size>
-                <width>108</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>108</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Microphone</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="microphoneComboBox">
-              <property name="minimumSize">
-               <size>
-                <width>240</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>320</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="0" column="2" colspan="2">
-           <layout class="QHBoxLayout" name="horizontalLayout_2">
-            <item>
-             <widget class="QLabel" name="streamServerLabel">
-              <property name="minimumSize">
-               <size>
-                <width>96</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>108</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Server</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="streamServerLineEdit">
-              <property name="minimumSize">
-               <size>
-                <width>240</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>320</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>rtmp://rtmp.ohtoai.top</string>
-              </property>
-              <property name="placeholderText">
-               <string>Server here.</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="0" column="0">
-           <layout class="QHBoxLayout" name="horizontalLayout_3">
-            <item>
-             <widget class="QLabel" name="cameraLabel">
-              <property name="minimumSize">
-               <size>
-                <width>108</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>108</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Camera</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QComboBox" name="cameraComboBox">
-              <property name="minimumSize">
-               <size>
-                <width>240</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>320</width>
-                <height>32</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="3">
-           <layout class="QHBoxLayout" name="horizontalLayout_5">
-            <item>
-             <widget class="QPushButton" name="startPushButton">
-              <property name="minimumSize">
-               <size>
-                <width>96</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>96</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>开播</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="stopPushButton">
-              <property name="enabled">
-               <bool>false</bool>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>96</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>96</width>
-                <height>32</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>停播</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item row="1" column="1">
-           <spacer name="horizontalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="1" column="2">
-           <widget class="QComboBox" name="sizeComboBox">
+           <widget class="AudioLevelBar" name="audioLevelBar">
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>32</height>
+              <height>16</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
               <width>16777215</width>
-              <height>32</height>
+              <height>18</height>
              </size>
             </property>
-            <property name="currentText">
-             <string/>
-            </property>
            </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="audioControlsLayout">
+            <property name="spacing">
+             <number>8</number>
+            </property>
+            <item>
+             <widget class="QPushButton" name="mutePushButton">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="focusPolicy">
+               <enum>Qt::NoFocus</enum>
+              </property>
+              <property name="text">
+               <string>静音</string>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="audioMicCheckBox">
+              <property name="text">
+               <string>麦克风</string>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="cameraViewWidget" native="true">
-         <property name="minimumSize">
+        <spacer name="controlDockSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
           <size>
-           <width>500</width>
-           <height>300</height>
+           <width>20</width>
+           <height>40</height>
           </size>
          </property>
-         <layout class="QGridLayout" name="cameraViewLayout"/>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="settingsPushButton">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>34</height>
+          </size>
+         </property>
+         <property name="focusPolicy">
+          <enum>Qt::NoFocus</enum>
+         </property>
+         <property name="text">
+          <string>⚙ 设置</string>
+         </property>
         </widget>
        </item>
       </layout>
      </widget>
     </item>
    </layout>
+    </item>
+   </layout>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>AudioLevelBar</class>
+   <extends>QWidget</extends>
+   <header>AudioLevelBar.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../resources/LiveLoginDialog.qrc"/>
  </resources>
  <connections/>
- <designerdata>
-  <property name="gridDeltaX">
-   <number>10</number>
-  </property>
-  <property name="gridDeltaY">
-   <number>10</number>
-  </property>
-  <property name="gridSnapX">
-   <bool>true</bool>
-  </property>
-  <property name="gridSnapY">
-   <bool>true</bool>
-  </property>
-  <property name="gridVisible">
-   <bool>false</bool>
-  </property>
- </designerdata>
 </ui>

@@ -6,7 +6,10 @@
 ;   iscc packaging/PostLive.iss
 
 #define MyAppName "PostLive"
-#define MyAppVersion "1.0.0.2"
+; CI passes /DMyAppVersion=... parsed from CMakeLists; keep a fallback for local builds.
+#ifndef MyAppVersion
+#define MyAppVersion "1.1.0.0"
+#endif
 #define MyAppPublisher "ohto-ai"
 #define MyAppURL "https://github.com/ohto-ai/PostLive"
 #define MyAppExeName "PostLive.exe"
@@ -49,7 +52,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 ; Everything produced by CMake + windeployqt (FFmpeg binaries included when present).
-Source: "{#BuildDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "application.json,users.json,user\*,*.pdb,*.dmp,*.ilk"
+Source: "{#BuildDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "PostLiveMockServer.exe,application.json,users.json,user\*,*.pdb,*.dmp,*.ilk"
 ; Never overwrite a user's local configuration on upgrade.
 Source: "{#BuildDir}\application.json"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall
 Source: "{#BuildDir}\users.json"; DestDir: "{app}"; Flags: onlyifdoesntexist uninsneveruninstall

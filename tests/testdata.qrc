@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="LiveLoginDialog">
+    <file alias="config/application.default.json">../config/application.default.json</file>
+    <file alias="config/users.default.json">../config/users.default.json</file>
+  </qresource>
+</RCC>

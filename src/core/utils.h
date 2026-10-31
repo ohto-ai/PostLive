@@ -11,7 +11,6 @@
 #include <QTimer>
 #include <nlohmann/json.hpp>
 #include <fstream>
-#include <cpp-httplib/httplib.h>
 #include "GeneralSignal.h"
 #include "AsyncDownloader.h"
 #include "WidgetConfigInfo.h"
@@ -28,9 +27,13 @@ namespace thatboy
 		void to_json(nlohmann::json& j, const QStringList& stringList);
 
 		void loadConfig();
-		void saveConfig();
+		bool saveConfig();
 		void loadUserData();
-		void saveUserData();
+		bool saveUserData();
+
+		QString authServerUrl();
+		QString protectToken(const QString& token);
+		QString unprotectToken(const QString& stored);
 
 		QString generateMD5(QString);
 	}
@@ -48,15 +51,19 @@ namespace thatboy
 
 		constexpr auto RegexAccount{ R"(^[A-Za-z][A-Za-z0-9_-]{3,15}$)" };
 		constexpr auto RegexPassword{ R"(^[A-Za-z0-9._~!@#$^&*]{6,24}$)" };
-		constexpr auto ConfigFilePath{ "application.json" };
 		constexpr int LoginErrorLabelTime{ 8000 };
 
 		constexpr auto RegisterUrl{ "https://ohtoai.top/live/login.html" };
 		constexpr auto ResetPasswordUrl{ "https://ohtoai.top/live" };
-		constexpr auto WebsiteUrl{ "https://ohtoai.top" };
 		constexpr auto GithubUrl{ "https://github.com/ohto-ai/PostLive" };
 
-		extern httplib::Client accountVerifyClient;
+		// Writable-data root (AppData in production). Empty => paths resolve
+		// against the working directory, which the unit tests rely on.
+		extern QString dataDir;
+		QString resolveDataPath(const QString& relative);
+		void migrateLegacyFiles(); // one-time move from the exe directory
+
+		extern QString websiteUrl;
 		extern std::map<std::string, QPixmap> userAvatarCache;
 		extern nlohmann::json config;
 		extern nlohmann::json usersStorage;
