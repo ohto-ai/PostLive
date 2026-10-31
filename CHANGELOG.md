@@ -6,6 +6,38 @@
 
 ### Added
 
+- **直播页推倒重做（OBS 式场景编辑器）**：源列表（摄像头 / 整个屏幕 / 窗口 / 本地文件）、合成画布（拖拽移动、四角等比缩放、中心 / 边缘吸附参考线、右键菜单、方向键微调、双击居中）、控制 dock（开播 / 停止、直播时长、码率、静音）。
+- **采集引擎**：WGC（Windows Graphics Capture）为主、DXGI 桌面复制与 PrintWindow 为后备，多屏逐显示器选择；修复加速窗口（Chrome 等）黑屏。
+- **进程内编码（SceneEncoder）**：合成画布 BGRA→YUV420P→openh264，麦克风 dshow 采集→重采样→AAC，本地 HLS（2s 分片环形缓冲）与 RTMP/FLV 双输出；时间戳由应用生成，预览与推流同源。
+- **音频电平表与运行时静音**；推流码率实时显示。
+- **本地观看**：构建自动部署播放页，官方 nginx 静态分发即可浏览器观看（模板见 `tools/nginx/`）。
+- 可写数据目录迁移至 `AppData/Roaming/ohto-ai/PostLive`（旧文件自动迁移）。
+- 分类日志文件（`postlive.*` 分类）写入 AppData。
+- Cloudflare Workers 认证服务端（`worker/`，D1 + KV，PBKDF2 加盐哈希），CI 跑其单元测试。
+- 无头视觉验证：`POSTLIVE_SMOKE_TEST=login/platform` + `POSTLIVE_SNAPSHOT` 可脱离屏幕生成界面截图。
+
+### Changed
+
+- **UI**：登录页与直播页换用 PostLive.Re 设计（深色扁平主题），启动动画、内嵌错误提示（不再使用模态弹窗）。
+- 采集 / 编码不再依赖 Qt Multimedia；设备枚举改用 FFmpeg avdevice。
+- FFmpeg 7.x SDK 头文件与导入库入库（`third_party/ffmpeg/sdk`，LGPL-3.0）；进程内解码 / 编码与推流共用运行时 DLL。
+- 版本号升至 1.1.0.0。
+
+### Fixed
+
+- 加速窗口（Chrome 等）采集黑屏（gdigrab → PrintWindow/WGC）。
+- 缩放手柄锚点漂移导致的“拖过头突然变大”。
+- 拖过画布边缘时源被压缩的问题。
+- 退出时音频 fifo 排空溢出导致的堆损坏（约 20% 退出崩溃）。
+- 重复添加同一摄像头导致的冻结。
+
+### Removed
+
+- `ffmpeg.exe` 子进程与 stdin 管道推流（ffmpeg 7 会把实时管道输入积压到 EOF，无法实时观看）。
+- Qt Multimedia 依赖（`QCamera` / `QAudioDeviceInfo` 等）。
+
+### Added
+
 - 认证改用 QtNetwork 异步请求，支持 `http://` / `https://`；Qt 5.15 的 HTTPS 通过 OpenSSL 1.1.x 提供。
 - QtNetwork 使用 Windows 系统代理设置。
 - token 使用 Windows DPAPI 加密存储，旧的明文 token 会在下次保存时迁移。
