@@ -48,14 +48,9 @@ QStringList buildStreamPipeArgs(const QSize& canvasSize, const StreamSettings& s
 		<< QStringLiteral("-loglevel") << QStringLiteral("warning")
 		<< QStringLiteral("-nostats");
 
-	// The composited canvas arrives as raw BGRA frames on stdin.
-	arguments << QStringLiteral("-f") << QStringLiteral("rawvideo")
-		<< QStringLiteral("-pix_fmt") << QStringLiteral("bgra")
-		<< QStringLiteral("-s") << QString::number(canvasSize.width())
-			+ QStringLiteral("x") + QString::number(canvasSize.height())
-		<< QStringLiteral("-r") << effectiveFps(settings.fps)
-		<< QStringLiteral("-i") << QStringLiteral("-");
-
+	// The microphone input is opened FIRST: ffmpeg opens inputs sequentially,
+	// and a slow dshow open would stall the read of the rawvideo stdin pipe
+	// (the canvas feed) behind it.
 	if (includeAudio)
 	{
 		if (settings.microphoneName.isEmpty())
@@ -68,7 +63,14 @@ QStringList buildStreamPipeArgs(const QSize& canvasSize, const StreamSettings& s
 			<< QStringLiteral("-i") << QStringLiteral("audio=%1").arg(settings.microphoneName);
 	}
 
-	arguments << QStringLiteral("-f") << QStringLiteral("flv");
+	// The composited canvas arrives as raw BGRA frames on stdin.
+	arguments << QStringLiteral("-f") << QStringLiteral("rawvideo")
+		<< QStringLiteral("-pix_fmt") << QStringLiteral("bgra")
+		<< QStringLiteral("-s") << QString::number(canvasSize.width())
+			+ QStringLiteral("x") + QString::number(canvasSize.height())
+		<< QStringLiteral("-r") << effectiveFps(settings.fps)
+		<< QStringLiteral("-i") << QStringLiteral("-");
+
 	if (settings.encoder != QStringLiteral("Auto") && !settings.encoder.isEmpty())
 		arguments << QStringLiteral("-c:v") << settings.encoder;
 	if (settings.bitrate != QStringLiteral("Auto") && !settings.bitrate.isEmpty())
@@ -88,7 +90,7 @@ QStringList buildStreamPipeArgs(const QSize& canvasSize, const StreamSettings& s
 			<< QStringLiteral("-hls_time") << QStringLiteral("2")
 			<< QStringLiteral("-hls_list_size") << QStringLiteral("6")
 			<< QStringLiteral("-hls_flags")
-			<< QStringLiteral("delete_segments+independent_segments+temp_files")
+			<< QStringLiteral("delete_segments+independent_segments+temp_file")
 			<< QStringLiteral("-hls_segment_filename")
 			<< settings.hlsDir + QStringLiteral("/livehime_%05d.ts")
 			<< settings.hlsDir + QStringLiteral("/livehime.m3u8");
@@ -99,7 +101,7 @@ QStringList buildStreamPipeArgs(const QSize& canvasSize, const StreamSettings& s
 		while (url.endsWith(QLatin1Char('/')))
 			url.chop(1);
 		url += QStringLiteral("/livehime");
-		arguments << url;
+		arguments << QStringLiteral("-f") << QStringLiteral("flv") << url;
 	}
 	return arguments;
 }

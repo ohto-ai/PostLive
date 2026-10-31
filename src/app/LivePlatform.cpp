@@ -101,6 +101,8 @@ LivePlatform::LivePlatform(QWidget* parent)
 	connect(actionViewGithub, &QAction::triggered, std::bind(&QDesktopServices::openUrl, QUrl(thatboy::storage::GithubUrl)));
 	connect(actionExit, &QAction::triggered, this, [this]
 		{
+			if (sceneEncoder.isRunning())
+				sceneEncoder.stop();
 			if (ffmpegProcess.state() != QProcess::NotRunning)
 			{
 				stopStreaming();
@@ -228,17 +230,10 @@ LivePlatform::LivePlatform(QWidget* parent)
 	connect(ui.stopPushButton, &QPushButton::clicked, this, &LivePlatform::stopStreaming);
 
 	// OBS-style: the composited preview canvas is the stream input, so the
-	// preview keeps running while live and edits apply immediately.
-	connect(&previewWidget, &ScenePreview::canvasReady, this, [this](const QImage& canvas)
-		{
-			if (ffmpegProcess.state() != QProcess::Running)
-				return;
-			// Backpressure: skip frames while the pipe is still draining.
-			if (ffmpegProcess.bytesToWrite() > qint64(canvas.sizeInBytes()) * 2)
-				return;
-			ffmpegProcess.write(reinterpret_cast<const char*>(canvas.constBits()),
-				qint64(canvas.sizeInBytes()));
-		});
+	// preview keeps running while live and edits apply immediately. The
+	// in-process encoder consumes the canvas frames directly.
+	connect(&previewWidget, &ScenePreview::canvasReady,
+		&sceneEncoder, &SceneEncoder::onCanvasReady);
 	connect(&previewWidget, &ScenePreview::sceneChanged, this, [this](QList<StreamSource> sources)
 		{
 			m_scene = sources;
@@ -361,6 +356,21 @@ LivePlatform::LivePlatform(QWidget* parent)
 
 	connect(&deviceRefreshTimer, &QTimer::timeout, this, &LivePlatform::refreshDevices);
 	deviceRefreshTimer.start(3000);
+
+	// Headless e2e hook: POSTLIVE_SMOKE_STREAM=1 auto-starts streaming with
+	// local HLS output (POSTLIVE_SMOKE_CAPTURE picks the source).
+	if (qEnvironmentVariableIsSet("POSTLIVE_SMOKE_STREAM"))
+	{
+		m_smokeStream = true;
+		thatboy::storage::config["stream"]["local_hls"] = true;
+		// POSTLIVE_SMOKE_NOAUDIO=1: video-only stream (diagnoses muxer stalls).
+		if (qEnvironmentVariableIsSet("POSTLIVE_SMOKE_NOAUDIO"))
+			ui.audioMicCheckBox->setChecked(false);
+		QTimer::singleShot(800, this, [this]
+			{
+				startStreaming();
+			});
+	}
 
 	// Headless capture test hook (CI / diagnostics): POSTLIVE_SMOKE_CAPTURE
 	// = "desktop" or "window:<exact title>" adds that source on startup.
@@ -546,8 +556,25 @@ void LivePlatform::startStreaming()
 	}
 
 	StreamSettings settings;
+	settings.localHls = m_smokeStream
+		|| thatboy::storage::config["stream"].value("local_hls", false);
+	settings.hlsDir = QCoreApplication::applicationDirPath() + QStringLiteral("/hls");
 	settings.server = streamSetting("server", "rtmp://rtmp.ohtoai.top");
 	settings.microphoneName = streamSetting("microphone", "virtual-audio-capturer");
+
+	// Degrade gracefully on machines without the configured (or virtual)
+	// audio device: fall back to the first real microphone, else video-only.
+	{
+		FFmpegInputDevice::updateInputDeviceList();
+		QStringList availableMics;
+		for (const FFmpegInputDevice* microphone : FFmpegInputDevice::filterAudioDevices())
+			availableMics << QString::fromStdString(microphone->device_name);
+		if (!availableMics.contains(settings.microphoneName))
+			settings.microphoneName = availableMics.isEmpty()
+				? QString() : availableMics.first();
+	}
+	const bool includeAudio = ui.audioMicCheckBox->isChecked()
+		&& !settings.microphoneName.isEmpty();
 	settings.size = streamSetting("size", "1280x720");
 	settings.encoder = streamSetting("encoder", "Auto");
 	settings.bitrate = streamSetting("bitrate", "Auto");
@@ -555,9 +582,29 @@ void LivePlatform::startStreaming()
 	settings.localHls = thatboy::storage::config["stream"].value("local_hls", false);
 	settings.hlsDir = QCoreApplication::applicationDirPath() + QStringLiteral("/hls");
 
+	const int fpsValue = settings.fps == QStringLiteral("Auto")
+		? 30 : qBound(1, settings.fps.toInt(), 120);
+	const int bitrateKbps = settings.bitrate == QStringLiteral("Auto")
+		? 2500 : qBound(100, settings.bitrate.toInt(), 20000);
+
+	if (settings.localHls)
+	{
+		// In-process encoding: the canvas is encoded with libav and written
+		// as HLS directly (the stdin-pipe path stalls on ffmpeg 7).
+		QDir().mkpath(settings.hlsDir);
+		stopRequested = false;
+		errorNotified = false;
+		ui.progressLabel->clear();
+		sceneEncoder.startHls(settings.hlsDir, previewWidget.canvasSize(),
+			fpsValue, settings.encoder, bitrateKbps);
+		updateStreamControls(true);
+		appendStatus(tr("本地观看：http://localhost:18080/player.html"));
+		return;
+	}
+
 	QString error;
 	const QStringList arguments = buildStreamPipeArgs(previewWidget.canvasSize(),
-		settings, ui.audioMicCheckBox->isChecked(), &error);
+		settings, includeAudio, &error);
 	if (arguments.isEmpty())
 	{
 		appendStatus(tr("无法开始推流：%1").arg(error));
@@ -565,7 +612,6 @@ void LivePlatform::startStreaming()
 		return;
 	}
 
-	// The preview keeps running: its composited canvas is the stream input.
 	stopRequested = false;
 	errorNotified = false;
 	lastErrorOutput.clear();
@@ -574,18 +620,18 @@ void LivePlatform::startStreaming()
 	appendStatus(tr("正在启动 FFmpeg..."));
 	qCInfo(lcStream) << "starting FFmpeg:" << ffmpegPath << arguments.join(QLatin1Char(' '));
 	ffmpegProcess.start(ffmpegPath, arguments);
-	if (settings.localHls)
-	{
-		QDir().mkpath(settings.hlsDir);
-		connect(&ffmpegProcess, &QProcess::started, this, [this]
-			{
-				appendStatus(tr("本地观看：http://localhost:18080/player.html"));
-			});
-	}
 }
 
 void LivePlatform::stopStreaming()
 {
+	if (sceneEncoder.isRunning())
+	{
+		sceneEncoder.stop();
+		updateStreamControls(false);
+		ui.progressLabel->clear();
+		appendStatus(tr("推流已停止"));
+		return;
+	}
 	if (ffmpegProcess.state() == QProcess::NotRunning)
 		return;
 

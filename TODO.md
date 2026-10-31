@@ -22,7 +22,9 @@
 
 ## 下次优先做
 
-1. **直播页实机复测**：窗口采集已换 PrintWindow（修复 Chrome/黑屏）、屏幕采集换 DXGI 桌面复制（多屏逐显示器）、画布 16:9 可拖拽缩放、推流改为合成画布 rawvideo 管道——需真机推流验证端到端，并重点测试 Chrome/游戏窗口采集效果
+1. **直播页实测**：进程内编码已打通（WGC 采集 → 画布合成 → libav 编码 → HLS 实时落盘 → nginx/浏览器播放），待实机确认画质/流畅度与浏览器播放体验
+2. **推流音频**：WASAPI 麦克风采音 → 进程内 AAC 编码 → HLS 双轨（本期未做，控制 dock 的音轨开关暂只作用于 RTMP 路径）
+3. **RTMP 推流同样迁到进程内编码**（flv over avio）——stdin 管道方案因 ffmpeg 7 调度问题（实时喂入被积压到 EOF）已废弃
 2. **本地观看链路实测**：设置勾选"本地 HLS 输出"→ 开播 → 浏览器打开 http://localhost:18080/player.html（nginx 已配置在 C:\Tools
 ginx-1.30.6，模板见 [tools/nginx/](tools/nginx/)）；以及用 Cloudflare Worker 跑一次真实 HTTPS 登录（[worker/README.md](worker/README.md)）
 3. **实机验证**：遮罩窗口、设置窗口（新增直播设置区）、新登录界面、CI 安装包安装流程
@@ -99,6 +101,13 @@ ginx-1.30.6，模板见 [tools/nginx/](tools/nginx/)）；以及用 Cloudflare W
 - [x] CI 用 GitHub 预装的 Inno Setup 6 编译 `packaging/PostLive.iss`（版本号从 CMakeLists 解析传入），安装包与 zip 一起上传为 Actions 产物；升级不覆盖用户 `application.json` / `users.json`。
 - [x] CI 打包前自动获取 OpenSSL 1.1.1w（slproweb Light 安装包静默安装），把两枚 DLL 复制进构建目录；zip 与安装包因此都支持 HTTPS 认证。
 - [x] `packaging/README.md` 更新安装包内容清单与本地 OpenSSL 补齐方式。
+
+### H 进程内编码推流（替换 stdin 管道架构）
+
+- [x] **发现并定位 stdin 管道致命缺陷**：ffmpeg 7 对管道输入的调度会把所有处理积压到 EOF（实时喂入零消费，TCP 输入同样；mpegts/hls 输出均零字节），minidump + 隔离复现确认。
+- [x] `SceneEncoder`：进程内 libav 编码——合成画布 BGRA→sws→YUV420P→libopenh264→libavformat hls muxer 直写 `hls/` 目录；时间戳由应用生成（从 0 单调），分片实时落盘（ffprobe 验证 h264 1280x720@30）。
+- [x] LivePlatform 本地 HLS 模式切换到 SceneEncoder；控制条显示播放页地址；FFmpeg stdin 管道代码移除（RTMP 进程内迁移列为待办）。
+- [x] e2e：无头自动开播 → 分片实时生成 → nginx 分发 → 播放页可播。
 
 ### G 直播页对齐 OBS（采集引擎 + 画布交互 + 合成推流）
 

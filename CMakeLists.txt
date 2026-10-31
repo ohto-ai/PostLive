@@ -43,6 +43,7 @@ set(POSTLIVE_SOURCES
 
     src/media/FFmpegInputDevice.cpp
     src/media/FFmpegVideo.cpp
+    src/media/SceneEncoder.cpp
     src/media/ScenePreview.cpp
     src/media/StreamArgs.cpp
     src/media/StreamSource.cpp
@@ -78,6 +79,7 @@ set(POSTLIVE_HEADERS
 
     src/media/FFmpegInputDevice.h
     src/media/FFmpegVideo.h
+    src/media/SceneEncoder.h
     src/media/ScenePreview.h
     src/media/StreamArgs.h
     src/media/StreamSource.h

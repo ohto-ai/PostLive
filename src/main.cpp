@@ -85,7 +85,10 @@ int main(int argc, char* argv[])
 		{
 			LivePlatform w;
 			w.show();
-			QTimer::singleShot(1500, &a, [&]
+			// The streaming e2e needs ~9s so HLS can produce segments.
+			const int platformSmokeMs = qEnvironmentVariableIsSet("POSTLIVE_SMOKE_STREAM")
+				? 9000 : 1500;
+			QTimer::singleShot(platformSmokeMs, &a, [&]
 				{
 					const QString snapshot = qEnvironmentVariable("POSTLIVE_SNAPSHOT");
 					if (!snapshot.isEmpty())

@@ -278,7 +278,9 @@ void ScenePreview::startSlot(RenderSlot* slot)
 			});
 		// QThread subclasses cannot use new-style signal syntax through the
 		// base pointer; cast to the concrete types.
-		if (auto* desktop = qobject_cast<DesktopDuplicationCapture*>(slot->capture))
+		if (auto* wgc = qobject_cast<GraphicsCapture*>(slot->capture))
+			connect(wgc, &GraphicsCapture::frameReady, this, onFrame);
+		else if (auto* desktop = qobject_cast<DesktopDuplicationCapture*>(slot->capture))
 			connect(desktop, &DesktopDuplicationCapture::frameReady, this, onFrame);
 		else if (auto* window = qobject_cast<WindowPrintCapture*>(slot->capture))
 			connect(window, &WindowPrintCapture::frameReady, this, onFrame);
@@ -370,6 +372,10 @@ void ScenePreview::composeCanvas()
 		// No source has delivered anything yet: keep the canvas but let the
 		// paint layer show the loading animation instead.
 		m_canvas = QImage();
+	}
+	else if (m_canvas.isNull())
+	{
+		qCInfo(lcStream) << "scene canvas produced its first frame";
 	}
 	emit canvasReady(m_canvas);
 	update();

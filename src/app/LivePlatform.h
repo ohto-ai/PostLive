@@ -4,6 +4,7 @@
 #include <QProcess>
 #include <QSystemTrayIcon>
 #include <QTimer>
+#include "SceneEncoder.h"
 #include "ScenePreview.h"
 #include "StreamArgs.h"
 #include "StreamSource.h"
@@ -44,6 +45,7 @@ protected:
 	const QString ffmpegPath{ R"(ffmpeg.exe)" };
 
 	ScenePreview previewWidget{ this };
+	SceneEncoder sceneEncoder{ this };
 	QList<StreamSource> m_scene;
 	bool m_sceneSeeded{ false };
 	QProcess ffmpegProcess{ this };
@@ -52,6 +54,7 @@ protected:
 	bool stopRequested{ false };
 	bool errorNotified{ false };
 	QString lastErrorOutput;
+	bool m_smokeStream{ false }; // POSTLIVE_SMOKE_STREAM: auto-start for e2e tests
 private:
 	Ui::LivePlatformClass ui;
 };
