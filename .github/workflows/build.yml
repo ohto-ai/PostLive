@@ -61,7 +61,10 @@ jobs:
         run: |
           $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
           if (-not (Test-Path $iscc)) { $iscc = (Get-Command iscc.exe -ErrorAction Stop).Source }
-          $match = Select-String -Path CMakeLists.txt -Pattern 'project\(PostLive\s+VERSION\s+(\d+(?:\.\d+)+)'
+          # Select-String matches per line, so anchor the VERSION line itself
+          # (project() spans multiple lines and cannot be matched cross-line).
+          $match = Select-String -Path CMakeLists.txt -Pattern '^\s*VERSION\s+(\d+(?:\.\d+)+)'
+          if ($null -eq $match) { throw "Cannot parse project VERSION from CMakeLists.txt" }
           $version = $match.Matches[0].Groups[1].Value
           & $iscc "/DMyAppVersion=$version" "packaging\PostLive.iss"
 
