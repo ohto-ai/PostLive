@@ -45,7 +45,13 @@ jobs:
 
       - name: Fetch OpenSSL 1.1.1 runtime
         run: |
-          Invoke-WebRequest -Uri "https://slproweb.com/download/Win64OpenSSL_Light-1_1_1w.exe" -OutFile "$env:RUNNER_TEMP\openssl-setup.exe"
+          # Third-party host (slproweb.com): pin the SHA256 observed on 2026-11-05
+          # so a silent upstream change can never ship into the installer.
+          $opensslUri = "https://slproweb.com/download/Win64OpenSSL_Light-1_1_1w.exe"
+          $opensslSha256 = "82FC564EFC673BE043DAC12BAEFC5F4D3276A7E11B222D0F948A70C7367DD162"
+          Invoke-WebRequest -Uri $opensslUri -OutFile "$env:RUNNER_TEMP\openssl-setup.exe"
+          $hash = (Get-FileHash "$env:RUNNER_TEMP\openssl-setup.exe" -Algorithm SHA256).Hash
+          if ($hash -ne $opensslSha256) { throw "OpenSSL installer SHA256 mismatch: got $hash" }
           Start-Process "$env:RUNNER_TEMP\openssl-setup.exe" -ArgumentList "/VERYSILENT","/SUPPRESSMSGBOXES","/NORESTART","/DIR=$env:RUNNER_TEMP\openssl" -Wait
           $dlls = Get-ChildItem "$env:RUNNER_TEMP\openssl" -Recurse -Include "libcrypto-1_1-x64.dll","libssl-1_1-x64.dll"
           if ($dlls.Count -lt 2) { throw "OpenSSL 1.1 DLLs not found in the installer output" }
@@ -64,9 +70,10 @@ jobs:
           # Select-String matches per line, so anchor the VERSION line itself
           # (project() spans multiple lines and cannot be matched cross-line).
           $match = Select-String -Path CMakeLists.txt -Pattern '^\s*VERSION\s+(\d+(?:\.\d+)+)'
-          if ($null -eq $match) { throw "Cannot parse project VERSION from CMakeLists.txt" }
+          if (@($match).Count -ne 1) { throw "Expected exactly one VERSION line in CMakeLists.txt, got $(@($match).Count)" }
           $version = $match.Matches[0].Groups[1].Value
           & $iscc "/DMyAppVersion=$version" "packaging\PostLive.iss"
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed with exit code $LASTEXITCODE" }
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
